@@ -1,0 +1,56 @@
+/* ═══════════════════════════════════════════
+   BreakpointBench — Base Styles
+   Resets, Typography, Theme Tokens
+   ═══════════════════════════════════════════ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0A0A0A;
+  --surface: #111111;
+  --elevated: #171717;
+  --elevated-hover: #1C1C1C;
+  --border: rgba(255,255,255,0.08);
+  --border-hover: rgba(255,255,255,0.14);
+  --border-active: rgba(212,164,90,0.35);
+  --accent: #D4A45A;
+  --accent-dim: rgba(212,164,90,0.12);
+  --accent-glow: rgba(212,164,90,0.06);
+  --green: #6DBE7B;
+  --blue: #4DA6D9;
+  --orange: #E28A3B;
+  --red: #C96A5A;
+  --text: rgba(255,255,255,0.92);
+  --text-sec: rgba(255,255,255,0.55);
+  --text-dim: rgba(255,255,255,0.30);
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Inter', -apple-system, sans-serif;
+  --header-h: 48px;
+  --panel-w: 260px;
+  --status-h: 28px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.10); border-radius: 3px; }
+::selection { background: var(--accent-dim); color: var(--text); }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}

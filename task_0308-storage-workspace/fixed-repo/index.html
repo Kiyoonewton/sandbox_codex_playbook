@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>KITCHEN RUSH!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/base.css">
+<link rel="stylesheet" href="styles/components.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+<canvas id="game"></canvas>
+<!-- ============ HUD ============ -->
+<div id="hud">
+  <div id="scoreCard">
+    <div class="lbl">SCORE</div>
+    <div id="scoreVal">0</div>
+    <div id="livesRow"></div>
+    <div id="bestMini">BEST 0</div>
+  </div>
+  <div id="rail"></div>
+  <div id="pauseBtn" title="Pause"><span></span><span></span></div>
+  <div id="heldChip"></div>
+</div>
+<div id="popups"></div>
+<div id="banner"></div>
+
+<!-- touch controls -->
+<div id="touchUI">
+  <div id="joyBase"><div id="joyStick"></div></div>
+  <div id="actBtn">COOK!</div>
+</div>
+
+<!-- ============ TITLE ============ -->
+<div id="titleScreen" class="screen on">
+  <div class="tiles"></div>
+  <div id="titleInner">
+    <div id="logoWrap">
+      <svg id="logoHat" viewBox="0 0 80 60"><ellipse cx="40" cy="52" rx="34" ry="8" fill="#FFFBEF" stroke="#4A2E12" stroke-width="3"/><path d="M18 50 Q8 18 26 14 Q28 4 40 6 Q52 4 54 14 Q72 18 62 50 Z" fill="#FFFBEF" stroke="#4A2E12" stroke-width="3"/></svg>
+      <div id="logoTitle">KITCHEN<br><span class="l2">RUSH!</span></div>
+      <div id="logoSub">chop · sizzle · serve</div>
+    </div>
+    <div id="bestBadge"><span class="star">★</span> BEST SCORE: <b id="bestTitle">0</b></div>
+    <div id="howto">
+      <h3>How to play</h3>
+      <div class="howrow"><span class="key">W A S D</span><span>Run around the kitchen</span></div>
+      <div class="howrow"><span class="key">SPACE</span><span>Pick up · chop · cook · plate · serve</span></div>
+      <div class="howrow"><span class="ic"><svg viewBox="0 0 28 28"><rect x="3" y="5" width="22" height="18" rx="4" fill="#FFFDF4" stroke="#4A2E12" stroke-width="2"/><rect x="10" y="2" width="8" height="6" rx="2" fill="#E8354A"/><rect x="6" y="17" width="16" height="3" rx="1.5" fill="#38B96A"/></svg></span><span>Serve orders before ticket timers run out — 3 misses ends your shift!</span></div>
+    </div>
+    <button id="playBtn" class="btn cherry big">▶ PLAY</button>
+  </div>
+</div>
+
+<!-- ============ PAUSE ============ -->
+<div id="pauseScreen" class="screen">
+  <div class="dim"></div>
+  <div class="panel">
+    <h2>PAUSED</h2>
+    <div class="stat">Score: <b id="pauseScore">0</b></div>
+    <div class="btnrow">
+      <button id="resumeBtn" class="btn basil">Resume</button>
+      <button id="pauseHomeBtn" class="btn berry">Home</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ GAME OVER ============ -->
+<div id="overScreen" class="screen">
+  <div class="dim"></div>
+  <div class="panel">
+    <h2 class="cherry">SHIFT OVER!</h2>
+    <div id="newBest">★ NEW BEST! ★</div>
+    <div class="stat">Score: <b id="overScore">0</b></div>
+    <div class="stat">Orders served: <b id="overOrders">0</b></div>
+    <div class="stat">Best: <b id="overBest">0</b></div>
+    <div class="btnrow">
+      <button id="againBtn" class="btn cherry">Play Again</button>
+      <button id="overHomeBtn" class="btn berry">Home</button>
+    </div>
+  </div>
+</div>
+<script src="vendor_three.min.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/recipes.js"></script>
+<script src="js/state.js"></script>
+<script src="js/scene.js"></script>
+<script src="js/props.js"></script>
+<script src="js/stations.js"></script>
+<script src="js/particles.js"></script>
+<script src="js/chef.js"></script>
+<script src="js/input.js"></script>
+<script src="js/movement.js"></script>
+<script src="js/carry.js"></script>
+<script src="js/stationhelpers.js"></script>
+<script src="js/actions.js"></script>
+<script src="js/tickets.js"></script>
+<script src="js/gameflow.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

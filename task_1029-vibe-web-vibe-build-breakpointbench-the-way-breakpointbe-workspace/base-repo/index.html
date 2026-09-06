@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BreakpointBench — Responsive Preview Studio</title>
+  <meta name="description" content="Preview your website at every common breakpoint simultaneously. Scroll sync, export screenshots, and compare responsive layouts side by side.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='2' y='4' width='8' height='24' rx='2' fill='%23D4A45A' opacity='0.9'/><rect x='12' y='4' width='8' height='24' rx='2' fill='%23D4A45A' opacity='0.6'/><rect x='22' y='4' width='8' height='24' rx='2' fill='%23D4A45A' opacity='0.3'/></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/components.css">
+  <link rel="stylesheet" href="styles/themes.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+</head>
+<body>
+  <div class="ambient-glow"></div>
+
+  <header class="header" id="header">
+    <div class="header-left">
+      <div class="logo">
+        <div class="logo-mark">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <rect x="1" y="4" width="6" height="16" rx="1" stroke="#D4A45A" stroke-width="1.5" fill="none"/>
+            <rect x="9" y="4" width="6" height="16" rx="1" stroke="#D4A45A" stroke-width="1.5" fill="none" opacity="0.7"/>
+            <rect x="17" y="4" width="6" height="16" rx="1" stroke="#D4A45A" stroke-width="1.5" fill="none" opacity="0.4"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <span class="logo-name">BreakpointBench</span>
+          <span class="logo-tag">Responsive Preview Studio</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <div class="url-input-wrapper" id="urlWrapper">
+        <div class="url-prefix">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M2 8h12M8 2c-2 2.5-2 5.5 0 8M8 2c2 2.5 2 5.5 0 8" stroke="currentColor" stroke-width="1"/>
+          </svg>
+        </div>
+        <input type="url" id="urlInput" class="url-input" placeholder="Enter URL to preview — press Enter to load" spellcheck="false" autocomplete="off"/>
+        <button class="url-submit" id="urlSubmit" title="Load URL (Enter)">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <path d="M4 9h10M10 5l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <button class="header-btn" id="btnSync" title="Toggle Sync Scroll (S)">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M3 5v6M13 5v6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M1 8h14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="2 2"/>
+          <path d="M3 3v2M3 11v2M13 3v2M13 11v2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+        <span>Sync</span>
+      </button>
+      <button class="header-btn" id="btnZoom" title="Toggle Fit Mode (F)">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <rect x="1" y="3" width="14" height="10" rx="1.5" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M5 3v10" stroke="currentColor" stroke-width="1" opacity="0.5"/>
+        </svg>
+        <span>Fit</span>
+      </button>
+      <div class="header-divider"></div>
+      <button class="header-btn accent" id="btnExport" title="Export Screenshot (E)">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M8 2v8M5 7l3 3 3-3M3 11v2.5a.5.5 0 00.5.5h9a.5.5 0 00.5-.5V11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Export</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="main" id="main">
+    <aside class="side-panel" id="sidePanel">
+      <div class="panel-section">
+        <div class="panel-label">Breakpoints</div>
+        <div class="breakpoint-list" id="breakpointList"></div>
+        <button class="panel-btn add-bp" id="addBpBtn">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+          Add Breakpoint
+        </button>
+      </div>
+      <div class="panel-divider"></div>
+      <div class="panel-section">
+        <div class="panel-label">Display</div>
+        <div class="control-row">
+          <span class="control-label">Zoom</span>
+          <div class="zoom-control">
+            <button class="zoom-btn" id="zoomOut" title="Zoom Out (-)">
+              <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6h8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            </button>
+            <span class="zoom-value" id="zoomValue">100%</span>
+            <button class="zoom-btn" id="zoomIn" title="Zoom In (+)">
+              <svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 2v8M2 6h8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="control-row">
+          <span class="control-label">Gap</span>
+          <input type="range" class="slider" id="gapSlider" min="4" max="32" value="16" step="2">
+          <span class="slider-value" id="gapValue">16</span>
+        </div>
+        <div class="control-row">
+          <span class="control-label">Layout</span>
+          <div class="segmented" id="layoutSegmented">
+            <button class="seg-btn active" data-layout="flow" title="Flow">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1"/><rect x="8" y="1" width="5" height="3" rx="1" stroke="currentColor" stroke-width="1"/><rect x="1" y="8" width="3" height="5" rx="1" stroke="currentColor" stroke-width="1"/><rect x="6" y="6" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1"/></svg>
+            </button>
+            <button class="seg-btn" data-layout="grid" title="Grid">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1"/><rect x="8" y="1" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1"/><rect x="1" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1"/><rect x="8" y="8" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1"/></svg>
+            </button>
+            <button class="seg-btn" data-layout="row" title="Row">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="1" y="1" width="3" height="12" rx="1" stroke="currentColor" stroke-width="1"/><rect x="5.5" y="1" width="3" height="12" rx="1" stroke="currentColor" stroke-width="1"/><rect x="10" y="1" width="3" height="12" rx="1" stroke="currentColor" stroke-width="1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="panel-divider"></div>
+      <div class="panel-section">
+        <div class="panel-label">Preview Theme</div>
+        <div class="control-row">
+          <span class="control-label">Background</span>
+          <div class="theme-dots" id="bgDots">
+            <button class="theme-dot" data-bg="#FFFFFF" style="background:#FFFFFF;border-color:rgba(255,255,255,0.25)" title="White"></button>
+            <button class="theme-dot active" data-bg="#F5F0EB" style="background:#F5F0EB;border-color:rgba(255,255,255,0.2)" title="Warm Paper"></button>
+            <button class="theme-dot" data-bg="#1a1a2e" style="background:#1a1a2e" title="Dark Blue"></button>
+            <button class="theme-dot" data-bg="#0A0A0A" style="background:#0A0A0A" title="Pure Black"></button>
+          </div>
+        </div>
+      </div>
+      <div class="panel-divider"></div>
+      <div class="panel-section">
+        <div class="panel-label">History</div>
+        <div class="history-list" id="historyList">
+          <div class="history-empty">No URLs loaded yet</div>
+        </div>
+      </div>
+      <div class="panel-footer">
+        <div class="shortcuts-hint">
+          <kbd>&#8984;</kbd><kbd>K</kbd> <span>URL</span>
+          <kbd>S</kbd> <span>Sync</span>
+          <kbd>F</kbd> <span>Fit</span>
+          <kbd>E</kbd> <span>Export</span>
+        </div>
+      </div>
+    </aside>
+
+    <div class="canvas-area" id="canvasArea">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">
+          <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+            <rect x="4" y="8" width="16" height="48" rx="3" stroke="#D4A45A" stroke-width="1.5" opacity="0.4"/>
+            <rect x="24" y="8" width="16" height="48" rx="3" stroke="#D4A45A" stroke-width="1.5" opacity="0.6"/>
+            <rect x="44" y="8" width="16" height="48" rx="3" stroke="#D4A45A" stroke-width="1.5" opacity="0.8"/>
+          </svg>
+        </div>
+        <h2 class="empty-title">BreakpointBench</h2>
+        <p class="empty-desc">Enter a URL above to preview your site at every common breakpoint simultaneously</p>
+        <div class="empty-breakpoints">
+          <span class="empty-bp">320</span>
+          <span class="empty-bp">375</span>
+          <span class="empty-bp">390</span>
+          <span class="empty-bp">768</span>
+          <span class="empty-bp">1024</span>
+          <span class="empty-bp">1280</span>
+          <span class="empty-bp">1440</span>
+        </div>
+        <div class="empty-shortcuts">
+          <div class="empty-shortcut"><kbd>Cmd K</kbd> Focus URL</div>
+          <div class="empty-shortcut"><kbd>S</kbd> Sync scroll</div>
+          <div class="empty-shortcut"><kbd>E</kbd> Export</div>
+        </div>
+      </div>
+      <div class="viewport-grid" id="viewportGrid"></div>
+      <div class="loading-overlay" id="loadingOverlay" style="display:none">
+        <div class="loading-spinner"></div>
+        <span class="loading-text">Loading preview...</span>
+      </div>
+    </div>
+  </div>
+
+  <footer class="status-bar" id="statusBar">
+    <div class="status-left">
+      <span class="status-item" id="statusUrl">
+        <span class="status-label">URL</span>
+        <span class="status-value">-</span>
+      </span>
+      <span class="status-divider">.</span>
+      <span class="status-item">
+        <span class="status-label">Viewports</span>
+        <span class="status-value" id="statusViewports">7</span>
+      </span>
+      <span class="status-divider">.</span>
+      <span class="status-item">
+        <span class="status-label">Sync</span>
+        <span class="status-value" id="statusSync">OFF</span>
+      </span>
+    </div>
+    <div class="status-right">
+      <span class="status-item">
+        <span class="status-label">Zoom</span>
+        <span class="status-value" id="statusZoom">100%</span>
+      </span>
+      <span class="status-divider">.</span>
+      <span class="status-item">
+        <span class="status-value" id="statusTime"></span>
+      </span>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Add Breakpoint Modal -->
+  <div class="modal-overlay" id="modalOverlay" style="display:none">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Add Breakpoint</h3>
+        <button class="modal-close" id="modalClose">
+          <svg width="16" height="16" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <label class="modal-label">Width (px)</label>
+        <input type="number" id="modalInput" class="modal-input" placeholder="e.g. 1440" min="240" max="3840">
+        <label class="modal-label">Label</label>
+        <input type="text" id="modalLabel" class="modal-input" placeholder="e.g. 4K (optional)">
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn cancel" id="modalCancel">Cancel</button>
+        <button class="modal-btn confirm" id="modalConfirm">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Viewport Preview Modal -->
+  <div class="vp-preview-overlay" id="vpPreviewOverlay" style="display:none">
+    <div class="vp-preview-modal" id="vpPreviewModal">
+      <div class="vp-preview-toolbar">
+        <div class="vp-preview-info">
+          <span class="vp-preview-width" id="vpPreviewWidth">375</span>
+          <span class="vp-preview-unit">px</span>
+          <span class="vp-preview-label" id="vpPreviewLabel">iPhone 14</span>
+        </div>
+        <div class="vp-preview-url" id="vpPreviewUrl"></div>
+        <div class="vp-preview-actions">
+          <button class="vp-preview-btn vp-preview-btn-download" id="vpPreviewDownload" title="Download screenshot">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v7M4.5 6.5L7 9l2.5-2.5M3 10v1.5a1 1 0 001 1h6a1 1 0 001-1V10" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>Download</span>
+          </button>
+          <button class="vp-preview-btn" id="vpPreviewNewTab" title="Open in new tab">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M6 2H3.5A1.5 1.5 0 002 3.5v7A1.5 1.5 0 003.5 12h7a1.5 1.5 0 001.5-1.5V8M8 2h4v4M12 2L6.5 7.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>New Tab</span>
+          </button>
+          <button class="vp-preview-btn close" id="vpPreviewClose" title="Close (Esc)">
+            <svg width="14" height="14" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="vp-preview-content" id="vpPreviewContent">
+        <iframe class="vp-preview-frame" id="vpPreviewFrame" sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-modals" title="Viewport Preview"></iframe>
+      </div>
+      <div class="vp-preview-resize-bar">
+        <div class="vp-preview-ruler" id="vpPreviewRuler"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

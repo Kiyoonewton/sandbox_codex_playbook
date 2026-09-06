@@ -1,0 +1,22 @@
+# Local workspace noise
+.DS_Store
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Generated / temporary task artifacts
+node_modules/
+.vite/
+dist/
+build/
+coverage/
+playwright-report/
+test-results/
+
+# Common editor / OS files
+.vscode/
+.idea/
+
+# Keep repo clean while working in this sandbox
+*.tar.gz

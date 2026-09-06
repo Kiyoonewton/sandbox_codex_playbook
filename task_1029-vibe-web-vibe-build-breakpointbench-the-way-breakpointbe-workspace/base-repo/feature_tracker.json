@@ -1,0 +1,127 @@
+[
+  {
+    "name": "Core HTML structure",
+    "status": "done",
+    "notes": "Complete HTML structure with header, sidebar, canvas area, status bar, modal, and toast"
+  },
+  {
+    "name": "Dark studio theme",
+    "status": "done",
+    "notes": "Professional dark interface with gold accents, IBM Plex Mono + Inter typography"
+  },
+  {
+    "name": "URL loading & viewport cards",
+    "status": "done",
+    "notes": "7 default breakpoints with device icons, simulated responsive previews, staggered animations"
+  },
+  {
+    "name": "Sidebar controls",
+    "status": "done",
+    "notes": "Breakpoint list with toggle/remove, zoom +/-, gap slider, layout modes, theme dots, history"
+  },
+  {
+    "name": "Sync scroll",
+    "status": "done",
+    "notes": "Cross-iframe scroll synchronization with visual indicators"
+  },
+  {
+    "name": "Fit mode",
+    "status": "done",
+    "notes": "Auto-zoom to fit all viewports within canvas"
+  },
+  {
+    "name": "Layout modes",
+    "status": "done",
+    "notes": "Flow, grid, and horizontal row layouts"
+  },
+  {
+    "name": "Theme switching",
+    "status": "done",
+    "notes": "White, warm paper, dark blue, black preview backgrounds"
+  },
+  {
+    "name": "Add breakpoint modal",
+    "status": "done",
+    "notes": "Width + label input with validation, duplicate detection, auto-sorting"
+  },
+  {
+    "name": "Undo/redo",
+    "status": "done",
+    "notes": "Stack-based undo/redo for breakpoint changes, Ctrl+Z/Ctrl+Y support"
+  },
+  {
+    "name": "Keyboard shortcuts",
+    "status": "done",
+    "notes": "Cmd+K URL focus, S sync, F fit, E export, +/- zoom, 0 reset, Esc close"
+  },
+  {
+    "name": "LocalStorage persistence",
+    "status": "done",
+    "notes": "URL, breakpoints, zoom, gap, layout, theme, history all persisted"
+  },
+  {
+    "name": "Export screenshot",
+    "status": "done",
+    "notes": "html2canvas-based export with BreakpointBench branding"
+  },
+  {
+    "name": "Empty state",
+    "status": "done",
+    "notes": "Branded empty state with breakpoint preview badges and keyboard shortcut hints"
+  },
+  {
+    "name": "Status bar",
+    "status": "done",
+    "notes": "URL, viewport count, sync status, zoom level, clock"
+  },
+  {
+    "name": "History",
+    "status": "done",
+    "notes": "Persistent URL history with click-to-load"
+  },
+  {
+    "name": "Responsive CSS",
+    "status": "done",
+    "notes": "Sidebar hidden below 900px, compact header below 600px"
+  },
+  {
+    "name": "URL validation",
+    "status": "done",
+    "notes": "Live input validation with color feedback"
+  },
+  {
+    "name": "Resize handles",
+    "status": "done",
+    "notes": "Drag to resize individual viewport frame heights"
+  },
+  {
+    "name": "Toast notifications",
+    "status": "done",
+    "notes": "Success/error/info toasts with auto-dismiss"
+  },
+  {
+    "name": "Viewport Preview Modal",
+    "status": "done",
+    "notes": "Implemented full viewport preview modal that opens when clicking the \"Open\" button on any viewport card. Shows the URL in an iframe at the exact breakpoint width. Includes: toolbar with width/label/URL display, New Tab button, close button, Escape key support, click-outside-to-close, animated open/close transitions, proper sizing based on breakpoint width."
+  },
+  {
+    "name": "Preview Modal Polish",
+    "status": "done",
+    "notes": "All verified: preset chips, custom width, keyboard shortcuts, close mechanisms, responsive layout, animated transitions. Full test suite passed."
+  },
+  {
+    "name": "Fix Export - Download images at all current sizes",
+    "status": "done",
+    "notes": "FINAL VERIFICATION: 1) Added html2canvas CDN to index.html. 2) Rewrote exportScreenshot to capture each viewport card individually. 3) Tested: loads 7 viewport cards, export button exports 7 images, toggling off one breakpoint exports 6 images. 4) All features verified: layout switching (flow/grid/row), breakpoint toggle, gap slider, theme switching, keyboard shortcuts (S/F/E), LocalStorage persistence, mobile responsive. Zero errors."
+  },
+  {
+    "name": "Per-viewport download button on viewport cards",
+    "status": "done",
+    "notes": "Added download button (green download icon) to each viewport card action bar alongside Open and Copy buttons. Click captures that specific card with html2canvas and downloads as PNG."
+  },
+  {
+    "name": "Download button in viewport preview modal",
+    "status": "done",
+    "notes": "Added prominent green Download button in preview modal toolbar. Captures the current preview content at its current width setting and downloads as PNG."
+  }
+]

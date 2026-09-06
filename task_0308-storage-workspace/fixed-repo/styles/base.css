@@ -1,0 +1,80 @@
+
+/* ============================================================
+   KITCHEN RUSH — design system
+   Direction: sunny candy-bright kitchen, soft clay-toy plastic,
+   saturated citrus + berry palette. No beige, no neon, no dark.
+   ------------------------------------------------------------
+   Palette roles (warmed honey/golden-hour pass — same family, deeper tones):
+     lemon   #F0C233  floor / background field
+     butter  #F2DCA6  light surfaces, highlights
+     tang    #FF8A3C  counters / primary warm accent
+     tangDk  #E8661C  counter trim / pressed states
+     berry   #3E5FB8  cabinetry / secondary accent
+     cherry  #E8354A  danger, lives, play button
+     basil   #2FA05C  success, fresh garnish
+     ink     #4A2E12  text / outlines (warm chocolate brown)
+   Type: Fredoka (display, marshmallow-chunky) + Quicksand (UI)
+   ============================================================ */
+:root{
+  --lemon:#F0C233; --lemon-deep:#DDA410; --butter:#F2DCA6; --cream:#FFF4DC;
+  --tang:#FF8A3C; --tang-deep:#E8661C; --tang-soft:#FFB37A;
+  --berry:#3E5FB8; --berry-deep:#2C4799; --berry-soft:#8FA6E8;
+  --cherry:#E8354A; --cherry-deep:#B92338; --cherry-soft:#FF8B97;
+  --basil:#2FA05C; --basil-deep:#1F8048; --basil-soft:#6CC292;
+  --ink:#4A2E12; --ink-soft:#7A5A38;
+  --card:#FFF6E2;
+  --shadow-pop:0 6px 0 rgba(74,46,18,.18);
+  --r-lg:22px; --r-md:16px; --r-sm:11px;
+  --f-display:'Fredoka',sans-serif; --f-ui:'Quicksand',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--lemon);}
+body{font-family:var(--f-ui);color:var(--ink);touch-action:none;}
+canvas#game{position:fixed;inset:0;display:block;}
+
+/* ---------- generic candy button ---------- */
+.btn{
+  font-family:var(--f-display);font-weight:600;border:none;cursor:pointer;
+  color:var(--cream);background:var(--tang);border-radius:999px;
+  padding:14px 34px;font-size:20px;letter-spacing:.5px;
+  box-shadow:0 6px 0 var(--tang-deep), 0 10px 18px rgba(74,46,18,.22);
+  transition:transform .12s cubic-bezier(.34,1.56,.64,1), box-shadow .12s, filter .12s;
+  text-transform:uppercase;user-select:none;
+}
+.btn:hover{filter:brightness(1.09);transform:translateY(-2px) scale(1.04);}
+.btn:active{transform:translateY(4px) scale(.97);box-shadow:0 2px 0 var(--tang-deep),0 4px 8px rgba(74,46,18,.2);}
+.btn.cherry{background:var(--cherry);box-shadow:0 6px 0 var(--cherry-deep),0 10px 18px rgba(74,46,18,.22);}
+.btn.cherry:active{box-shadow:0 2px 0 var(--cherry-deep),0 4px 8px rgba(74,46,18,.2);}
+.btn.berry{background:var(--berry);box-shadow:0 6px 0 var(--berry-deep),0 10px 18px rgba(74,46,18,.22);}
+.btn.berry:active{box-shadow:0 2px 0 var(--berry-deep),0 4px 8px rgba(74,46,18,.2);}
+.btn.basil{background:var(--basil);box-shadow:0 6px 0 var(--basil-deep),0 10px 18px rgba(74,46,18,.22);}
+.btn.basil:active{box-shadow:0 2px 0 var(--basil-deep),0 4px 8px rgba(74,46,18,.2);}
+.btn.big{font-size:30px;padding:20px 62px;}
+.btn:focus-visible{outline:4px solid var(--butter);outline-offset:3px;}
+
+/* ---------- HUD ---------- */
+#hud{position:fixed;inset:0;pointer-events:none;z-index:10;display:none;}
+#hud.on{display:block;}
+
+#scoreCard{
+  position:absolute;top:14px;left:14px;background:var(--card);
+  border-radius:var(--r-lg);padding:10px 18px 12px;min-width:150px;
+  box-shadow:var(--shadow-pop);border:3px solid var(--butter);
+}
+#scoreCard .lbl{font-family:var(--f-display);font-size:12px;font-weight:600;letter-spacing:2px;color:var(--tang-deep);}
+#scoreVal{font-family:var(--f-display);font-weight:700;font-size:34px;line-height:1;color:var(--ink);}
+#livesRow{margin-top:4px;display:flex;gap:5px;height:22px;align-items:center;}
+.cherry-life{width:22px;height:22px;transition:transform .3s, opacity .3s, filter .3s;}
+.cherry-life.lost{opacity:.22;filter:grayscale(1);transform:scale(.8);}
+#bestMini{font-size:11px;font-weight:700;color:var(--ink-soft);margin-top:2px;letter-spacing:.5px;}
+
+/* pause button */
+#pauseBtn{
+  position:absolute;top:14px;right:14px;width:52px;height:52px;border-radius:18px;
+  background:var(--card);border:3px solid var(--butter);box-shadow:var(--shadow-pop);
+  cursor:pointer;pointer-events:auto;display:flex;align-items:center;justify-content:center;gap:5px;
+  transition:transform .12s cubic-bezier(.34,1.56,.64,1), filter .12s;
+}
+#pauseBtn span{width:7px;height:22px;border-radius:4px;background:var(--tang-deep);}
+#pauseBtn:hover{transform:scale(1.08);filter:brightness(1.05);}
+#pauseBtn:active{transform:scale(.94);}

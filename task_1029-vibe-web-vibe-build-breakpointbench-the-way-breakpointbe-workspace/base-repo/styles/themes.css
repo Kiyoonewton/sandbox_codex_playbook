@@ -1,0 +1,27 @@
+/* ═══════════════════════════════════════════
+   BreakpointBench — Responsive Styles
+   Mobile, tablet, and desktop breakpoints
+   ═══════════════════════════════════════════ */
+
+@media (max-width: 900px) {
+  .side-panel { display: none; }
+  .header-left .logo-tag { display: none; }
+  .header-btn span { display: none; }
+}
+
+@media (max-width: 600px) {
+  .header-left { min-width: auto; }
+  .logo-text { display: none; }
+  .viewport-grid { padding: 12px; gap: 12px; }
+  .viewport-card[data-device="phone"] { width: 160px; }
+  .viewport-card[data-device="tablet"] { width: 220px; }
+  .viewport-card[data-device="desktop"] { width: 280px; }
+
+  /* Preview modal responsive */
+  .vp-preview-modal { width: 96vw !important; max-width: 96vw !important; height: 80vh !important; }
+  .vp-preview-toolbar { flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
+  .vp-preview-url { display: none; }
+  .vp-preview-btn span { display: none; }
+  .vp-preview-presets { gap: 3px; }
+  .vp-preset-chip { font-size: 9px !important; padding: 2px 5px !important; }
+}
