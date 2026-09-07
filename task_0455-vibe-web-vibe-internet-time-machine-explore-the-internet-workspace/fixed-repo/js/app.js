@@ -27,7 +27,6 @@
   // === BUILD YEAR TABS ===
   function buildTabs() {
     const tabScroll = document.getElementById('tab-scroll');
-    const eraLabel = document.getElementById('era-label');
     let lastEra = '';
 
     for (let y = 2000; y <= 2025; y++) {
@@ -51,6 +50,23 @@
     }
   }
 
+  function recordHistory(year) {
+    if (historyStack[historyIndex] === year) {
+      updateUndoRedoButtons();
+      return;
+    }
+
+    historyStack = historyStack.slice(0, historyIndex + 1);
+    historyStack.push(year);
+
+    if (historyStack.length > MAX_HISTORY) {
+      historyStack.shift();
+    }
+
+    historyIndex = historyStack.length - 1;
+    updateUndoRedoButtons();
+  }
+
   // === SELECT YEAR ===
   function selectYear(year, animate, skipHistory) {
     if (year === currentYear && animate) return;
@@ -61,13 +77,9 @@
     currentYear = year;
     currentEra = data.era;
 
-    // Track history for undo/redo
+    // Track committed navigation for undo/redo.
     if (!skipHistory) {
-      historyStack = historyStack.slice(0, historyIndex + 1);
-      historyStack.push(year);
-      if (historyStack.length > MAX_HISTORY) historyStack.shift();
-      historyIndex = historyStack.length - 1;
-      updateUndoRedoButtons();
+      recordHistory(year);
     }
 
     // Show loading bar
@@ -99,7 +111,6 @@
     const content = document.getElementById('main-content');
     if (animate && oldEra !== data.era) {
       content.className = 'main-content';
-      // Force reflow
       void content.offsetWidth;
       
       const transition = theme.transition;
@@ -128,7 +139,7 @@
     // Persist selection
     try { localStorage.setItem('itm-year', year); } catch(e) {}
     
-    // Update URL hash
+    // Keep the shareable URL synchronized without creating browser-history noise.
     try { window.history.replaceState(null, '', '#' + year); } catch(e) {}
     
     // Update favorite button
@@ -370,9 +381,7 @@
         document.querySelectorAll('.viral-bar').forEach(bar => {
           bar.style.width = bar.dataset.width;
         });
-        // Populate compare select
         populateCompareSelect();
-        // Scrubber is set up once at init; just update visual position
         refreshScrubberVisual();
       }, 100);
     });
@@ -381,7 +390,6 @@
   // === TOGGLE CATEGORY ===
   window.toggleCategory = function(card) {
     const wasExpanded = card.classList.contains('expanded');
-    // Close all others
     document.querySelectorAll('.category-card.expanded').forEach(c => {
       c.classList.remove('expanded');
       const toggle = c.querySelector('.category-toggle');
@@ -391,7 +399,6 @@
       card.classList.add('expanded');
       const toggle = card.querySelector('.category-toggle');
       if (toggle) toggle.textContent = '▾';
-      // Smooth scroll to card
       setTimeout(() => {
         card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }, 100);
@@ -496,6 +503,15 @@
     `;
   }
 
+  function refreshFavoritesBar() {
+    const hero = document.querySelector('.hero');
+    if (!hero) return;
+    const existing = hero.querySelector('.favorites-bar');
+    if (existing) existing.remove();
+    const html = renderFavoritesBar();
+    if (html) hero.insertAdjacentHTML('beforeend', html);
+  }
+
   function updateFavButton() {
     const btn = document.getElementById('fav-btn');
     if (!btn) return;
@@ -517,6 +533,7 @@
     }
     try { localStorage.setItem('itm-favorites', JSON.stringify(favs)); } catch(e) {}
     updateFavButton();
+    refreshFavoritesBar();
   };
 
   // Close shortcuts on outside click
@@ -542,7 +559,6 @@
     
     return eras.map(era => {
       const isActive = currentYear >= era.start && currentYear <= era.end;
-      const width = ((era.end - era.start + 1) / 26) * 100;
       return `
         <div class="timeline-era ${isActive ? 'active' : ''}" style="flex: ${era.end - era.start + 1}">
           <div class="timeline-era-bar" style="background: ${era.color}"></div>
@@ -573,7 +589,6 @@
     const currentData = window.YEAR_DATA[currentYear];
     if (!otherData) return;
 
-    // Compare viral meter
     let compareHTML = '<div class="compare-grid">';
     compareHTML += `
       <div class="compare-card">
@@ -589,7 +604,6 @@
     `;
     compareHTML += '</div>';
 
-    // Compare top memes
     if (currentData.memes && otherData.memes) {
       compareHTML += `
         <div class="compare-section">
@@ -606,7 +620,6 @@
       `;
     }
 
-    // Compare technology
     if (currentData.technology && otherData.technology) {
       compareHTML += `
         <div class="compare-section">
@@ -640,10 +653,19 @@
   // === KEYBOARD NAVIGATION ===
   function setupKeyboardNav() {
     document.addEventListener('keydown', (e) => {
-      // Don't interfere with input fields
       if (e.target.tagName === 'INPUT') return;
-      
-      if (e.key === 'ArrowLeft' && currentYear > 2000) {
+
+      const key = e.key.toLowerCase();
+      const commandKey = e.ctrlKey || e.metaKey;
+
+      // Redo must be checked before plain undo so Cmd/Ctrl+Shift+Z is not swallowed.
+      if (commandKey && (key === 'y' || (e.shiftKey && key === 'z'))) {
+        e.preventDefault();
+        window.redoYear();
+      } else if (commandKey && key === 'z') {
+        e.preventDefault();
+        window.undoYear();
+      } else if (e.key === 'ArrowLeft' && currentYear > 2000) {
         e.preventDefault();
         selectYear(currentYear - 1, true);
       } else if (e.key === 'ArrowRight' && currentYear < 2025) {
@@ -656,14 +678,12 @@
         e.preventDefault();
         selectYear(2025, true);
       } else if (e.key === 'Escape') {
-        // Collapse any expanded category
         document.querySelectorAll('.category-card.expanded').forEach(c => {
           c.classList.remove('expanded');
           const toggle = c.querySelector('.category-toggle');
           if (toggle) toggle.textContent = '▸';
         });
       } else if (e.key >= '1' && e.key <= '8') {
-        // Number keys expand category cards
         const idx = parseInt(e.key) - 1;
         const cards = document.querySelectorAll('.category-card');
         if (cards[idx]) {
@@ -672,12 +692,6 @@
         }
       } else if (e.key === 'r' || e.key === 'R') {
         window.randomYear();
-      } else if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
-        e.preventDefault();
-        window.undoYear();
-      } else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'z'))) {
-        e.preventDefault();
-        window.redoYear();
       }
     });
   }
@@ -689,7 +703,6 @@
   }
 
   // === YEAR SCRUBBER (mini-map) ===
-  // Public helper to refresh scrubber visual after re-renders
   function refreshScrubberVisual() {
     const track = document.getElementById('scrubber-track');
     const thumb = document.getElementById('scrubber-thumb');
@@ -701,18 +714,18 @@
     thumb.setAttribute('aria-valuenow', currentYear);
   }
 
-  // Setup is done ONCE at init. Event handlers always query current DOM elements
-  // to avoid stale references after re-renders.
   let scrubberIsDragging = false;
+  let scrubberStartYear = null;
 
   function setupYearScrubber() {
-    // URL hash navigation
-    const hash = window.location.hash.replace('#', '');
-    if (hash && window.YEAR_DATA[parseInt(hash)]) {
-      currentYear = parseInt(hash);
-    }
+    // Live URL-hash navigation participates in the same app history model.
+    window.addEventListener('hashchange', () => {
+      const hashYear = parseInt(window.location.hash.replace('#', ''));
+      if (window.YEAR_DATA[hashYear] && hashYear !== currentYear) {
+        selectYear(hashYear, true);
+      }
+    });
 
-    // --- Scrubber helpers (always fetch fresh DOM elements) ---
     function getScrubberEls() {
       return {
         track: document.getElementById('scrubber-track'),
@@ -724,7 +737,7 @@
       const { track } = getScrubberEls();
       if (!track) return currentYear;
       const rect = track.getBoundingClientRect();
-      if (rect.width === 0) return currentYear; // detached element guard
+      if (rect.width === 0) return currentYear;
       const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
       return Math.round(pct * 25 + 2000);
     }
@@ -739,28 +752,40 @@
       thumb.setAttribute('aria-valuenow', year);
     }
 
-    // --- Track click/touch via event delegation on main-content ---
+    function beginScrub(clientX) {
+      scrubberIsDragging = true;
+      scrubberStartYear = currentYear;
+      const year = yearFromPosition(clientX);
+      if (year !== currentYear) {
+        selectYear(year, false, true);
+      }
+      updateScrubberVisual(year);
+    }
+
+    function commitScrub() {
+      if (!scrubberIsDragging) return;
+      scrubberIsDragging = false;
+      if (scrubberStartYear !== null && currentYear !== scrubberStartYear) {
+        recordHistory(currentYear);
+      }
+      scrubberStartYear = null;
+    }
+
     const mainContent = document.getElementById('main-content');
     if (mainContent) {
       mainContent.addEventListener('mousedown', (e) => {
         const track = e.target.closest('#scrubber-track');
         if (!track) return;
-        scrubberIsDragging = true;
-        const year = yearFromPosition(e.clientX);
-        selectYear(year, false);
-        updateScrubberVisual(year);
+        beginScrub(e.clientX);
       });
 
       mainContent.addEventListener('touchstart', (e) => {
         const track = e.target.closest('#scrubber-track');
         if (!track) return;
-        scrubberIsDragging = true;
-        const year = yearFromPosition(e.touches[0].clientX);
-        selectYear(year, false);
-        updateScrubberVisual(year);
+        beginScrub(e.touches[0].clientX);
       }, { passive: true });
 
-      // Keyboard on thumb via delegation
+      // Keyboard interaction on the scrubber is a committed one-step navigation.
       mainContent.addEventListener('keydown', (e) => {
         if (e.target.id !== 'scrubber-thumb') return;
         if (e.key === 'ArrowLeft' && currentYear > 2000) {
@@ -775,29 +800,28 @@
       });
     }
 
-    // --- Document-level drag handlers (registered ONCE) ---
     document.addEventListener('mousemove', (e) => {
       if (!scrubberIsDragging) return;
       e.preventDefault();
       const year = yearFromPosition(e.clientX);
       if (year !== currentYear) {
-        selectYear(year, false);
+        selectYear(year, false, true);
         updateScrubberVisual(year);
       }
     });
 
-    document.addEventListener('mouseup', () => { scrubberIsDragging = false; });
+    document.addEventListener('mouseup', commitScrub);
 
     document.addEventListener('touchmove', (e) => {
       if (!scrubberIsDragging) return;
       const year = yearFromPosition(e.touches[0].clientX);
       if (year !== currentYear) {
-        selectYear(year, false);
+        selectYear(year, false, true);
         updateScrubberVisual(year);
       }
     }, { passive: true });
 
-    document.addEventListener('touchend', () => { scrubberIsDragging = false; });
+    document.addEventListener('touchend', commitScrub);
   }
 
   // === START ===
