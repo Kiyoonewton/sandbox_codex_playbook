@@ -1,27 +1,19 @@
-# The kitchen shift falls apart after the first order
+# The order rail loses track of customers during a busy shift
 
 ## What you see
 
-The very first hand-in of a shift goes through fine, but after that the serving window starts rejecting dishes that clearly match what the ticket asked for — no points, the order stays sitting on the rail, and you lose a life every time you try. It feels like the game has stopped recognising the recipes you just cooked.
+Serving starts normally, but once the order rail changes a few times, dishes that exactly match a currently visible ticket can suddenly be rejected as **WRONG DISH**. This is easiest to notice when one order is completed and a new customer arrives while the rail returns to the same number of active tickets.
 
-The plate counter gets stuck too. After setting plates down and picking them back up a few times, the counter looks completely empty and still lights up as if you can use it, yet the chef simply won't put anything down there — plates and prepared ingredients alike just stay in your hands. On top of that, once several tickets are waiting, the little badge that shows what the chef is carrying drifts sideways and slides off the edge of the screen, so you can't tell what you're holding.
+The problem is not limited to one particular recipe. As customers are completed, replaced, promoted, or new tickets arrive, the serving window can behave as though an older version of the queue is still active. A valid dish may cost a life and increment mistakes instead of clearing the customer who actually ordered it.
 
-## What correct looks like
+The rail must behave as one live queue throughout the shift. Every hand-in should be matched against the customers that are active **at that moment**, including newly arrived tickets and multiple customers who happen to request the same recipe. Queue changes must not leave removed customers influencing later hand-ins.
 
-Handing in the dish an order asks for should always be rewarded — points scored, that ticket cleared off the rail, and no lives lost. An empty plate counter should keep accepting plates and prepared ingredients no matter how many times you've used it during the shift, and the badge showing what you're carrying should stay fully visible and readable however busy the rail gets.
+A successful hand-in after the queue changes should have exactly the same effects as the first successful hand-in: remove the matching active ticket, increase served count and score, preserve lives and mistakes, and clear the plate from the chef's hands.
 
 The broken app currently looks like this:
 
-<img src="/app/problem_assets/broken.png" alt="current (broken) app" width="900" />
+<img src="/app/problem_assets/broken.png" alt="A valid current order being rejected after the order queue changes" width="900" />
 
 The expected app should look like this:
 
-<img src="/app/problem_assets/target.png" alt="expected app" width="900" />
-
-## The PLate station is not behaving like it ought to
-
-When a server is coming to the table he can easily enter the table and also after a server pick up a plate there seems to be the same plate he had just picked up on the table even when the plate supposed or is in his hand, also when I put the dish on the plate station and i am game over or i want to intentionally restart the plate will still be on the plate station and when i try to interact with it i can't. The timer on new orders burns down way too fast while you're still working on the earlier ones. By the time you actually get to a ticket that was waiting in line, it's already almost expired, which makes serving orders back-to-back practically impossible.
-
-How patient a customer is should actually make sense for what they ordered and where they are in line. If a ticket is sitting behind other orders, its patience meter should drop much slower. Then, once it moves up to the front, the timer can speed back up to normal so you actually have a fair chance to cook it. The shift should still get harder as you go, but right now the queue timers just feel completely unfair.
-
-When new orders come in during a busy shift, the game should keep recognizing them correctly even after you finish earlier tickets. If the order rail updates and goes back to having the same number of active tickets, serving a dish that matches one of the new orders should still turn in normally—it shouldn't get rejected as a wrong dish.
+<img src="/app/problem_assets/target.png" alt="The current order is accepted correctly after the order queue changes" width="900" />
