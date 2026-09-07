@@ -1,19 +1,19 @@
-# Fix year navigation getting out of sync
+# Year history breaks when navigation methods are mixed
 
-Please fix year navigation in the Internet Time Machine. Switching years works in simple cases, but once tabs, keyboard navigation, favorites, the scrubber, undo/redo, and URL hashes are mixed, the app can stop agreeing about which year is selected. The hero year, active tab, scrubber value, saved year, URL hash, and favorites state should always represent the same current year.
+The Internet Time Machine can get into an inconsistent year state after using more than one navigation control. For example, a user can select a year from a tab, move again with the scrubber, then use undo/redo or change the URL hash and end up with the hero, active tab, scrubber, saved year, URL, and favorites disagreeing about which year is current.
 
-Treat a completed navigation as one history action. In particular, dragging the scrubber through several years should create only one committed history entry when the gesture ends. Releasing it on the year where the drag started should create no entry at all. Selecting the already-active year should also be a no-op and must not destroy an existing redo branch.
+Fix the year-selection flow so every control updates the same current year and every committed navigation participates in one consistent history. A scrubber drag should count as one navigation when the drag finishes, not one entry for every intermediate year. If the drag ends on the year where it started, it should add nothing to history. Selecting the year that is already active should also do nothing and must not destroy an existing redo branch.
 
-Undo and redo need to remain correct when navigation methods are mixed. The redo shortcuts must perform redo rather than being interpreted as undo. After an undo, choosing a genuinely different year must discard the abandoned redo branch, including when that new year is committed with the scrubber. Scrubber keyboard navigation should behave like normal committed year navigation and remain undoable.
+Undo and redo must continue to work after tabs, keyboard controls, favorites, URL changes, and scrubber interactions are mixed together. Ctrl/Cmd+Shift+Z should redo. If the user undoes and then chooses a genuinely different year, the abandoned redo branch should be discarded, including when that new year is chosen with the scrubber. Keyboard changes made while the scrubber has focus should behave like normal committed navigation and remain undoable.
 
-URL navigation must participate in the same synchronized state. When the app opens with a valid year in the hash, that year takes precedence over an older saved year. Changing the hash to another valid year while the app is already open should immediately update the selected year and all related UI state. Favorites should update immediately when changed, and navigating through a favorite should behave like other committed year navigation.
+A valid year in the URL hash on initial load should win over an older value in localStorage. Changing the hash to another valid year while the app is open should immediately select that year and synchronize the rest of the UI. Adding or removing a favorite should update the favorites bar immediately, and choosing a favorite should use the same navigation/history behavior as the other controls.
 
-Keep the normal default experience intact: opening the app on the default 2000 view should still show its welcome message.
+Do not regress the default state: opening on year 2000 should still show the welcome message.
 
-Here is the broken behavior:
+Broken state:
 
 <img src="/app/problem_assets/broken.png" alt="The time machine showing inconsistent year navigation state" width="900" />
 
-Here is the expected result:
+Expected state:
 
 <img src="/app/problem_assets/target.png" alt="The time machine with synchronized year navigation and history" width="900" />
