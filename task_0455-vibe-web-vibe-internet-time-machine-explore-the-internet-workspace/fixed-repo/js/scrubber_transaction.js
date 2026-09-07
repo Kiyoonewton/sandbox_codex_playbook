@@ -45,37 +45,34 @@
     if (year == null) return;
 
     const visibleYear = parseInt(document.querySelector('.hero-year')?.textContent, 10);
-    if (year === visibleYear) {
-      // Restore the canonical visual state without adding a duplicate history item.
-      preview(year);
-      previewYear = null;
-      return;
-    }
+    if (year === visibleYear) return;
 
     const tab = document.querySelector(`.tab-btn[data-year="${year}"]`);
     if (tab) tab.click();
   }
 
-  // Capture the gesture before app.js's bubbling scrubber handler. That handler
-  // re-renders the scrubber during mousemove, detaching the geometry mid-drag.
+  // Capture before app.js sees the pointer events. stopImmediatePropagation is
+  // required here because app.js also has document-level drag handlers; stopping
+  // only normal propagation still lets those listeners run on the same document.
   document.addEventListener('mousedown', (event) => {
     if (!event.target.closest('#scrubber-track')) return;
-    event.preventDefault();
-    event.stopPropagation();
     begin(event.clientX);
+    if (!dragging) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
   }, true);
 
   document.addEventListener('mousemove', (event) => {
     if (!dragging) return;
-    event.preventDefault();
-    event.stopPropagation();
     preview(yearAt(event.clientX));
+    event.preventDefault();
+    event.stopImmediatePropagation();
   }, true);
 
   document.addEventListener('mouseup', (event) => {
     if (!dragging) return;
     event.preventDefault();
-    event.stopPropagation();
+    event.stopImmediatePropagation();
     commit();
   }, true);
 })();
