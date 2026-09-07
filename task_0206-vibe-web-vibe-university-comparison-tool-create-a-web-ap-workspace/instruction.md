@@ -8,10 +8,10 @@ The saved comparison also needs to recover safely when the page is reopened. An 
 
 History should only contain actions that actually changed the comparison. In particular, when four universities are already selected and a fifth selection is refused, that refusal must not consume an Undo step. Pressing Undo afterward should remove the fourth university that was successfully added. Reset should simply report that the comparison was reset rather than claiming custom schools were removed when there were none.
 
-The screenshots use the custom-school deletion case. A custom school and a preset university are in the comparison, the custom school is deleted, and then Undo is pressed. In the broken version, Undo cannot restore the deleted school, so it is still missing from both the university browser and the visible comparison:
+The screenshots show that refused-selection history failure. MIT, Stanford, Harvard, and Yale were added in that order, then Columbia was attempted as a fifth selection and refused. After pressing Undo once, the broken version still shows all four selected universities because the refused action incorrectly consumed the Undo step:
 
-<img src="/app/problem_assets/broken.png" alt="Undo after deleting a compared custom school leaves that school missing from the browser and comparison" width="900" />
+<img src="/app/problem_assets/broken.png" alt="Four universities remain selected after a refused fifth selection followed by Undo" width="900" />
 
-With the history fixed, the same Undo restores the custom school with its saved details and returns it to the comparison alongside the preset university:
+With history fixed, the refused fifth selection creates no history entry, so the same Undo removes Yale, the fourth successful addition, and leaves MIT, Stanford, and Harvard selected:
 
-<img src="/app/problem_assets/target.png" alt="Undo restores the deleted custom school and its comparison card alongside the preset university" width="900" />
+<img src="/app/problem_assets/target.png" alt="Three universities remain after Undo removes the fourth successful addition" width="900" />
