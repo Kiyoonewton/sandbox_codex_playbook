@@ -1,0 +1,52 @@
+[
+  {
+    "name": "Project Architecture & Data Layer",
+    "status": "done",
+    "notes": "All 26 years of data written across 4 data files"
+  },
+  {
+    "name": "Era Themes System",
+    "status": "done",
+    "notes": "All 6 era themes working with distinct visual identities"
+  },
+  {
+    "name": "Polish & Final Touches",
+    "status": "done",
+    "notes": "Mobile fixes, visual polish, keyboard hint, loading bar, gradient text"
+  },
+  {
+    "name": "localStorage Persistence",
+    "status": "done",
+    "notes": "Year selection and favorites saved to localStorage"
+  },
+  {
+    "name": "Share & Favorites Features",
+    "status": "done",
+    "notes": "Share button, favorites system with localStorage, toast notifications"
+  },
+  {
+    "name": "Timeline Visualization & Final Polish",
+    "status": "done",
+    "notes": "Mini timeline with era bars, all functional tests passing"
+  },
+  {
+    "name": "Year Scrubber, Undo/Redo, & Accessibility",
+    "status": "done",
+    "notes": "Draggable year scrubber, undo/redo navigation, ARIA labels, skip link, SR announcer"
+  },
+  {
+    "name": "Fix timeline scrubber bug",
+    "status": "done",
+    "notes": "Fixed by: 1) Moving scrubber event listeners to init (registered once), 2) Using event delegation for track interactions so they survive DOM re-renders, 3) Always querying fresh DOM elements in yearFromPosition/updateScrubberVisual, 4) Adding detached element guard (width=0 returns currentYear). Root cause: stale track.getBoundingClientRect() on detached element returned {left:0,width:0}, making pct=Infinity which clamped to 1 = year 2025."
+  },
+  {
+    "name": "Fix history variable shadowing window.history",
+    "status": "done",
+    "notes": "Renamed local `history` array to `historyStack` to avoid shadowing `window.history`. Changed `history.replaceState` to `window.history.replaceState`. This fixed URL hash persistence which was silently failing."
+  },
+  {
+    "name": "Fix mobile horizontal overflow",
+    "status": "done",
+    "notes": "Added overflow: hidden to .nav-wrapper to prevent tab-scroll from causing horizontal page scroll on mobile (375px)."
+  }
+]
