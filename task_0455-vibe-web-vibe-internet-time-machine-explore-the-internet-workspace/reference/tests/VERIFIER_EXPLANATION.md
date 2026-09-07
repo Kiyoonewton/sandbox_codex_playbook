@@ -1,24 +1,26 @@
 # Verifier Explanation
 
-The verifier checks that year navigation behaves as one consistent history system across the different controls in the Internet Time Machine.
+The verifier treats year selection as one transactional navigation/history system shared by tabs, keyboard controls, favorites, URL hashes, and the scrubber.
 
 ## Passing-to-Passing coverage
 
-The P2P tests confirm that the existing application still boots correctly, renders all 26 year navigation options, and keeps the visible and persisted year state synchronized during normal tab navigation.
+The 2 P2P tests protect the existing application shell and ordinary tab navigation: all 26 year options remain available, and a normal tab selection keeps the visible and persisted year surfaces synchronized.
 
 ## Failing-to-Passing coverage
 
-The F2P tests verify the repaired navigation/history behavior:
+The 15 F2P tests exercise the same navigation state machine through coupled transitions:
 
-- Undo returns to the previous committed year and keeps the displayed year, active tab, scrubber, URL hash, and localStorage synchronized.
-- Redo restores the year that was undone.
-- Ctrl/Cmd + Shift + Z performs redo rather than being handled as another undo.
-- Selecting a new year after undo discards the abandoned redo branch.
-- A valid year supplied through the URL hash takes priority over an older year stored in localStorage.
-- Changing the URL hash while the application is already open immediately synchronizes the selected year.
-- Selecting a favorite participates in normal navigation history, and changes to favorites are reflected immediately in the favorites bar.
-- A complete scrubber drag is treated as one committed navigation action, so one undo returns directly to the year where the drag started.
-- Interacting with the scrubber without changing the selected year does not create a duplicate/no-op history entry.
-- The default 2000 view continues to display its introductory welcome message.
+- Undo restores the previous committed year and synchronizes hero, active tab, scrubber, URL hash, and localStorage.
+- Redo restores the undone year, including Ctrl/Cmd + Shift + Z semantics.
+- A genuinely new navigation after undo discards the abandoned redo branch.
+- A no-op activation of the already-selected year after undo does not destroy that redo branch.
+- A valid startup hash overrides stale persisted state, and a live hash change immediately synchronizes the app.
+- Favorite creation updates the bar immediately; favorite navigation participates in undo; URL navigation keeps favorite active state synchronized.
+- A long scrubber gesture is one committed history action rather than one entry per intermediate year.
+- A scrubber gesture that moves away and returns to its starting year commits nothing.
+- Clicking the scrubber at the current year creates no duplicate history entry.
+- Scrubber keyboard navigation creates a normal committed history action that can be undone.
+- A scrubber commit made after undo replaces the abandoned redo branch just like other committed navigation.
+- The default 2000 view retains its welcome state.
 
-There are 12 verifier tests in total: 10 F2P tests covering the repaired behavior and 2 P2P tests protecting existing functionality.
+There are 17 verifier tests total: 15 F2P and 2 P2P. The additional cases are intentionally interaction-heavy: a narrow fix to one input path is insufficient because the same history invariants must survive mixed controls, no-op transitions, branching, and gesture commit boundaries.
