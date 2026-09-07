@@ -1,19 +1,23 @@
-# The kitchen shift falls apart after the first order
+# The order rail loses track of customers during a busy shift
 
 ## What you see
 
-The very first hand-in of a shift goes through fine, but after that the serving window starts rejecting dishes that clearly match what the ticket asked for — no points, the order stays sitting on the rail, and you lose a life every time you try. It feels like the game has stopped recognising the recipes you just cooked.
+The first hand-in usually works, but after the order rail changes during a busy shift, a dish that exactly matches a current customer can be rejected as **WRONG DISH**. The failure is especially noticeable when an order leaves and another arrives while the rail returns to the same number of active tickets.
 
-The plate counter gets stuck too. After setting plates down and picking them back up a few times, the counter looks completely empty and still lights up as if you can use it, yet the chef simply won't put anything down there — plates and prepared ingredients alike just stay in your hands. On top of that, once several tickets are waiting, the little badge that shows what the chef is carrying drifts sideways and slides off the edge of the screen, so you can't tell what you're holding.
+The serving window must follow the live order rail, not an older snapshot of it. Customers can leave, new orders can arrive, and the order of active tickets can change without changing how many cards are visible. A removed or expired customer must never influence a later hand-in.
+
+There is another important case when equivalent orders overlap. If more than one active customer is waiting for the same dish, the hand-in belongs to the **most urgent matching customer** — the one with the smallest fraction of patience remaining. Reordering the rail must not transfer that customer's patience or scoring state to another ticket.
 
 ## What correct looks like
 
-Handing in the dish an order asks for should always be rewarded — points scored, that ticket cleared off the rail, and no lives lost. An empty plate counter should keep accepting plates and prepared ingredients no matter how many times you've used it during the shift, and the badge showing what you're carrying should stay fully visible and readable however busy the rail gets.
+Every hand-in is resolved against the tickets that are active at that moment. Newly arrived and changed orders are immediately serveable, expired orders are forgotten, and equivalent orders retain their individual identity and patience.
+
+A successful hand-in removes exactly one matching live ticket, calculates the score and tip from that ticket's own remaining patience, increments served exactly once, preserves lives and mistakes, and clears the plate from the chef's hands. These guarantees must continue to hold after repeated serve, removal, replacement, expiration, and reorder cycles.
 
 The broken app currently looks like this:
 
-<img src="/app/problem_assets/broken.png" alt="current (broken) app" width="900" />
+<img src="/app/problem_assets/broken.png" alt="A valid current order being rejected after the order rail changes" width="900" />
 
 The expected app should look like this:
 
-<img src="/app/problem_assets/target.png" alt="expected app" width="900" />
+<img src="/app/problem_assets/target.png" alt="The correct live customer receiving the matching dish" width="900" />
