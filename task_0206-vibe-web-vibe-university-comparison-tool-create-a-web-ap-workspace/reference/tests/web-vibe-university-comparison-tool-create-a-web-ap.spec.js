@@ -1,41 +1,139 @@
 const { test, expect } = require('@playwright/test');
 const APP_URL = process.env.APP_URL;
+
+const CUSTOM = {
+  id: 'custom-verifier-school',
+  name: 'Verifier Technical University',
+  short: 'VTU',
+  state: 'CA',
+  type: 'private',
+  ivy: false,
+  tuition: 32000,
+  enrollment: 9000,
+  acceptanceRate: 42,
+  studentFacultyRatio: 11,
+  location: 'Test City, CA',
+  color: '#52B883',
+  graduationRate: 91,
+  avgSalary: 88000,
+  isCustom: true,
+};
+
 async function boot(page) {
   await page.goto(APP_URL, { waitUntil: 'networkidle', timeout: 30000 });
-  await page.waitForTimeout(600);
+  await page.waitForTimeout(250);
 }
-test('[P2P] app boots and renders content', async ({ page }) => {
-  await boot(page);
-  const has = await page.evaluate(() => !!document.body && document.body.children.length > 0);
-  expect(has).toBe(true);
+
+async function cleanBoot(page) {
+  await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.locator('.uni-item[data-uni-id="mit"]').waitFor({ timeout: 15000 });
+}
+
+async function seed(page, comparisonIds, customSchools = []) {
+  await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.evaluate(({ comparisonIds, customSchools }) => {
+    localStorage.clear();
+    localStorage.setItem('uni-compare-v2', JSON.stringify({ comparisonIds, viewMode: 'cards' }));
+    localStorage.setItem('uni-compare-custom', JSON.stringify(customSchools));
+  }, { comparisonIds, customSchools });
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForTimeout(250);
+}
+
+async function count(page) {
+  return (await page.locator('#comparison-count').innerText()).trim();
+}
+
+async function deleteCustom(page) {
+  await page.locator(`[data-delete-custom="${CUSTOM.id}"]`).click();
+  await page.locator('#delete-confirm').click();
+  await page.waitForTimeout(150);
+}
+
+test('[P2P] app boots and renders the university browser', async ({ page }) => {
+  await cleanBoot(page);
+  await expect(page.locator('.uni-item[data-uni-id="mit"]')).toBeVisible();
+  await expect(page.locator('#comparison-count')).toHaveText('0');
 });
-test('[P2P] no layout overflow (UI fits the viewport)', async ({ page }) => {
-  await boot(page);
-  const o = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-  expect(o).toBeLessThanOrEqual(2);
+
+test('[P2P] preset universities can still be added and removed normally', async ({ page }) => {
+  await cleanBoot(page);
+  await page.locator('.uni-item[data-uni-id="mit"]').click();
+  await expect(page.locator('#comparison-count')).toHaveText('1');
+  await page.locator('.uni-item[data-uni-id="mit"]').click();
+  await expect(page.locator('#comparison-count')).toHaveText('0');
 });
-test('[F2P] After the app refuses a 5th university, pressing Undo shows an \'Undo\' toast but the comparison still shows 4 universit', async ({ page }) => {
-  await boot(page);
-  await page.goto(APP_URL.replace(/\/$/, '') + "/", { waitUntil: 'networkidle', timeout: 30000 });
-  await page.locator(".uni-item[data-uni-id=\"mit\"]").first().waitFor({ timeout: 15000 });
-  await page.locator(".uni-item[data-uni-id=\"mit\"]").first().click({ timeout: 15000 });
-  await page.locator(".uni-item[data-uni-id=\"stanford\"]").first().click({ timeout: 15000 });
-  await page.locator(".uni-item[data-uni-id=\"harvard\"]").first().click({ timeout: 15000 });
-  await page.locator(".uni-item[data-uni-id=\"yale\"]").first().click({ timeout: 15000 });
-  await page.locator(".uni-item[data-uni-id=\"columbia\"]").first().click({ timeout: 15000 });
-  await page.locator("#btn-undo").first().click({ timeout: 15000 });
-  await page.waitForTimeout(400);
-  const v = (await page.locator("#comparison-count").first().innerText({ timeout: 10000 })).trim();
-  expect(v).toEqual("3");
+
+test('[F2P] a refused fifth selection does not become an undo history entry', async ({ page }) => {
+  await cleanBoot(page);
+  for (const id of ['mit', 'stanford', 'harvard', 'yale']) {
+    await page.locator(`.uni-item[data-uni-id="${id}"]`).click();
+  }
+  await page.locator('.uni-item[data-uni-id="columbia"]').click();
+  await expect(page.locator('#comparison-count')).toHaveText('4');
+  await page.locator('#btn-undo').click();
+  await expect(page.locator('#comparison-count')).toHaveText('3');
 });
-test('[F2P] Clicking Reset with only preset universities selected pops a toast claiming all custom schools were removed, which never', async ({ page }) => {
-  await boot(page);
-  await page.goto(APP_URL.replace(/\/$/, '') + "/", { waitUntil: 'networkidle', timeout: 30000 });
-  await page.locator(".uni-item[data-uni-id=\"mit\"]").first().waitFor({ timeout: 15000 });
-  await page.locator(".uni-item[data-uni-id=\"mit\"]").first().click({ timeout: 15000 });
-  await page.locator("#btn-reset").first().click({ timeout: 15000 });
-  await page.locator("#toast-container .toast").first().waitFor({ timeout: 15000 });
-  await page.waitForTimeout(400);
-  const v = (await page.locator("#toast-container .toast:last-child").first().innerText({ timeout: 10000 })).trim();
-  expect(v).toEqual("Comparison reset");
+
+test('[F2P] reset reports the comparison reset without claiming nonexistent custom-school deletion', async ({ page }) => {
+  await cleanBoot(page);
+  await page.locator('.uni-item[data-uni-id="mit"]').click();
+  await page.locator('#btn-reset').click();
+  await expect(page.locator('#toast-container .toast:last-child')).toContainText('Comparison reset');
+  await expect(page.locator('#toast-container .toast:last-child')).not.toContainText('custom schools removed');
+});
+
+test('[F2P] undoing deletion restores a compared custom school and its comparison slot', async ({ page }) => {
+  await seed(page, ['mit', CUSTOM.id], [CUSTOM]);
+  await expect(page.locator(`[data-uni-id="${CUSTOM.id}"]`)).toBeVisible();
+  await deleteCustom(page);
+  await expect(page.locator(`[data-uni-id="${CUSTOM.id}"]`)).toHaveCount(0);
+  await page.locator('#btn-undo').click();
+  await expect(page.locator(`[data-uni-id="${CUSTOM.id}"]`)).toBeVisible();
+  await expect(page.locator('#comparison-count')).toHaveText('2');
+});
+
+test('[F2P] redo after restoring a deleted custom school removes the same school again', async ({ page }) => {
+  await seed(page, ['mit', CUSTOM.id], [CUSTOM]);
+  await deleteCustom(page);
+  await page.locator('#btn-undo').click();
+  await page.locator('#btn-redo').click();
+  await expect(page.locator(`[data-uni-id="${CUSTOM.id}"]`)).toHaveCount(0);
+  await expect(page.locator('#comparison-count')).toHaveText('1');
+});
+
+test('[F2P] undoing reset restores custom schools together with the comparison they belonged to', async ({ page }) => {
+  await seed(page, ['stanford', CUSTOM.id], [CUSTOM]);
+  await page.locator('#btn-reset').click();
+  await expect(page.locator('#comparison-count')).toHaveText('0');
+  await expect(page.locator(`[data-uni-id="${CUSTOM.id}"]`)).toHaveCount(0);
+  await page.locator('#btn-undo').click();
+  await expect(page.locator(`[data-uni-id="${CUSTOM.id}"]`)).toBeVisible();
+  await expect(page.locator('#comparison-count')).toHaveText('2');
+});
+
+test('[F2P] reset undo redo preserves the custom-school lifecycle in both directions', async ({ page }) => {
+  await seed(page, ['harvard', CUSTOM.id], [CUSTOM]);
+  await page.locator('#btn-reset').click();
+  await page.locator('#btn-undo').click();
+  await expect(page.locator(`[data-uni-id="${CUSTOM.id}"]`)).toBeVisible();
+  await page.locator('#btn-redo').click();
+  await expect(page.locator(`[data-uni-id="${CUSTOM.id}"]`)).toHaveCount(0);
+  await expect(page.locator('#comparison-count')).toHaveText('0');
+});
+
+test('[F2P] stale persisted comparison ids are discarded on reload instead of occupying hidden slots', async ({ page }) => {
+  await seed(page, ['mit', 'custom-does-not-exist'], []);
+  await expect(page.locator('#comparison-count')).toHaveText('1');
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('uni-compare-v2')).comparisonIds);
+  expect(stored).toEqual(['mit']);
+});
+
+test('[F2P] duplicate persisted ids are normalized so one university occupies one comparison slot', async ({ page }) => {
+  await seed(page, ['mit', 'mit', 'stanford'], []);
+  await expect(page.locator('#comparison-count')).toHaveText('2');
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('uni-compare-v2')).comparisonIds);
+  expect(stored).toEqual(['mit', 'stanford']);
 });
