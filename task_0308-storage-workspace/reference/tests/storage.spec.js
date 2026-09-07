@@ -57,7 +57,7 @@ test('[F2P] same-recipe customers remain independently serveable across a queue 
 
 test('[F2P] removed ticket state cannot mask a different replacement recipe', async ({ page }) => {
   await boot(page);
-  const r=await page.evaluate(()=>{const{G,make,serve}=__queueTest();const old=make('SALAD',['L','T']);G.tickets.push(old,make('BLT',['B','L','T']));serve(['X']);G.tickets.shift();const fresh=make('BURGER',['B','P']);G.tickets.push(fresh);const l=G.lives;serve(['B','P']);return{l,after:G.lives,fresh:G.tickets.includes(fresh),old:G.tickets.includes(old)}});
+  const r=await page.evaluate(()=>{const{G,make,serve}=__queueTest();const old=make('SALAD',['L','T']);G.tickets.push(old,make('BLT',['B','L','T']));serve(['B']);G.tickets.shift();const fresh=make('BURGER',['B','P']);G.tickets.push(fresh);const l=G.lives;serve(['B','P']);return{l,after:G.lives,fresh:G.tickets.includes(fresh),old:G.tickets.includes(old)}});
   expect(r.after).toBe(r.l); expect(r.fresh).toBe(false); expect(r.old).toBe(false);
 });
 
