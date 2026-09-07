@@ -22,12 +22,14 @@ async function expectYearSynced(page, year) {
 async function scrubTo(page, fromYear, toYear, steps = 12) {
   const track = page.locator('#scrubber-track');
   await track.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(450);
   const box = await track.boundingBox();
   expect(box).not.toBeNull();
   const y = box.y + box.height / 2;
-  await page.mouse.move(box.x + box.width * ((fromYear - 2000) / 25), y);
+  const x = year => box.x + box.width * ((year - 2000) / 25);
+  await page.mouse.move(x(fromYear), y);
   await page.mouse.down();
-  await page.mouse.move(box.x + box.width * ((toYear - 2000) / 25), y, { steps });
+  await page.mouse.move(x(toYear), y, { steps });
   await page.mouse.up();
 }
 
@@ -120,7 +122,10 @@ test('[F2P] a long scrubber drag is one history action so one undo returns to th
 test('[F2P] clicking the scrubber on the current year does not create a no-op history entry', async ({ page }) => {
   await boot(page);
   await selectTab(page, 2010);
-  const box = await page.locator('#scrubber-track').boundingBox();
+  const track = page.locator('#scrubber-track');
+  await track.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(450);
+  const box = await track.boundingBox();
   expect(box).not.toBeNull();
   await page.mouse.click(box.x + box.width * (10 / 25), box.y + box.height / 2);
   await expectYearSynced(page, 2010);
@@ -133,6 +138,7 @@ test('[F2P] moving away during a scrub but releasing back on the starting year c
   await selectTab(page, 2010);
   const track = page.locator('#scrubber-track');
   await track.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(450);
   const box = await track.boundingBox();
   expect(box).not.toBeNull();
   const y = box.y + box.height / 2;
