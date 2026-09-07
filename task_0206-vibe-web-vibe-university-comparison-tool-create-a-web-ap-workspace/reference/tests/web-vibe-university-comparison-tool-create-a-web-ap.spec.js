@@ -97,6 +97,9 @@ test('[F2P] redo after restoring a deleted custom school removes the same school
   await seed(page, ['mit', CUSTOM.id], [CUSTOM]);
   await deleteCustom(page);
   await page.locator('#btn-undo').click();
+  await expect(page.locator(`.uni-item[data-uni-id="${CUSTOM.id}"]`)).toBeVisible();
+  await expect(page.locator(`.comp-card[data-uni-id="${CUSTOM.id}"]`)).toBeVisible();
+  await expect(page.locator('#comparison-count')).toHaveText('2');
   await page.locator('#btn-redo').click();
   await expect(page.locator(`[data-uni-id="${CUSTOM.id}"]`)).toHaveCount(0);
   await expect(page.locator('#comparison-count')).toHaveText('1');
