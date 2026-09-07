@@ -1,19 +1,15 @@
-# Fix comparison history when schools disappear or an action is rejected
+# Undo gets stuck after the comparison limit is reached
 
-I found a state-history issue in the university comparison tool. Create a custom university, add it to the comparison, delete it, and then use Undo. Undo brings back the old comparison selection without bringing back the deleted custom university, so the comparison can contain an ID for a school that no longer exists.
+I hit a strange Undo problem while comparing universities. I selected MIT, Stanford, Harvard, and Yale, then clicked Columbia. The app correctly told me that I could only compare four schools. I pressed Undo once because I wanted to remove my last successful selection, Yale, but nothing changed — all four schools were still selected. It looks like the failed attempt to add Columbia is being treated as something Undo has to reverse even though it never changed the comparison.
 
-Please make the custom-school data and comparison selection participate in the same history operation. Deleting a selected custom university should remove both the university and its comparison card. One Undo should restore that exact university, including its original data, and put it back in the same comparison state. Redo should remove both again. The same rule should apply across Reset: if the comparison contained custom and built-in universities before Reset, Undo should reconstruct that comparison and Redo should clear it again.
+I can get the comparison out of sync in a similar way with a custom university. If I create one, compare it, delete it, and then Undo, its old comparison slot can come back without the university itself. After that, the UI can behave as though a missing school is still selected. I've also managed to reproduce that kind of ghost selection after reloading saved comparison data, particularly when the saved list contains a school that no longer exists or contains the same school more than once.
 
-The saved comparison also needs to be cleaned when the page starts. If `uni-compare-v2` contains an ID for a university that no longer exists, ignore that ID and write the cleaned selection back to storage. If the array contains the same university more than once, keep only one occurrence. After loading, the number shown by the comparison UI, the rendered comparison cards, and the IDs in storage should all describe the same set of real universities.
+Could you make the history follow the comparison changes that actually happened? A rejected selection shouldn't use up an Undo, and restoring a change involving a custom university should restore the university along with its comparison slot. Reloading should likewise leave the comparison containing only the real, unique schools that can actually be displayed. Reset should remain reversible too, and its notification shouldn't say custom schools were deleted if they were left intact.
 
-There is a related history failure at the four-university limit. Add MIT, Stanford, Harvard, and Yale, then attempt to add Columbia. Columbia should still be refused because four universities are already selected, but that rejected click must not create an Undo entry. Pressing Undo once after the rejected Columbia attempt should remove Yale, because adding Yale was the last action that actually changed the comparison. Currently the first Undo can be consumed by the rejected Columbia attempt and all four selected universities remain.
+This is what I see after Columbia is refused and I press Undo once — Yale is still there:
 
-Also correct the Reset notification. Resetting the comparison must not say that all custom schools were removed when the custom-school records were not actually deleted.
+<img src="/app/problem_assets/broken.png" alt="MIT, Stanford, Harvard, and Yale remain selected after the rejected Columbia attempt and one Undo" width="900" />
 
-The screenshot below is from the four-university case after Columbia was rejected and Undo was pressed once. Yale is still selected, showing that the rejected action incorrectly entered history.
-
-<img src="/app/problem_assets/broken.png" alt="MIT, Stanford, Harvard, and Yale remain selected after Columbia is rejected and Undo is pressed" width="900" />
-
-With the history corrected, that same Undo removes Yale and leaves MIT, Stanford, and Harvard selected.
+I expected that Undo to remove Yale and return me to MIT, Stanford, and Harvard:
 
 <img src="/app/problem_assets/target.png" alt="MIT, Stanford, and Harvard remain after Undo removes Yale" width="900" />
