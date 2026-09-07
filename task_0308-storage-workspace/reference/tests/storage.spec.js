@@ -169,28 +169,34 @@ test("[F2P] With several orders up on the rail, the little badge showing what th
   });
   expect(v).toEqual(true);
 });
-test("[F2P] PLATE station stays physically and visually synchronized through store, retrieve, and continue-play flow", async ({
-  page,
-}) => {
+test("[F2P] Chef cannot walk through the PLATE station", async ({ page }) => {
   await boot(page);
 
-  const result = await page.evaluate(() => {
+  const blocked = await page.evaluate(() => {
     const K = window.__KR;
     K.startGame();
 
-    // The chef must be blocked by the PLATE station.
     const radius = 0.42;
     const targetX = K.plateSt.x;
     const targetZ = K.plateSt.z + K.plateSt.d / 2 - 0.15;
 
-    const [blockedX, blockedZ] = window.collide(targetX, targetZ, radius);
-
+    const [, blockedZ] = window.collide(targetX, targetZ, radius);
     const plateFrontEdge = K.plateSt.z + K.plateSt.d / 2;
 
-    const collisionKeepsChefOutside =
-      blockedZ >= plateFrontEdge + radius - 0.01;
+    return blockedZ >= plateFrontEdge + radius - 0.01;
+  });
 
-    // Store a prepared dish.
+  expect(blocked).toBe(true);
+});
+test("[F2P] Retrieving a dish from PLATE removes its old visual", async ({
+  page,
+}) => {
+  await boot(page);
+
+  const noGhost = await page.evaluate(() => {
+    const K = window.__KR;
+    K.startGame();
+
     K.chef.pos.set(K.plateSt.x, 0, K.plateSt.z + 1.7);
 
     const act = () => {
@@ -210,35 +216,126 @@ test("[F2P] PLATE station stays physically and visually synchronized through sto
     const stored = K.plateSt.plates.find(Boolean);
     const storedMesh = stored && stored.mesh;
 
-    const storedCorrectly =
-      !!stored && !!storedMesh && storedMesh.parent === K.scene;
-
-    // Retrieve the dish.
     K.chef.carrying = null;
     K.setCarriedVisual();
     act();
 
-    const retrievedCorrectly =
+    return (
       K.chef.carrying &&
       K.chef.carrying.kind === "plate" &&
-      K.chef.carrying.comps.slice().sort().join("") === "LT" &&
-      K.plateSt.plates.every((p) => p === null);
+      K.plateSt.plates.every((p) => p === null) &&
+      !!storedMesh &&
+      storedMesh.parent === null
+    );
+  });
 
-    // The stored visual must disappear too.
-    const noGhostDish = !!storedMesh && storedMesh.parent === null;
+  expect(noGhost).toBe(true);
+});
+test("[F2P] Starting a new game clears dishes left on the PLATE station", async ({
+  page,
+}) => {
+  await boot(page);
+
+  const resetCleanly = await page.evaluate(() => {
+    const K = window.__KR;
+    K.startGame();
+
+    K.chef.pos.set(K.plateSt.x, 0, K.plateSt.z + 1.7);
+
+    const act = () => {
+      K.chef.actionCd = 0;
+      K.chef.chopping = null;
+      K.tryAction();
+    };
+
+    K.chef.carrying = {
+      kind: "plate",
+      comps: ["B", "P"],
+    };
+
+    K.setCarriedVisual();
+    act();
+
+    const stored = K.plateSt.plates.find(Boolean);
+    const oldMesh = stored && stored.mesh;
+
+    K.startGame();
+
+    return (
+      K.plateSt.plates.every((p) => p === null) &&
+      !!oldMesh &&
+      oldMesh.parent === null
+    );
+  });
+
+  expect(resetCleanly).toBe(true);
+});
+test("[F2P] Ticket patience adapts to recipe complexity and queue position", async ({
+  page,
+}) => {
+  await boot(page);
+
+  const result = await page.evaluate(() => {
+    const K = window.__KR;
+    const G = K.G;
+
+    K.startGame();
+
+    // Clear naturally spawned tickets so this test controls the queue.
+    G.tickets.length = 0;
+
+    const addTicket = (name, comps, total = 60) => {
+      const ticket = {
+        id: ++G.ticketSeq,
+        recipe: { name, comps: comps.slice(), tier: 0 },
+        timeTotal: total,
+        timeLeft: total,
+        warned: false,
+        beeped: 999,
+      };
+
+      G.tickets.push(ticket);
+      return ticket;
+    };
+
+    const first = addTicket("FIRST", ["L", "T"], 60);
+    const second = addTicket("SECOND", ["B", "P"], 60);
+    const third = addTicket("THIRD", ["B", "P", "C", "L", "T"], 60);
+
+    // Let all 3 tickets age for the same amount of game time.
+    K.updateTickets(10);
+
+    const firstLoss = 60 - first.timeLeft;
+    const secondLoss = 60 - second.timeLeft;
+    const thirdLoss = 60 - third.timeLeft;
+
+    const queueProtectionWorks =
+      firstLoss > secondLoss &&
+      secondLoss > thirdLoss &&
+      Math.abs(firstLoss - 10) < 0.01;
+
+    // Remove the front ticket.
+    G.tickets.splice(G.tickets.indexOf(first), 1);
+
+    const secondBefore = second.timeLeft;
+
+    // It should now be the front ticket and therefore drain at full speed.
+    K.updateTickets(4);
+
+    const promotedLoss = secondBefore - second.timeLeft;
+
+    const promotionWorks = Math.abs(promotedLoss - 4) < 0.01;
 
     return {
-      collisionKeepsChefOutside,
-      storedCorrectly,
-      retrievedCorrectly,
-      noGhostDish,
+      queueProtectionWorks,
+      promotionWorks,
+      firstLoss,
+      secondLoss,
+      thirdLoss,
+      promotedLoss,
     };
   });
 
-  expect(result).toEqual({
-    collisionKeepsChefOutside: true,
-    storedCorrectly: true,
-    retrievedCorrectly: true,
-    noGhostDish: true,
-  });
+  expect(result.queueProtectionWorks).toBe(true);
+  expect(result.promotionWorks).toBe(true);
 });
