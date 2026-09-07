@@ -1,17 +1,19 @@
-# Fix serving against stale order tickets
+# The kitchen shift falls apart after the first order
 
-Please fix the serving behavior in Kitchen Rush. A dish can match an order that is currently visible on the rail and still be rejected as **WRONG DISH** after an earlier order leaves and a replacement arrives. This is especially reproducible when the rail returns to the same number of active tickets after the replacement.
+## What you see
 
-Serving must always resolve the hand-in against the tickets that are active at that moment. A newly arrived or changed order should be immediately serveable, while a removed or expired order must no longer affect later hand-ins. This must remain correct even when tickets are replaced or reordered without changing the total number of cards on the rail.
+The very first hand-in of a shift goes through fine, but after that the serving window starts rejecting dishes that clearly match what the ticket asked for — no points, the order stays sitting on the rail, and you lose a life every time you try. It feels like the game has stopped recognising the recipes you just cooked.
 
-If multiple active customers are waiting for equivalent dishes, serve the most urgent matching customer: the ticket with the smallest fraction of patience remaining. Keep that customer's identity, patience, and scoring state attached to the ticket itself when the rail is reordered.
+The plate counter gets stuck too. After setting plates down and picking them back up a few times, the counter looks completely empty and still lights up as if you can use it, yet the chef simply won't put anything down there — plates and prepared ingredients alike just stay in your hands. On top of that, once several tickets are waiting, the little badge that shows what the chef is carrying drifts sideways and slides off the edge of the screen, so you can't tell what you're holding.
 
-For every successful hand-in, remove exactly one matching live ticket, calculate the score and tip from that ticket's own remaining patience, increment the served count exactly once, leave lives and mistakes unchanged, and clear the plate from the chef's hands. The same behavior must continue to hold through repeated serving, replacement, expiration, and reorder cycles.
+## What correct looks like
 
-Here is the broken behavior:
+Handing in the dish an order asks for should always be rewarded — points scored, that ticket cleared off the rail, and no lives lost. An empty plate counter should keep accepting plates and prepared ingredients no matter how many times you've used it during the shift, and the badge showing what you're carrying should stay fully visible and readable however busy the rail gets.
 
-<img src="/app/problem_assets/broken.png" alt="A valid current order being rejected after the order rail changes" width="900" />
+The broken app currently looks like this:
 
-Here is the expected result:
+<img src="/app/problem_assets/broken.png" alt="current (broken) app" width="900" />
 
-<img src="/app/problem_assets/target.png" alt="The correct live customer receiving the matching dish" width="900" />
+The expected app should look like this:
+
+<img src="/app/problem_assets/target.png" alt="expected app" width="900" />

@@ -125,19 +125,9 @@ function nopeFeedback(){
 }
 
 // ---------------- serving ----------------
-function ticketRecipeKey(comps){return comps.slice().sort().join('');}
-function matchingServeTicket(comps){
-  const key=ticketRecipeKey(comps);
-  let best=null, bestUrgency=Infinity;
-  for(const t of G.tickets){
-    if(ticketRecipeKey(t.recipe.comps)!==key)continue;
-    const urgency=t.timeTotal>0?t.timeLeft/t.timeTotal:0;
-    if(best===null||urgency<bestUrgency){best=t;bestUrgency=urgency;}
-  }
-  return best;
-}
 function servePlate(comps){
-  const t=matchingServeTicket(comps);
+  const sorted=a=>a.slice().sort().join('');
+  const t=G.tickets.find(t=>sorted(t.recipe.comps)===sorted(comps));
   if(t){
     const patienceFrac=t.timeLeft/t.timeTotal;
     const tip=Math.round(t.recipe.comps.length*10*(0.5+patienceFrac));

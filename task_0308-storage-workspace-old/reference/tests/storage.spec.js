@@ -1,0 +1,36 @@
+const { test, expect } = require('@playwright/test');
+const APP_URL = process.env.APP_URL;
+const PREAMBLE = "(() => { let _s=1337>>>0; Math.random=function(){_s|=0;_s=(_s+0x6D2B79F5)|0;let t=Math.imul(_s^(_s>>>15),1|_s);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296;}; const css='*,*::before,*::after{animation-duration:0s!important;transition-duration:0s!important;caret-color:transparent!important}'; const inject=()=>{const st=document.createElement('style');st.textContent=css;(document.head||document.documentElement).appendChild(st)}; document.readyState==='loading'?document.addEventListener('DOMContentLoaded',inject):inject(); })();";
+async function boot(page){
+  await page.addInitScript(PREAMBLE);
+  await page.goto(APP_URL,{waitUntil:'networkidle',timeout:30000});
+  await page.waitForFunction(()=>window.__KR&&window.__KR.G,null,{timeout:15000});
+  await page.evaluate(()=>{
+    window.__storageTest=()=>{
+      const K=window.__KR,G=K.G; K.startGame(); G.tickets.length=0; G.spawnTimer=9999;
+      let seq=10000;
+      const make=(name,comps,timeLeft=60,timeTotal=60)=>({id:++seq,recipe:{name,comps:comps.slice(),tier:0},timeTotal,timeLeft,warned:false,beeped:999});
+      const serve=(comps)=>{K.chef.carrying={kind:'plate',comps:comps.slice()};K.setCarriedVisual();K.chef.pos.set(K.serveSt.x,0,K.serveSt.z);K.chef.actionCd=0;K.chef.chopping=null;K.tryAction();};
+      return{K,G,make,serve};
+    };
+  });
+}
+
+test('[P2P] game boots with the kitchen runtime available',async({page})=>{await boot(page);expect(await page.evaluate(()=>!!window.__KR&&!!window.__KR.G)).toBe(true)});
+test('[P2P] an ordinary first hand-in is accepted',async({page})=>{await boot(page);const r=await page.evaluate(()=>{const{G,make,serve}=__storageTest();const t=make('SALAD',['L','T']);G.tickets.push(t);serve(['T','L']);return{served:G.served,lives:G.lives,left:G.tickets.length}});expect(r).toEqual({served:1,lives:3,left:0})});
+
+test('[F2P] a replacement order remains serveable when the rail returns to the same size',async({page})=>{await boot(page);const r=await page.evaluate(()=>{const{G,make,serve}=__storageTest();G.tickets.push(make('SALAD',['L','T']),make('BLT',['B','L','T']));serve(['L','T']);G.tickets.push(make('BURGER',['B','P']));const l=G.lives;serve(['B','P']);return{l,after:G.lives,served:G.served,burger:G.tickets.some(t=>t.recipe.name==='BURGER')}});expect(r.after).toBe(r.l);expect(r.served).toBe(2);expect(r.burger).toBe(false)});
+
+test('[F2P] replacing a ticket in place cannot leave serving attached to the removed customer',async({page})=>{await boot(page);const r=await page.evaluate(()=>{const{G,make,serve}=__storageTest();const old=make('SALAD',['L','T']);G.tickets.push(old,make('BLT',['B','L','T']));serve(['B']);const fresh=make('BURGER',['B','P']);G.tickets.splice(0,1,fresh);const before={l:G.lives,m:G.mistakes,s:G.served};serve(['B','P']);return{before,l:G.lives,m:G.mistakes,s:G.served,fresh:G.tickets.includes(fresh)}});expect(r.l).toBe(r.before.l);expect(r.m).toBe(r.before.m);expect(r.s).toBe(r.before.s+1);expect(r.fresh).toBe(false)});
+
+test('[F2P] an existing ticket recipe change is authoritative immediately',async({page})=>{await boot(page);const r=await page.evaluate(()=>{const{G,make,serve}=__storageTest();const t=make('SALAD',['L','T']);G.tickets.push(t,make('BLT',['B','L','T']));serve(['B']);t.recipe={name:'BURGER',comps:['B','P'],tier:0};const before={l:G.lives,m:G.mistakes};serve(['B','P']);return{before,l:G.lives,m:G.mistakes,exists:G.tickets.includes(t)}});expect(r.l).toBe(r.before.l);expect(r.m).toBe(r.before.m);expect(r.exists).toBe(false)});
+
+test('[F2P] duplicate recipes serve the most urgent live customer, not merely the first match',async({page})=>{await boot(page);const r=await page.evaluate(()=>{const{G,make,serve}=__storageTest();const relaxed=make('SALAD A',['L','T'],54,60);const urgent=make('SALAD B',['L','T'],12,60);G.tickets.push(relaxed,urgent);serve(['L','T']);return{relaxed:G.tickets.includes(relaxed),urgent:G.tickets.includes(urgent),score:G.score}});expect(r.relaxed).toBe(true);expect(r.urgent).toBe(false);expect(r.score).toBe(94)});
+
+test('[F2P] urgency follows ticket identity even when duplicate tickets are reordered',async({page})=>{await boot(page);const r=await page.evaluate(()=>{const{G,make,serve}=__storageTest();const urgent=make('BLT urgent',['B','L','T'],6,60);const relaxed=make('BLT relaxed',['B','L','T'],48,60);G.tickets.push(urgent,relaxed);G.tickets.reverse();serve(['B','L','T']);return{urgent:G.tickets.includes(urgent),relaxed:G.tickets.includes(relaxed),score:G.score}});expect(r.urgent).toBe(false);expect(r.relaxed).toBe(true);expect(r.score).toBe(113)});
+
+test('[F2P] an expired duplicate cannot receive a later hand-in intended for its replacement',async({page})=>{await boot(page);const r=await page.evaluate(()=>{const{G,make,serve}=__storageTest();const expired=make('BURGER OLD',['B','P'],0.01,60);const other=make('SALAD',['L','T']);G.tickets.push(expired,other);serve(['B']);G.tickets.splice(G.tickets.indexOf(expired),1);G.lives--;const replacement=make('BURGER NEW',['B','P'],30,60);G.tickets.push(replacement);const before={l:G.lives,m:G.mistakes,s:G.served};serve(['B','P']);return{before,l:G.lives,m:G.mistakes,s:G.served,replacement:G.tickets.includes(replacement),expired:G.tickets.includes(expired)}});expect(r.expired).toBe(false);expect(r.replacement).toBe(false);expect(r.l).toBe(r.before.l);expect(r.m).toBe(r.before.m);expect(r.s).toBe(r.before.s+1)});
+
+test('[F2P] repeated same-size queue rotations keep score and ticket ownership consistent',async({page})=>{await boot(page);const r=await page.evaluate(()=>{const{G,make,serve}=__storageTest();const recipes=[['SALAD',['L','T']],['BLT',['B','L','T']],['BURGER',['B','P']],['CHEESE',['B','P','C']],['MELT',['P','C','L']]];G.tickets.push(make(recipes[0][0],recipes[0][1]),make(recipes[1][0],recipes[1][1]));let ok=true;for(let i=0;i<3;i++){const current=G.tickets[0];serve(current.recipe.comps);const next=recipes[i+2];G.tickets.push(make(next[0],next[1],30-i*5,60));if(G.tickets.length!==2)ok=false;}const target=G.tickets[1];const before={l:G.lives,m:G.mistakes,s:G.served};serve(target.recipe.comps);return{ok,before,l:G.lives,m:G.mistakes,s:G.served,target:G.tickets.includes(target)}});expect(r.ok).toBe(true);expect(r.l).toBe(r.before.l);expect(r.m).toBe(r.before.m);expect(r.s).toBe(r.before.s+1);expect(r.target).toBe(false)});
+
+test('[F2P] successful lifecycle-aware serving clears the plate and changes score exactly once',async({page})=>{await boot(page);const r=await page.evaluate(()=>{const{G,make,serve,K}=__storageTest();const stale=make('SALAD OLD',['L','T']);G.tickets.push(stale,make('BLT',['B','L','T']));serve(['B']);const fresh=make('SALAD NEW',['L','T'],30,60);G.tickets.splice(0,1,fresh);const before={score:G.score,served:G.served,lives:G.lives,mistakes:G.mistakes};serve(['L','T']);return{before,score:G.score,served:G.served,lives:G.lives,mistakes:G.mistakes,carrying:K.chef.carrying,fresh:G.tickets.includes(fresh)}});expect(r.score).toBeGreaterThan(r.before.score);expect(r.served).toBe(r.before.served+1);expect(r.lives).toBe(r.before.lives);expect(r.mistakes).toBe(r.before.mistakes);expect(r.carrying).toBe(null);expect(r.fresh).toBe(false)});
