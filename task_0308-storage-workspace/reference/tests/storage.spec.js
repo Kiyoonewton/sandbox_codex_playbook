@@ -5,7 +5,7 @@ const PREAMBLE =
 const READY_HOOKS = ["__FlatBoxGeo", "__KR"];
 async function boot(page) {
   await page.addInitScript(PREAMBLE);
-  await page.goto(APP_URL, { waitUntil: "networkidle", timeout: 30000 });
+  await page.goto(APP_URL, { waitUntil: "networkidle", timeout: 60000 });
   try {
     await page.waitForFunction(
       (hs) =>
@@ -338,4 +338,100 @@ test("[F2P] Ticket patience adapts to recipe complexity and queue position", asy
 
   expect(result.queueProtectionWorks).toBe(true);
   expect(result.promotionWorks).toBe(true);
+});
+test("[F2P] newly spawned ticket remains serveable after the active queue changes", async ({
+  page,
+}) => {
+  await boot(page);
+
+  const result = await page.evaluate(() => {
+    const K = window.__KR;
+    const G = K.G;
+
+    K.startGame();
+    G.tickets.length = 0;
+
+    const makeTicket = (name, comps) => ({
+      id: ++G.ticketSeq,
+      recipe: {
+        name,
+        comps: comps.slice(),
+        tier: 0,
+      },
+      timeTotal: 60,
+      timeLeft: 60,
+      warned: false,
+      beeped: 999,
+    });
+
+    const salad = makeTicket("SALAD", ["L", "T"]);
+    const blt = makeTicket("B.L.T.", ["B", "L", "T"]);
+
+    G.tickets.push(salad, blt);
+
+    const serve = (comps) => {
+      K.chef.carrying = {
+        kind: "plate",
+        comps: comps.slice(),
+      };
+
+      K.setCarriedVisual();
+
+      K.chef.pos.set(K.serveSt.x, 0, K.serveSt.z);
+      K.chef.actionCd = 0;
+      K.chef.chopping = null;
+
+      K.tryAction();
+    };
+
+    // First valid serve builds/uses the ticket lookup.
+    serve(["L", "T"]);
+
+    const afterFirstServe = {
+      served: G.served,
+      lives: G.lives,
+      names: G.tickets.map((t) => t.recipe.name),
+    };
+
+    // Add a new ticket so queue length returns to 2.
+    const burger = makeTicket("BURGER", ["B", "P"]);
+    G.tickets.push(burger);
+
+    const beforeSecondServe = {
+      served: G.served,
+      lives: G.lives,
+      names: G.tickets.map((t) => t.recipe.name),
+    };
+
+    // Serve the newly added valid ticket.
+    serve(["B", "P"]);
+
+    const afterSecondServe = {
+      served: G.served,
+      lives: G.lives,
+      names: G.tickets.map((t) => t.recipe.name),
+      burgerStillExists: G.tickets.some((t) => t.id === burger.id),
+    };
+
+    return {
+      afterFirstServe,
+      beforeSecondServe,
+      afterSecondServe,
+    };
+  });
+
+  console.log(result);
+
+  expect(result.afterFirstServe.names).toEqual(["B.L.T."]);
+  expect(result.beforeSecondServe.names).toEqual(["B.L.T.", "BURGER"]);
+
+  // Investigation target:
+  // the newly added valid Burger should be recognized and served.
+  expect(result.afterSecondServe.served).toBe(
+    result.beforeSecondServe.served + 1,
+  );
+
+  expect(result.afterSecondServe.lives).toBe(result.beforeSecondServe.lives);
+
+  expect(result.afterSecondServe.burgerStillExists).toBe(false);
 });
