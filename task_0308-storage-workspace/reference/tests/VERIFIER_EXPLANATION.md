@@ -8,7 +8,7 @@ The two P2P tests protect existing behavior by confirming that the kitchen runti
 
 ## Failing-to-Passing coverage
 
-The eight F2P tests exercise one queue-lifecycle consistency problem from different state transitions:
+The nine F2P tests exercise one queue-lifecycle consistency problem from different state transitions:
 
 - A newly arrived replacement ticket remains serveable when the queue returns to a previously seen length.
 - Replacing a queued ticket in place cannot leave serving bound to the removed ticket identity.
@@ -17,8 +17,9 @@ The eight F2P tests exercise one queue-lifecycle consistency problem from differ
 - Customers with identical recipes remain independently serveable across queue refills.
 - State left by a removed ticket cannot mask a different replacement recipe.
 - Repeated same-size queue rotations continue to recognize newly arriving recipes.
-- A valid post-mutation hand-in preserves lives and mistakes, clears the carried plate, increments served count, and advances score exactly like a normal successful serve.
+- A valid post-mutation hand-in does not cost a life or increment mistakes.
+- A successful post-mutation hand-in clears the carried plate, increments served count, and advances score exactly like a normal successful serve.
 
 These cases are deliberately coupled around the same underlying requirement: serving must derive matches from the current active ticket state rather than a stale snapshot keyed only by queue size or earlier ticket contents.
 
-There are 10 verifier behaviors represented by 11 Playwright tests in total: 8 F2P tests covering the repaired queue lifecycle and 3 P2P checks, with the first successful hand-in split into boot and normal-serve protections.
+There are 11 verifier tests in total: 9 F2P tests covering the repaired queue lifecycle and 2 P2P tests protecting existing functionality.
