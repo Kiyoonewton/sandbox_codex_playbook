@@ -1,19 +1,23 @@
 # Year history breaks when navigation methods are mixed
 
-The Internet Time Machine can get into an inconsistent year state after using more than one navigation control. For example, a user can select a year from a tab, move again with the scrubber, then use undo/redo or change the URL hash and end up with the hero, active tab, scrubber, saved year, URL, and favorites disagreeing about which year is current.
+The Internet Time Machine loses navigation history after moving between years with different controls. A simple reproduction is: open year 2005, navigate to 2010, then press Undo. The app should return to 2005, but the broken version can remain on 2010 instead.
 
-Fix the year-selection flow so every control updates the same current year and every committed navigation participates in one consistent history. A scrubber drag should count as one navigation when the drag finishes, not one entry for every intermediate year. If the drag ends on the year where it started, it should add nothing to history. Selecting the year that is already active should also do nothing and must not destroy an existing redo branch.
+Fix the year-selection flow so tabs, keyboard controls, favorites, the scrubber, URL hashes, and undo/redo all operate on one consistent current year and one committed navigation history. The hero year, active tab, scrubber value, saved year, URL hash, and favorites state must stay synchronized after every navigation.
 
-Undo and redo must continue to work after tabs, keyboard controls, favorites, URL changes, and scrubber interactions are mixed together. Ctrl/Cmd+Shift+Z should redo. If the user undoes and then chooses a genuinely different year, the abandoned redo branch should be discarded, including when that new year is chosen with the scrubber. Keyboard changes made while the scrubber has focus should behave like normal committed navigation and remain undoable.
+A scrubber drag should count as one navigation when the drag finishes, not one history entry for each intermediate year. If the drag ends on the year where it started, it should add nothing to history. Selecting the already-active year should also be a no-op and must not destroy an existing redo branch.
 
-A valid year in the URL hash on initial load should win over an older value in localStorage. Changing the hash to another valid year while the app is open should immediately select that year and synchronize the rest of the UI. Adding or removing a favorite should update the favorites bar immediately, and choosing a favorite should use the same navigation/history behavior as the other controls.
+Undo and redo must remain correct after navigation methods are mixed. Ctrl/Cmd+Shift+Z should redo. If the user undoes and then chooses a genuinely different year, the abandoned redo branch should be discarded, including when the new year is committed with the scrubber. Keyboard changes made while the scrubber has focus should behave like normal committed navigation and remain undoable.
 
-Do not regress the default state: opening on year 2000 should still show the welcome message.
+A valid year in the URL hash on initial load should take precedence over an older value in localStorage. Changing the hash to another valid year while the app is open should immediately select that year and synchronize the rest of the UI. Adding or removing a favorite should update the favorites bar immediately, and choosing a favorite should use the same navigation/history behavior as the other controls.
 
-Broken state:
+Opening on the default year 2000 should still show the welcome message.
 
-<img src="/app/problem_assets/broken.png" alt="The time machine showing inconsistent year navigation state" width="900" />
+The screenshots below are from the same reproduction: start on 2005, navigate to 2010, then press Undo. In the broken app the year incorrectly remains on 2010; in the fixed app it returns to 2005.
 
-Expected state:
+Broken after Undo — still on 2010:
 
-<img src="/app/problem_assets/target.png" alt="The time machine with synchronized year navigation and history" width="900" />
+<img src="/app/problem_assets/broken.png" alt="After navigating from 2005 to 2010 and pressing Undo, the broken app incorrectly remains on 2010" width="900" />
+
+Expected after the same Undo — back on 2005:
+
+<img src="/app/problem_assets/target.png" alt="After the same navigation sequence and Undo, the fixed app correctly returns to 2005" width="900" />
