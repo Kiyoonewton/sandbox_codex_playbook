@@ -716,6 +716,8 @@
 
   let scrubberIsDragging = false;
   let scrubberStartYear = null;
+  let scrubberPreviewYear = null;
+  let scrubberRect = null;
 
   function setupYearScrubber() {
     // Live URL-hash navigation participates in the same app history model.
@@ -735,9 +737,10 @@
 
     function yearFromPosition(clientX) {
       const { track } = getScrubberEls();
-      if (!track) return currentYear;
-      const rect = track.getBoundingClientRect();
-      if (rect.width === 0) return currentYear;
+      const rect = scrubberIsDragging && scrubberRect
+        ? scrubberRect
+        : (track ? track.getBoundingClientRect() : null);
+      if (!rect || rect.width === 0) return currentYear;
       const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
       return Math.round(pct * 25 + 2000);
     }
@@ -753,22 +756,40 @@
     }
 
     function beginScrub(clientX) {
+      const { track } = getScrubberEls();
+      if (!track) return;
+      const rect = track.getBoundingClientRect();
+      if (!rect.width) return;
+
       scrubberIsDragging = true;
       scrubberStartYear = currentYear;
-      const year = yearFromPosition(clientX);
-      if (year !== currentYear) {
-        selectYear(year, false, true);
-      }
-      updateScrubberVisual(year);
+      scrubberRect = rect;
+      scrubberPreviewYear = yearFromPosition(clientX);
+      updateScrubberVisual(scrubberPreviewYear);
+    }
+
+    function previewScrub(clientX) {
+      if (!scrubberIsDragging) return;
+      scrubberPreviewYear = yearFromPosition(clientX);
+      updateScrubberVisual(scrubberPreviewYear);
     }
 
     function commitScrub() {
       if (!scrubberIsDragging) return;
+
+      const startYear = scrubberStartYear;
+      const finalYear = scrubberPreviewYear;
       scrubberIsDragging = false;
-      if (scrubberStartYear !== null && currentYear !== scrubberStartYear) {
-        recordHistory(currentYear);
-      }
       scrubberStartYear = null;
+      scrubberPreviewYear = null;
+      scrubberRect = null;
+
+      if (finalYear !== null && finalYear !== startYear) {
+        // Commit once at pointer release so one physical drag is one history item.
+        selectYear(finalYear, false);
+      } else {
+        refreshScrubberVisual();
+      }
     }
 
     const mainContent = document.getElementById('main-content');
@@ -776,6 +797,7 @@
       mainContent.addEventListener('mousedown', (e) => {
         const track = e.target.closest('#scrubber-track');
         if (!track) return;
+        e.preventDefault();
         beginScrub(e.clientX);
       });
 
@@ -790,10 +812,12 @@
         if (e.target.id !== 'scrubber-thumb') return;
         if (e.key === 'ArrowLeft' && currentYear > 2000) {
           e.preventDefault();
+          e.stopPropagation();
           selectYear(currentYear - 1, true);
           updateScrubberVisual(currentYear);
         } else if (e.key === 'ArrowRight' && currentYear < 2025) {
           e.preventDefault();
+          e.stopPropagation();
           selectYear(currentYear + 1, true);
           updateScrubberVisual(currentYear);
         }
@@ -803,22 +827,14 @@
     document.addEventListener('mousemove', (e) => {
       if (!scrubberIsDragging) return;
       e.preventDefault();
-      const year = yearFromPosition(e.clientX);
-      if (year !== currentYear) {
-        selectYear(year, false, true);
-        updateScrubberVisual(year);
-      }
+      previewScrub(e.clientX);
     });
 
     document.addEventListener('mouseup', commitScrub);
 
     document.addEventListener('touchmove', (e) => {
       if (!scrubberIsDragging) return;
-      const year = yearFromPosition(e.touches[0].clientX);
-      if (year !== currentYear) {
-        selectYear(year, false, true);
-        updateScrubberVisual(year);
-      }
+      previewScrub(e.touches[0].clientX);
     }, { passive: true });
 
     document.addEventListener('touchend', commitScrub);
