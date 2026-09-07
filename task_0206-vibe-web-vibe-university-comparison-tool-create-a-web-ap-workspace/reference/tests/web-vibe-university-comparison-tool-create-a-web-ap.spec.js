@@ -42,10 +42,6 @@ async function seed(page, comparisonIds, customSchools = []) {
   await page.waitForTimeout(250);
 }
 
-async function count(page) {
-  return (await page.locator('#comparison-count').innerText()).trim();
-}
-
 async function deleteCustom(page) {
   await page.locator(`[data-delete-custom="${CUSTOM.id}"]`).click();
   await page.locator('#delete-confirm').click();
@@ -87,11 +83,13 @@ test('[F2P] reset reports the comparison reset without claiming nonexistent cust
 
 test('[F2P] undoing deletion restores a compared custom school and its comparison slot', async ({ page }) => {
   await seed(page, ['mit', CUSTOM.id], [CUSTOM]);
-  await expect(page.locator(`[data-uni-id="${CUSTOM.id}"]`)).toBeVisible();
+  await expect(page.locator(`.uni-item[data-uni-id="${CUSTOM.id}"]`)).toBeVisible();
+  await expect(page.locator(`.comp-card[data-uni-id="${CUSTOM.id}"]`)).toBeVisible();
   await deleteCustom(page);
   await expect(page.locator(`[data-uni-id="${CUSTOM.id}"]`)).toHaveCount(0);
   await page.locator('#btn-undo').click();
-  await expect(page.locator(`[data-uni-id="${CUSTOM.id}"]`)).toBeVisible();
+  await expect(page.locator(`.uni-item[data-uni-id="${CUSTOM.id}"]`)).toBeVisible();
+  await expect(page.locator(`.comp-card[data-uni-id="${CUSTOM.id}"]`)).toBeVisible();
   await expect(page.locator('#comparison-count')).toHaveText('2');
 });
 
@@ -110,7 +108,8 @@ test('[F2P] undoing reset restores custom schools together with the comparison t
   await expect(page.locator('#comparison-count')).toHaveText('0');
   await expect(page.locator(`[data-uni-id="${CUSTOM.id}"]`)).toHaveCount(0);
   await page.locator('#btn-undo').click();
-  await expect(page.locator(`[data-uni-id="${CUSTOM.id}"]`)).toBeVisible();
+  await expect(page.locator(`.uni-item[data-uni-id="${CUSTOM.id}"]`)).toBeVisible();
+  await expect(page.locator(`.comp-card[data-uni-id="${CUSTOM.id}"]`)).toBeVisible();
   await expect(page.locator('#comparison-count')).toHaveText('2');
 });
 
@@ -118,7 +117,8 @@ test('[F2P] reset undo redo preserves the custom-school lifecycle in both direct
   await seed(page, ['harvard', CUSTOM.id], [CUSTOM]);
   await page.locator('#btn-reset').click();
   await page.locator('#btn-undo').click();
-  await expect(page.locator(`[data-uni-id="${CUSTOM.id}"]`)).toBeVisible();
+  await expect(page.locator(`.uni-item[data-uni-id="${CUSTOM.id}"]`)).toBeVisible();
+  await expect(page.locator(`.comp-card[data-uni-id="${CUSTOM.id}"]`)).toBeVisible();
   await page.locator('#btn-redo').click();
   await expect(page.locator(`[data-uni-id="${CUSTOM.id}"]`)).toHaveCount(0);
   await expect(page.locator('#comparison-count')).toHaveText('0');
