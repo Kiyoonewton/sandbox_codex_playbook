@@ -1,17 +1,17 @@
-# Kitchen Rush serves dishes against orders that are no longer active
+# Kitchen Rush serves the wrong customer when two orders use the same dish
 
-In Kitchen Rush, I can prepare the exact dish shown on a current ticket and still lose a life with `WRONG DISH!` if the order rail changed beforehand. For example, serve one order from a two-ticket rail, let a different order replace it so the rail is back to two tickets, then hand in the replacement's dish. The replacement is visibly active, but the game can validate the plate against the earlier rail instead.
+I noticed this while serving Salad with two Salad orders on the rail. One customer still had 55 of 60 patience left and the other was down to 12 of 60. I served one Lettuce + Tomato plate, but the game completed the 55/60 order and left the 12/60 customer waiting. The score jumped to 108 as if the patient customer had been served.
 
-Please make each hand-in use the tickets that are actually active when the dish reaches the serving station. If a ticket has been removed or expired, it must stop influencing serving immediately. If an existing ticket changes or a replacement arrives while the number of visible tickets stays the same, that current order must be recognized without requiring another change to the rail.
+The customer who is closest to running out of patience should get the dish when more than one active order matches it. In this case the 12/60 Salad order should disappear, the 55/60 Salad should remain, and the score should be calculated from the customer who actually received the dish. Reordering the ticket cards should not change which customer owns that urgency.
 
-There is another case of the same problem when two live tickets require the same ingredients. The dish should go to the customer who is closest to running out of patience, based on `timeLeft / timeTotal`, even if those ticket cards have been reordered. The score and tip must come from that customer's own patience rather than from whichever matching ticket happened to be cached or encountered first.
+I have also seen the same wrong-customer behavior after the order rail changes. An order that has already been served or expired can still affect a later hand-in after a replacement appears, especially when the rail returns to the same number of tickets. Serving should always use the customers that are currently on the rail; removed orders should have no effect on later dishes.
 
-A correct serve should remove only that live ticket, increase `served` once, award its score once, keep lives and mistakes unchanged, and leave the chef with no plate. These rules need to keep working as orders are repeatedly served, replaced, expired, edited, or reordered during the shift.
+A successful hand-in should count once, remove the customer who actually received it, and clear the plate without costing a life or recording a mistake.
 
-The screenshot below shows the failure: the current dish is rejected after the order rail has changed.
+Here is the Salad case on the broken version. The game awarded 108 points but left the urgent Lettuce + Tomato order on the rail:
 
-<img src="/app/problem_assets/broken.png" alt="Kitchen Rush rejects a dish for a currently active order after the ticket rail changes" width="900" />
+<img src="/app/problem_assets/broken.png" alt="Kitchen Rush scores 108 after serving the less urgent Salad while the urgent Lettuce and Tomato order remains" width="900" />
 
-After the fix, the same hand-in is accepted for the current live ticket instead of producing `WRONG DISH!`.
+With the fix, the urgent Salad receives the plate first. The patient Salad remains and the score is 94 because it came from the customer who was actually served:
 
-<img src="/app/problem_assets/target.png" alt="Kitchen Rush accepts the dish for the current live ticket" width="900" />
+<img src="/app/problem_assets/target.png" alt="Kitchen Rush scores 94 after serving the urgent Salad and leaves the patient Salad order" width="900" />
