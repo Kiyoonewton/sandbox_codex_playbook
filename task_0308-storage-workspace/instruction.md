@@ -1,23 +1,17 @@
-# The order rail loses track of customers during a busy shift
+# Fix serving against stale order tickets
 
-## What you see
+Please fix the serving behavior in Kitchen Rush. A dish can match an order that is currently visible on the rail and still be rejected as **WRONG DISH** after an earlier order leaves and a replacement arrives. This is especially reproducible when the rail returns to the same number of active tickets after the replacement.
 
-The first hand-in usually works, but after the order rail changes during a busy shift, a dish that exactly matches a current customer can be rejected as **WRONG DISH**. The failure is especially noticeable when an order leaves and another arrives while the rail returns to the same number of active tickets.
+Serving must always resolve the hand-in against the tickets that are active at that moment. A newly arrived or changed order should be immediately serveable, while a removed or expired order must no longer affect later hand-ins. This must remain correct even when tickets are replaced or reordered without changing the total number of cards on the rail.
 
-The serving window must follow the live order rail, not an older snapshot of it. Customers can leave, new orders can arrive, and the order of active tickets can change without changing how many cards are visible. A removed or expired customer must never influence a later hand-in.
+If multiple active customers are waiting for equivalent dishes, serve the most urgent matching customer: the ticket with the smallest fraction of patience remaining. Keep that customer's identity, patience, and scoring state attached to the ticket itself when the rail is reordered.
 
-There is another important case when equivalent orders overlap. If more than one active customer is waiting for the same dish, the hand-in belongs to the **most urgent matching customer** — the one with the smallest fraction of patience remaining. Reordering the rail must not transfer that customer's patience or scoring state to another ticket.
+For every successful hand-in, remove exactly one matching live ticket, calculate the score and tip from that ticket's own remaining patience, increment the served count exactly once, leave lives and mistakes unchanged, and clear the plate from the chef's hands. The same behavior must continue to hold through repeated serving, replacement, expiration, and reorder cycles.
 
-## What correct looks like
-
-Every hand-in is resolved against the tickets that are active at that moment. Newly arrived and changed orders are immediately serveable, expired orders are forgotten, and equivalent orders retain their individual identity and patience.
-
-A successful hand-in removes exactly one matching live ticket, calculates the score and tip from that ticket's own remaining patience, increments served exactly once, preserves lives and mistakes, and clears the plate from the chef's hands. These guarantees must continue to hold after repeated serve, removal, replacement, expiration, and reorder cycles.
-
-The broken app currently looks like this:
+Here is the broken behavior:
 
 <img src="/app/problem_assets/broken.png" alt="A valid current order being rejected after the order rail changes" width="900" />
 
-The expected app should look like this:
+Here is the expected result:
 
 <img src="/app/problem_assets/target.png" alt="The correct live customer receiving the matching dish" width="900" />
