@@ -99,13 +99,43 @@ test('[F2P] favoriting updates the favorites bar immediately and favorite naviga
 test('[F2P] a long scrubber drag is one history action so one undo returns to the drag start', async ({ page }) => {
   await boot(page);
   await selectTab(page, 2005);
+
+  await page.exposeFunction('__scrubberDebug', (entry) => console.log('SCRUBBER_DEBUG', JSON.stringify(entry)));
+  await page.evaluate(() => {
+    ['mousedown', 'mousemove', 'mouseup'].forEach((type) => {
+      document.addEventListener(type, (e) => {
+        if (type === 'mousemove' && e.buttons !== 1) return;
+        const track = document.getElementById('scrubber-track');
+        const thumb = document.getElementById('scrubber-thumb');
+        const rect = track?.getBoundingClientRect();
+        window.__scrubberDebug({
+          type,
+          target: e.target?.id || e.target?.className || e.target?.tagName,
+          clientX: e.clientX,
+          buttons: e.buttons,
+          trackLeft: rect?.left,
+          trackWidth: rect?.width,
+          ariaYear: thumb?.getAttribute('aria-valuenow'),
+          heroYear: document.querySelector('.hero-year')?.textContent,
+        });
+      }, true);
+    });
+  });
+
   const box = await page.locator('#scrubber-track').boundingBox();
   expect(box).not.toBeNull();
+  console.log('SCRUBBER_BOX', JSON.stringify(box));
   const y = box.y + box.height / 2;
   await page.mouse.move(box.x + box.width * (5 / 25), y);
   await page.mouse.down();
   await page.mouse.move(box.x + box.width * (20 / 25), y, { steps: 14 });
   await page.mouse.up();
+  console.log('SCRUBBER_AFTER', await page.evaluate(() => ({
+    heroYear: document.querySelector('.hero-year')?.textContent,
+    ariaYear: document.getElementById('scrubber-thumb')?.getAttribute('aria-valuenow'),
+    hash: location.hash,
+    savedYear: localStorage.getItem('itm-year'),
+  })));
   await expectYearSynced(page, 2020);
   await page.locator('#undo-btn').click();
   await expectYearSynced(page, 2005);
