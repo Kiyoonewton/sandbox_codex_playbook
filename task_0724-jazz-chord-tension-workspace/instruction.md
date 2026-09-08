@@ -1,19 +1,13 @@
-# The chord analysis is showing wrong information
+# Chord selection gets out of sync across the analysis views
 
-## What you see
+I keep losing track of which chord I am actually looking at when I move between the voicing cards, Interval Anatomy, and Tension Composition.
 
-When you look at the altered dominant chord, two of its notes are crammed into exactly the same place on the staff — the note heads and their letter labels are printed on top of each other, so you can't read either one. The list of intervals for that chord describes those two notes as being right next to each other, when musically they should be far apart.
+Those three sections are different views of the same seven chords, so selecting a chord in any one of them should make that chord the single current selection everywhere. Right now I can choose one chord in the interval table, move to another chord elsewhere, and end up with different sections still indicating different chords.
 
-Over in the Tension Spectrum ranking, the ordering doesn't match how these chords actually sound. A bright, floating, pleasant-sounding chord is placed near the very top of the list as though it were one of the harshest, while a genuinely tense, unsettled chord sits lower down than it should.
+The arrow-key navigation makes the mismatch more confusing. After I choose a chord from Tension Composition, pressing left or right should continue from that chord. Instead, after switching between sections, the arrow keys can jump from an older selection rather than the chord I just chose.
 
-## What correct looks like
+Please make selection handoffs consistent whether I use a voicing card, an Interval Anatomy row, a Tension Composition cell, or the left/right arrow keys. There should never be more than one chord presented as selected, and the interval row for the current chord should have a clear selected treatment just like the other analysis views. Keyboard activation of the selectable analysis controls should behave the same as clicking them.
 
-Every note in a chord should be drawn in its own clear position on the staff, with readable labels, and the interval descriptions should reflect the real distance between those notes. The Tension Spectrum should rank chords in an order a musician would recognise, with the genuinely dissonant, unstable chords near the top and the lush, colourful ones much further down.
+The custom chord builder is separate from this navigation and should continue working normally.
 
-The broken app currently looks like this:
-
-<img src="/app/problem_assets/broken.png" alt="current (broken) app" width="900" />
-
-The expected app should look like this:
-
-<img src="/app/problem_assets/target.png" alt="expected app" width="900" />
+![The analysis views disagree about the current chord](instruction-images/broken.png)
