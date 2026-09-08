@@ -30,6 +30,11 @@ async function expectCompared(page, names) {
   for (const name of names) await expect(page.locator('#comparison-grid').getByText(name, { exact: true })).toBeVisible();
 }
 
+async function historyShortcut(page, action) {
+  const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
+  await page.keyboard.press(action === 'undo' ? `${modifier}+z` : `${modifier}+Shift+z`);
+}
+
 test('[P2P] search and type filters continue to narrow the university browser', async ({ page }) => {
   await boot(page);
   await page.locator('#search-input').fill('California');
@@ -120,9 +125,9 @@ test('[F2P] keyboard undo and redo restore the same custom-school history as the
   const custom = await createCustom(page);
   await custom.click();
   await page.locator('#btn-reset').click();
-  await page.keyboard.press('Control+z');
+  await historyShortcut(page, 'undo');
   await expectCompared(page, ['MIT', 'Kiyoo']);
-  await page.keyboard.press('Control+Shift+z');
+  await historyShortcut(page, 'redo');
   await expect(page.locator('#comparison-count')).toHaveText('0');
   await expect(page.locator('.uni-item').filter({ hasText: 'Kiyoo' })).toHaveCount(0);
 });
