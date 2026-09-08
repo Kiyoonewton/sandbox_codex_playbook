@@ -8,7 +8,7 @@ The 2 P2P tests protect the existing application shell and ordinary tab navigati
 
 ## Failing-to-Passing coverage
 
-The 15 F2P tests exercise the same navigation state machine through coupled transitions:
+The 14 F2P tests exercise the same navigation state machine through coupled transitions:
 
 - Undo restores the previous committed year and synchronizes hero, active tab, scrubber, URL hash, and localStorage.
 - Redo restores the undone year, including Ctrl/Cmd + Shift + Z semantics.
@@ -21,6 +21,5 @@ The 15 F2P tests exercise the same navigation state machine through coupled tran
 - Clicking the scrubber at the current year creates no duplicate history entry.
 - Scrubber keyboard navigation creates a normal committed history action that can be undone.
 - A scrubber commit made after undo replaces the abandoned redo branch just like other committed navigation.
-- The default 2000 view retains its welcome state.
 
-There are 17 verifier tests total: 15 F2P and 2 P2P. The additional cases are intentionally interaction-heavy: a narrow fix to one input path is insufficient because the same history invariants must survive mixed controls, no-op transitions, branching, and gesture commit boundaries.
+There are 16 verifier tests total: 14 F2P and 2 P2P. The cases are intentionally interaction-heavy: a narrow fix to one input path is insufficient because the same history invariants must survive mixed controls, no-op transitions, branching, and gesture commit boundaries.
