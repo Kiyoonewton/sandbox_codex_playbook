@@ -11,9 +11,7 @@ import { renderBuilder } from './ui/builder.js';
 import { playChordAudio } from './audio.js';
 import { triggerRipples } from './staff.js';
 
-function onActivate(idx) {
-  syncBreakdownActive(idx);
-}
+function onActivate(idx) { syncBreakdownActive(idx); }
 
 function init() {
   renderChordGrid(onActivate);
@@ -24,15 +22,11 @@ function init() {
     cols[idx].scrollIntoView({ block: 'center', behavior: 'smooth' });
   });
 
-  // The composition view owns its highlight separately from the keyboard cursor.
-  // A handoff from this view can therefore leave the navigation cursor behind.
   renderBreakdown(function(idx) {
     var cols = document.querySelectorAll('.chord-col');
     var cell = document.querySelectorAll('.breakdown-cell')[idx];
-
     document.querySelectorAll('.breakdown-cell').forEach(function(c) { c.classList.remove('active'); });
     cell.classList.add('active');
-
     cols.forEach(function(c) { c.classList.remove('active'); c.setAttribute('aria-pressed', 'false'); });
     cols[idx].classList.add('active');
     cols[idx].setAttribute('aria-pressed', 'true');
@@ -45,10 +39,8 @@ function init() {
 
   document.addEventListener('keydown', function(e) {
     if (e.target.closest('.builder-note-col') || e.target.closest('.builder-panel')) return;
-
     var cols = document.querySelectorAll('.chord-col');
     var currentIdx = getActiveColIndex();
-
     if (e.key === 'ArrowRight') {
       e.preventDefault();
       var next = Math.min(currentIdx + 1, cols.length - 1);
@@ -72,9 +64,7 @@ function init() {
 
   requestAnimationFrame(function() {
     setTimeout(function() {
-      document.querySelectorAll('.tension-fill').forEach(function(f) {
-        f.style.width = f.dataset.targetWidth + '%';
-      });
+      document.querySelectorAll('.tension-fill').forEach(function(f) { f.style.width = f.dataset.targetWidth + '%'; });
     }, 300);
   });
 }
