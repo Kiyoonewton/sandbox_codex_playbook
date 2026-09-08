@@ -1,0 +1,41 @@
+/* ============================================
+   BASE STYLES — Blue Note Records aesthetic
+   Background: vinyl-black #0d0d0d
+   Palette: sleeve-white #f2f2f2, blue-note #1a6fff,
+            tension-amber #f5a623, resolve-green #2ecc71
+   Typography: Bebas Neue (display), Space Mono (body)
+   ============================================ */
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --vinyl-black: #0d0d0d;
+  --sleeve-white: #f2f2f2;
+  --blue-note: #1a6fff;
+  --blue-note-dim: #1259c7;
+  --tension-amber: #f5a623;
+  --resolve-green: #2ecc71;
+  --red-danger: #e74c3c;
+  --card-bg: #131315;
+  --card-border: #1e1e22;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+}
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  background: var(--vinyl-black);
+  color: var(--sleeve-white);
+  font-family: var(--font-mono);
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--blue-note); color: white; }
+
+/* ---- SCROLLBAR ---- */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--vinyl-black); }
+::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }

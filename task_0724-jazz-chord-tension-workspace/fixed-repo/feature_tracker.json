@@ -1,0 +1,16 @@
+[
+  {
+    "name": "Page shell, typography, and aesthetic",
+    "status": "done"
+  },
+  {
+    "name": "Visual polish and improvements",
+    "status": "done",
+    "notes": "Improve arc rendering, add animated transitions, better note head styling, root note indicator"
+  },
+  {
+    "name": "Enhanced vinyl motif and visual details",
+    "status": "in_progress",
+    "notes": "Add vinyl record animation in header, improve hover states, add visual refinements"
+  }
+]
