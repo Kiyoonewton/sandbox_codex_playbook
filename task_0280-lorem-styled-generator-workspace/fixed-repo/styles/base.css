@@ -1,0 +1,53 @@
+/* ============================================
+   FILLER — Type-Specimen Lorem Generator
+   Design Tokens & Base Styles
+   1. Background: warm cream #f8f4e8
+   2. Palette: ink #1a1816, rust #8b3a2a, pink #d23090,
+      gold #d8a23a, teal #2a7a8b, forest #3a6b4a,
+      terra #c46030, olive #7a8a3a
+   3. Typography: Bodoni Moda (display) + Inter (body)
+   ============================================ */
+
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cream: #f8f4e8;
+  --cream-dark: #ede8d8;
+  --ink: #1a1816;
+  --ink-soft: #4a4640;
+  --ink-muted: #8a857d;
+  --rust: #8b3a2a;
+  --cat-pink: #d23090;
+  --pirate-gold: #d8a23a;
+  --sci-fi-teal: #2a7a8b;
+  --medieval-forest: #3a6b4a;
+  --food-terra: #c46030;
+  --hipster-olive: #7a8a3a;
+  --ff-display: 'Bodoni Moda', 'Georgia', serif;
+  --ff-body: 'Inter', 'Helvetica Neue', sans-serif;
+  --accent: var(--rust);
+  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  font-family: var(--ff-body);
+  background: var(--cream);
+  color: var(--ink);
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Scrollbar ---- */
+.history-box::-webkit-scrollbar { width: 4px; }
+.history-box::-webkit-scrollbar-track { background: transparent; }
+.history-box::-webkit-scrollbar-thumb { background: var(--ink-muted); border-radius: 2px; }
+
+/* ---- Animation ---- */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-in { animation: fadeSlideIn 0.45s ease-out both; }

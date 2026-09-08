@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Core lorem generation logic (7 flavors)",
+    "status": "done"
+  },
+  {
+    "name": "Quantity controls (paragraphs/sentences/words)",
+    "status": "done"
+  },
+  {
+    "name": "Type-specimen poster aesthetic",
+    "status": "done"
+  },
+  {
+    "name": "Copy to clipboard with flash",
+    "status": "done"
+  },
+  {
+    "name": "Word cloud per flavor",
+    "status": "done"
+  },
+  {
+    "name": "Saved-flavors history (localStorage)",
+    "status": "done"
+  },
+  {
+    "name": "Keyboard accessibility + mobile responsive",
+    "status": "done"
+  },
+  {
+    "name": "Empty/loading/error states",
+    "status": "done"
+  },
+  {
+    "name": "Final playtest and polish",
+    "status": "done"
+  }
+]

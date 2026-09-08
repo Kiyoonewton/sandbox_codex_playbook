@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FILLER — A Type-Specimen Lorem Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,700;0,6..96,900;1,6..96,400;1,6..96,700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/base.css">
+<link rel="stylesheet" href="styles/components.css">
+<link rel="stylesheet" href="styles/themes.css">
+<script type="module" src="js/main.js"></script>
+</head>
+<body>
+
+<header>
+  <h1>Filler</h1>
+  <span class="subtitle">A type-specimen lorem generator</span>
+</header>
+
+<div class="container">
+  <div class="controls-section">
+    <span class="section-label">Choose a flavor</span>
+    <div class="flavor-tabs" role="tablist" aria-label="Flavor selection" id="flavorTabs"></div>
+    <span class="section-label">Set quantity</span>
+    <div class="quantity-row">
+      <div class="quantity-group">
+        <label for="quantityInput">Count</label>
+        <input type="number" id="quantityInput" class="quantity-input" min="1" max="100" value="3" aria-label="Number of units">
+      </div>
+      <div class="unit-tabs" role="tablist" aria-label="Unit selection" id="unitTabs">
+        <button class="unit-tab" role="tab" aria-selected="true" data-unit="paragraphs">Paragraphs</button>
+        <button class="unit-tab" role="tab" aria-selected="false" data-unit="sentences">Sentences</button>
+        <button class="unit-tab" role="tab" aria-selected="false" data-unit="words">Words</button>
+      </div>
+      <div class="action-row">
+        <button class="generate-btn" id="generateBtn" aria-label="Generate filler text">Generate →</button>
+        <div class="undo-redo">
+          <button class="undo-btn" id="undoBtn" disabled aria-label="Undo last generation" title="Undo">↺</button>
+          <button class="redo-btn" id="redoBtn" disabled aria-label="Redo generation" title="Redo">↻</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="output-section">
+      <div class="output-box" id="outputBox">
+        <div class="output-flavor-label" id="outputLabel">CLASSIC LOREM</div>
+        <div id="outputContent">
+          <div class="empty-state">
+            <div class="empty-icon">Fi</div>
+            <div class="empty-text">Select a flavor and click Generate to begin.</div>
+            <div class="empty-hint">Press Enter or click the button above.</div>
+          </div>
+        </div>
+      </div>
+      <div class="output-actions">
+        <button class="copy-btn" id="copyBtn" aria-label="Copy generated text to clipboard" disabled>
+          <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span class="copy-label">Copy</span>
+        </button>
+        <div class="stats-line" id="statsLine"></div>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="word-cloud-section">
+        <div class="word-cloud-box">
+          <span class="word-cloud-title">Most Used Words</span>
+          <div class="word-cloud" id="wordCloud">
+            <div class="word-cloud-empty">Generate text to see the word cloud.</div>
+          </div>
+        </div>
+      </div>
+      <div class="history-box">
+        <div class="history-title">
+          <span>History</span>
+          <button class="history-clear-btn" id="historyClearBtn" aria-label="Clear all history">Clear</button>
+        </div>
+        <div id="historyList">
+          <div class="history-empty">No history yet.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="type-specimen-decorator" aria-hidden="true">Abc</div>
+<div class="toast" id="toast"></div>
+
+</body>
+</html>
