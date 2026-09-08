@@ -14,14 +14,15 @@ export function midiToFreq(m) {
 
 export const CHORDS = [
   { name:'Major 7',      symbol:'Cmaj7',    root:60, offsets:[0,4,7,11],     color:'#1a6fff', desc:'Lush, dreamy stability' },
-  { name:'Dominant 7',   symbol:'C7',       root:60, offsets:[0,4,7,10],     color:'#1a6fff', desc:'Bluesy tension, demands resolution' },
-  { name:'Minor 7',      symbol:'Cm7',      root:60, offsets:[0,3,7,10],     color:'#1a6fff', desc:'Warm, introspective cool' },
-  { name:'Half-Dim',     symbol:'Cø7',      root:60, offsets:[0,3,6,10],     color:'#f5a623', desc:'Unstable yearning for resolution' },
-  { name:'Diminished 7', symbol:'C°7',      root:60, offsets:[0,3,6,9],      color:'#f5a623', desc:'Maximum symmetrical tension' },
-  { name:'Altered Dom',  symbol:'C7alt',    root:60, offsets:[0,4,6,10,1],   color:'#e74c3c', desc:'Chaotic — the jazz blowtorch' },
-  { name:'Maj7#11',      symbol:'Cmaj7#11', root:60, offsets:[0,4,7,11,6],   color:'#2ecc71', desc:'Lydian shimmer, floating brightness' },
+  { name:'Dominant 7',   symbol:'C7',        root:60, offsets:[0,4,7,10],    color:'#1a6fff', desc:'Bluesy tension, demands resolution' },
+  { name:'Minor 7',      symbol:'Cm7',       root:60, offsets:[0,3,7,10],    color:'#1a6fff', desc:'Warm, introspective cool' },
+  { name:'Half-Dim',     symbol:'C\u00f87',       root:60, offsets:[0,3,6,10],    color:'#f5a623', desc:'Unstable yearning for resolution' },
+  { name:'Diminished 7', symbol:'C\u00b07',       root:60, offsets:[0,3,6,9],     color:'#f5a623', desc:'Maximum symmetrical tension' },
+  { name:'Altered Dom',  symbol:'C7alt',     root:60, offsets:[0,4,6,10,1],  color:'#e74c3c', desc:'Chaotic \u2014 the jazz blowtorch' },
+  { name:'Maj7#11',      symbol:'Cmaj7#11',  root:60, offsets:[0,4,7,11,6],  color:'#2ecc71', desc:'Lydian shimmer, floating brightness' },
 ];
 
+// Interval classification database
 const INT_DB = {
   0:{name:'Unison',    type:'consonant', t:0},
   1:{name:'Minor 2nd', type:'dissonant', t:3.0},
@@ -49,7 +50,13 @@ export function getChordPairs(offsets) {
       const diff = Math.abs(offsets[j] - offsets[i]);
       const s = ((diff % 12) + 12) % 12;
       const info = getIntervalInfo(diff);
-      pairs.push({ i, j, semitones: diff, ...info, isHighTension: s === 1, isTritone: s === 6 });
+      pairs.push({
+        i, j,
+        semitones: diff,
+        ...info,
+        isHighTension: s === 1,
+        isTritone: s === 6,
+      });
     }
   }
   return pairs;
@@ -58,7 +65,9 @@ export function getChordPairs(offsets) {
 export function calcTension(offsets) {
   let t = 0;
   for (let i = 0; i < offsets.length; i++) {
-    for (let j = i + 1; j < offsets.length; j++) t += getIntervalInfo(Math.abs(offsets[j] - offsets[i])).t;
+    for (let j = i + 1; j < offsets.length; j++) {
+      t += getIntervalInfo(Math.abs(offsets[j] - offsets[i])).t;
+    }
   }
   return t;
 }

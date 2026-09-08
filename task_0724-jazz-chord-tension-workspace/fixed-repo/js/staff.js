@@ -9,12 +9,11 @@ const VW = 100, VH = 160;
 const STAFF_LINES = 5, LINE_GAP = 12, STAFF_TOP = 30;
 const STAFF_BOT = STAFF_TOP + (STAFF_LINES - 1) * LINE_GAP;
 const SEMI_TO_STEP = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6];
-const SEMI_TO_STEP_FLAT = [0, 1, 1, 2, 2, 3, 4, 4, 5, 5, 6, 6];
 
-export function midiToStaffY(midi, useFlats) {
+export function midiToStaffY(midi) {
   const octave = Math.floor(midi / 12) - 5;
   const nc = ((midi % 12) + 12) % 12;
-  const absStep = octave * 7 + (useFlats ? SEMI_TO_STEP_FLAT : SEMI_TO_STEP)[nc];
+  const absStep = octave * 7 + SEMI_TO_STEP[nc];
   const bottomLineStep = 2;
   return STAFF_BOT - (absStep - bottomLineStep) * (LINE_GAP / 2);
 }
@@ -46,7 +45,7 @@ export function createStaffSVG(chord, onNoteHover, onNoteLeave, onArcEnter, onAr
   const noteMidis = chord.offsets.map(o => chord.root + o);
   const noteX = 58;
   const notePositions = noteMidis.map(m => ({
-    midi: m, x: noteX, y: midiToStaffY(m, chord.flats), name: midiToName(m, chord.flats)
+    midi: m, x: noteX, y: midiToStaffY(m), name: midiToName(m)
   }));
 
   // Ledger lines
@@ -76,8 +75,8 @@ export function createStaffSVG(chord, onNoteHover, onNoteLeave, onArcEnter, onAr
   pairs.forEach((pair, pi) => {
     const np1 = notePositions[pair.i];
     const np2 = notePositions[pair.j];
-    const name1 = midiToName(noteMidis[pair.i], chord.flats);
-    const name2 = midiToName(noteMidis[pair.j], chord.flats);
+    const name1 = midiToName(noteMidis[pair.i]);
+    const name2 = midiToName(noteMidis[pair.j]);
 
     let arcColor, arcWidth;
     if (pair.isHighTension) { arcColor = '#e74c3c'; arcWidth = 2.8; }
