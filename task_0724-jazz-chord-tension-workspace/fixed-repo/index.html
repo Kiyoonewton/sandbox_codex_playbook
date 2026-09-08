@@ -9,92 +9,26 @@
 <link rel="stylesheet" href="styles/components.css">
 <link rel="stylesheet" href="styles/components-extra.css">
 <link rel="stylesheet" href="styles/responsive.css">
+<style>
+.interval-table tr { outline: none; }
+.interval-table tbody tr.active td { background:#111b2b; }
+.interval-table tbody tr.active td:first-child { box-shadow:inset 3px 0 0 var(--blue-note); }
+.interval-table tbody tr:focus-visible td { background:#111b2b; }
+</style>
 </head>
 <body>
-
-<header class="hero">
-  <div class="hero-inner">
-    <div class="vinyl-wrap">
-      <div class="vinyl"></div>
-    </div>
-    <h1>INSIDE A JAZZ <span>CHORD</span></h1>
-    <p class="subtitle">
-      Every jazz chord is a battlefield between consonance and tension. Seven canonical voicings reveal how intervals stack, clash, and resolve — mapped as a visual tension atlas.
-    </p>
-  </div>
-</header>
-
-<section class="intro-card">
-  <div class="big-number">7</div>
-  <div class="big-label">CANONICAL CHORD VOICINGS EXPLORED</div>
-</section>
-
-<div class="legend">
-  <div class="legend-item"><div class="legend-swatch" style="background:var(--resolve-green);"></div>Consonant</div>
-  <div class="legend-item"><div class="legend-swatch" style="background:var(--tension-amber);"></div>Dissonant / Tritone</div>
-  <div class="legend-item"><div class="legend-swatch" style="background:var(--red-danger);"></div>High tension (m2 / M7)</div>
-  <div class="legend-item"><svg width="16" height="6"><line x1="1" y1="3" x2="15" y2="3" stroke="#555" stroke-width="3"/></svg>Thicker = more</div>
-</div>
-
-<h2 class="section-label">THE SEVEN VOICINGS</h2>
-<div class="section-divider"></div>
-<p class="section-desc">Click any chord to hear it. Colored arcs connect note pairs — amber for tension, green for resolution. Arc thickness encodes perceived dissonance.</p>
-<p class="kbd-hint">Use <kbd>&larr;</kbd> <kbd>&rarr;</kbd> arrow keys to navigate between chords</p>
-
-<div class="chord-grid" id="chord-grid" role="group" aria-label="Jazz chord voicings"></div>
-<div class="tooltip" id="tooltip" role="tooltip"></div>
-
-<h2 class="section-label">INTERVAL ANATOMY</h2>
-<div class="section-divider"></div>
-<p class="section-desc">Each chord decomposes into specific intervals. Tension scores sum: tritones (&times;2.5), minor 2nds (&times;3), major 7ths (&times;2), neutral (&times;1), consonances (&times;0.5). Source: Krumhansl &amp; Kessler (1982), Huron (2001) <em>Sweet Anticipation</em>.</p>
-
-<div class="interval-section">
-  <table class="interval-table" aria-label="Interval analysis for each chord">
-    <thead><tr><th scope="col">CHORD</th><th scope="col">INTERVAL PAIRS</th><th scope="col">SCORE</th><th scope="col">CHARACTER</th></tr></thead>
-    <tbody id="interval-tbody"></tbody>
-  </table>
-</div>
-
-<h2 class="section-label">TENSION COMPOSITION</h2>
-<div class="section-divider"></div>
-<p class="section-desc">Each ring shows what fraction of a chord's total tension comes from consonant vs. dissonant vs. high-tension intervals. The center shows the % dissonant.</p>
-
-<div class="breakdown-section">
-  <div class="breakdown-grid" id="breakdown-grid" role="group" aria-label="Tension composition breakdown"></div>
-</div>
-
-<h2 class="section-label">TENSION SPECTRUM</h2>
-<div class="section-divider"></div>
-<p class="section-desc">Dissonance scores ranked. The altered dominant peaks — packing a tritone plus a flat-9 into maximum instability.</p>
-<div class="ranking-section" id="tension-ranking" aria-label="Tension score ranking"></div>
-
-<h2 class="section-label">BUILD YOUR OWN CHORD</h2>
-<div class="section-divider"></div>
-<p class="section-desc">Drag notes up/down or use arrows. Watch the tension meter respond in real time. The interval tags below show what's happening between each pair.</p>
-
-<div class="builder-section">
-  <div class="builder-panel" role="group" aria-label="Custom chord builder">
-    <div class="builder-row" id="builder-row"></div>
-    <div class="builder-tension">
-      <div class="builder-tension-label">TENSION: <span id="builder-score-text">0.0</span></div>
-      <div class="builder-tension-bar">
-        <div class="builder-tension-fill" id="builder-tension-fill"></div>
-      </div>
-      <div class="builder-intervals" id="builder-intervals" aria-live="polite"></div>
-      <button class="play-btn" id="builder-play" aria-label="Play custom chord">
-        <span>&#9654;</span> PLAY CHORD
-      </button>
-      <button class="reset-btn" id="builder-reset" aria-label="Reset to Cmaj7#11">RESET</button>
-    </div>
-  </div>
-</div>
-
-<footer class="footer">
-  Inside a Jazz Chord &mdash; Interactive Tension Map<br>
-  Tension model: Krumhansl &amp; Kessler (1982) tonal hierarchy, Huron (2001) <em>Sweet Anticipation</em><br>
-  Audio synthesis: Web Audio API oscillators
-</footer>
-
+<header class="hero"><div class="hero-inner"><div class="vinyl-wrap"><div class="vinyl"></div></div><h1>INSIDE A JAZZ <span>CHORD</span></h1><p class="subtitle">Every jazz chord is a battlefield between consonance and tension. Seven canonical voicings reveal how intervals stack, clash, and resolve — mapped as a visual tension atlas.</p></div></header>
+<section class="intro-card"><div class="big-number">7</div><div class="big-label">CANONICAL CHORD VOICINGS EXPLORED</div></section>
+<div class="legend"><div class="legend-item"><div class="legend-swatch" style="background:var(--resolve-green);"></div>Consonant</div><div class="legend-item"><div class="legend-swatch" style="background:var(--tension-amber);"></div>Dissonant / Tritone</div><div class="legend-item"><div class="legend-swatch" style="background:var(--red-danger);"></div>High tension (m2 / M7)</div><div class="legend-item"><svg width="16" height="6"><line x1="1" y1="3" x2="15" y2="3" stroke="#555" stroke-width="3"/></svg>Thicker = more</div></div>
+<h2 class="section-label">THE SEVEN VOICINGS</h2><div class="section-divider"></div><p class="section-desc">Click any chord to hear it. Colored arcs connect note pairs — amber for tension, green for resolution. Arc thickness encodes perceived dissonance.</p><p class="kbd-hint">Use <kbd>&larr;</kbd> <kbd>&rarr;</kbd> arrow keys to navigate between chords</p>
+<div class="chord-grid" id="chord-grid" role="group" aria-label="Jazz chord voicings"></div><div class="tooltip" id="tooltip" role="tooltip"></div>
+<h2 class="section-label">INTERVAL ANATOMY</h2><div class="section-divider"></div><p class="section-desc">Each chord decomposes into specific intervals. Tension scores sum: tritones (&times;2.5), minor 2nds (&times;3), major 7ths (&times;2), neutral (&times;1), consonances (&times;0.5). Source: Krumhansl &amp; Kessler (1982), Huron (2001) <em>Sweet Anticipation</em>.</p>
+<div class="interval-section"><table class="interval-table" aria-label="Interval analysis for each chord"><thead><tr><th scope="col">CHORD</th><th scope="col">INTERVAL PAIRS</th><th scope="col">SCORE</th><th scope="col">CHARACTER</th></tr></thead><tbody id="interval-tbody"></tbody></table></div>
+<h2 class="section-label">TENSION COMPOSITION</h2><div class="section-divider"></div><p class="section-desc">Each ring shows what fraction of a chord's total tension comes from consonant vs. dissonant vs. high-tension intervals. The center shows the % dissonant.</p><div class="breakdown-section"><div class="breakdown-grid" id="breakdown-grid" role="group" aria-label="Tension composition breakdown"></div></div>
+<h2 class="section-label">TENSION SPECTRUM</h2><div class="section-divider"></div><p class="section-desc">Dissonance scores ranked. The altered dominant peaks — packing a tritone plus a flat-9 into maximum instability.</p><div class="ranking-section" id="tension-ranking" aria-label="Tension score ranking"></div>
+<h2 class="section-label">BUILD YOUR OWN CHORD</h2><div class="section-divider"></div><p class="section-desc">Drag notes up/down or use arrows. Watch the tension meter respond in real time. The interval tags below show what's happening between each pair.</p>
+<div class="builder-section"><div class="builder-panel" role="group" aria-label="Custom chord builder"><div class="builder-row" id="builder-row"></div><div class="builder-tension"><div class="builder-tension-label">TENSION: <span id="builder-score-text">0.0</span></div><div class="builder-tension-bar"><div class="builder-tension-fill" id="builder-tension-fill"></div></div><div class="builder-intervals" id="builder-intervals" aria-live="polite"></div><button class="play-btn" id="builder-play" aria-label="Play custom chord"><span>&#9654;</span> PLAY CHORD</button><button class="reset-btn" id="builder-reset" aria-label="Reset to Cmaj7#11">RESET</button></div></div></div>
+<footer class="footer">Inside a Jazz Chord &mdash; Interactive Tension Map<br>Tension model: Krumhansl &amp; Kessler (1982) tonal hierarchy, Huron (2001) <em>Sweet Anticipation</em><br>Audio synthesis: Web Audio API oscillators</footer>
 <script type="module" src="js/main.js"></script>
 </body>
 </html>
