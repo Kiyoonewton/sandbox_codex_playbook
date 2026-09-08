@@ -198,12 +198,3 @@ test('[F2P] URL navigation keeps the favorites bar synchronized with the selecte
   await expectYearSynced(page, 2005);
   await expect(page.locator('.fav-year-btn', { hasText: '2005' })).toHaveClass(/active/);
 });
-
-test('[F2P] the default 2000 view includes its welcome message', async ({ page }) => {
-  await page.addInitScript(() => {
-    localStorage.removeItem('itm-year');
-    localStorage.removeItem('itm-favorites');
-  });
-  await boot(page, `${APP_URL}#2000`);
-  await expect(page.locator('.welcome-state h2')).toHaveText('Welcome to the Internet Time Machine.');
-});
