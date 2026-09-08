@@ -7,8 +7,15 @@ import { CHORDS, calcTension, getChordPairs, tensionColor, midiToName } from '..
 export function renderIntervalTable(onRowClick) {
   var tbody = document.getElementById('interval-tbody');
 
-  CHORDS.forEach(function(chord, idx) {
-    var tension = calcTension(chord.offsets);
+  var rankedChords = CHORDS.map(function(chord, chordIndex) {
+    return { chord: chord, chordIndex: chordIndex, tension: calcTension(chord.offsets) };
+  }).sort(function(a, b) {
+    return b.tension - a.tension;
+  });
+
+  rankedChords.forEach(function(entry, rowIndex) {
+    var chord = entry.chord;
+    var tension = entry.tension;
     var pairs = getChordPairs(chord.offsets);
     var midis = chord.offsets.map(function(o) { return chord.root + o; });
 
@@ -23,7 +30,8 @@ export function renderIntervalTable(onRowClick) {
 
     var pct = Math.min((tension / 18) * 100, 100);
     var tr = document.createElement('tr');
-    tr.dataset.index = idx;
+    tr.dataset.index = rowIndex;
+    tr.dataset.chordIndex = entry.chordIndex;
     tr.tabIndex = 0;
     tr.setAttribute('role', 'button');
     tr.setAttribute('aria-label', 'Select ' + chord.symbol + ' interval analysis');
@@ -35,7 +43,7 @@ export function renderIntervalTable(onRowClick) {
       '<td style="color:#555;">' + chord.desc + '</td>';
 
     function chooseRow() {
-      if (onRowClick) onRowClick(idx);
+      if (onRowClick) onRowClick(entry.chordIndex);
     }
 
     tr.addEventListener('click', chooseRow);
@@ -50,9 +58,9 @@ export function renderIntervalTable(onRowClick) {
   });
 }
 
-export function syncIntervalActive(idx) {
-  document.querySelectorAll('#interval-tbody tr').forEach(function(row, i) {
-    var active = i === idx;
+export function syncIntervalActive(chordIndex) {
+  document.querySelectorAll('#interval-tbody tr').forEach(function(row) {
+    var active = Number(row.dataset.chordIndex) === chordIndex;
     row.classList.toggle('active', active);
     row.setAttribute('aria-pressed', active ? 'true' : 'false');
   });
