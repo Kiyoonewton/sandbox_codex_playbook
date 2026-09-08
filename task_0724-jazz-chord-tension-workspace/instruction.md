@@ -10,4 +10,9 @@ Please make selection handoffs consistent whether I use a voicing card, an Inter
 
 The custom chord builder is separate from this navigation and should continue working normally.
 
+The broken app currently looks like this:
+
 ![The analysis views disagree about the current chord](instruction-images/broken.png)
+The expected app should look like this:
+
+![The analysis views agree on one current chord](instruction-images/target.png)
