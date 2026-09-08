@@ -24,14 +24,33 @@ export function renderIntervalTable(onRowClick) {
 
     var pct = Math.min((tension / 18) * 100, 100);
     var tr = document.createElement('tr');
+    tr.dataset.index = idx;
+    tr.tabIndex = 0;
+    tr.setAttribute('role', 'button');
+    tr.setAttribute('aria-label', 'Select ' + chord.symbol + ' interval analysis');
+    tr.setAttribute('aria-pressed', 'false');
     tr.innerHTML =
       '<td style="color:' + chord.color + ';font-weight:bold;white-space:nowrap;">' + chord.symbol + '</td>' +
       '<td>' + html + '</td>' +
       '<td style="font-weight:bold;color:' + tensionColor(pct) + ';white-space:nowrap;">' + tension.toFixed(1) + '</td>' +
       '<td style="color:#555;">' + chord.desc + '</td>';
 
-    tr.addEventListener('click', function() {
+    function chooseRow() {
+      document.querySelectorAll('#interval-tbody tr').forEach(function(row) {
+        row.classList.remove('active');
+        row.setAttribute('aria-pressed', 'false');
+      });
+      tr.classList.add('active');
+      tr.setAttribute('aria-pressed', 'true');
       if (onRowClick) onRowClick(idx);
+    }
+
+    tr.addEventListener('click', chooseRow);
+    tr.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        chooseRow();
+      }
     });
 
     tbody.appendChild(tr);
