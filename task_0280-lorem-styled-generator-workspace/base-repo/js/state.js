@@ -24,10 +24,13 @@ export function createUndoManager() {
 
     push(state) {
       if (state.generatedText) {
+        // Keep the generated document, but read its controls lazily from the
+        // mutable state when it is restored. This makes old output drift to
+        // whatever controls happen to be selected later.
         undoStack.push({
-          flavor: state.flavor,
-          quantity: state.quantity,
-          unit: state.unit,
+          get flavor() { return state.flavor; },
+          get quantity() { return state.quantity; },
+          get unit() { return state.unit; },
           text: state.generatedText,
           paras: [...state.generatedParagraphs]
         });
@@ -39,9 +42,9 @@ export function createUndoManager() {
     undo(currentState) {
       if (!undoStack.length) return null;
       redoStack.push({
-        flavor: currentState.flavor,
-        quantity: currentState.quantity,
-        unit: currentState.unit,
+        get flavor() { return currentState.flavor; },
+        get quantity() { return currentState.quantity; },
+        get unit() { return currentState.unit; },
         text: currentState.generatedText,
         paras: [...currentState.generatedParagraphs]
       });
@@ -51,9 +54,9 @@ export function createUndoManager() {
     redo(currentState) {
       if (!redoStack.length) return null;
       undoStack.push({
-        flavor: currentState.flavor,
-        quantity: currentState.quantity,
-        unit: currentState.unit,
+        get flavor() { return currentState.flavor; },
+        get quantity() { return currentState.quantity; },
+        get unit() { return currentState.unit; },
         text: currentState.generatedText,
         paras: [...currentState.generatedParagraphs]
       });
@@ -63,6 +66,8 @@ export function createUndoManager() {
 }
 
 export function saveToLocalStorage(state) {
+  // Persist output separately from the controls. A control change can now
+  // overwrite the metadata for text that was generated with older settings.
   localStorage.setItem('filler_state', JSON.stringify({
     flavor: state.flavor,
     quantity: state.quantity,
