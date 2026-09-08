@@ -3,10 +3,11 @@ import { FLAVORS } from '../flavors.js';
 import { $, esc } from '../utils.js';
 export function initOutputView(state) {
   const $outputBox=$('outputBox'),$outputLabel=$('outputLabel'),$outputContent=$('outputContent'),$copyBtn=$('copyBtn'),$statsLine=$('statsLine'),$wordCloud=$('wordCloud'),$toast=$('toast');
-  let copyTimer=null,toastTimer=null;$copyBtn.addEventListener('click',copyText);
-  return {displayOutput,showEmpty,showError,renderWordCloud,updateAccentColor,refreshGeneratedPresentation,showToast};
+  let copyTimer=null,toastTimer=null;
   const activeFlavor=()=>FLAVORS[state.flavor];
   const outputFlavor=()=>FLAVORS[state.generatedFlavor||state.flavor];
+  $copyBtn.addEventListener('click',copyText);
+  return {displayOutput,showEmpty,showError,renderWordCloud,updateAccentColor,refreshGeneratedPresentation,showToast};
   function updateAccentColor(){const color=activeFlavor().color;document.documentElement.style.setProperty('--accent',color);const r=parseInt(color.slice(1,3),16),g=parseInt(color.slice(3,5),16),b=parseInt(color.slice(5,7),16);document.documentElement.style.setProperty('--accent-light',`rgb(${Math.min(255,r+40)},${Math.min(255,g+40)},${Math.min(255,b+40)})`);if(!state.generatedText)refreshGeneratedPresentation();}
   function refreshGeneratedPresentation(){const f=state.generatedText?outputFlavor():activeFlavor();$outputLabel.textContent=f.label.toUpperCase();$outputLabel.style.color=f.color;if(state.generatedText)renderWordCloud(state.generatedText);}
   function displayOutput(text,animate=true){state.generatedText=text;refreshGeneratedPresentation();const hasText=!!(text&&text.trim());$copyBtn.disabled=!hasText;$outputBox.classList.toggle('has-output',hasText);if(!hasText){showEmpty();return;}const paras=state.generatedParagraphs.length?state.generatedParagraphs:[text];let html='';paras.forEach(p=>html+=`<p class="paragraph">${esc(p)}</p>`);$outputContent.innerHTML=animate?`<div class="animate-in">${html}</div>`:html;const wc=text.split(/\s+/).filter(Boolean).length,cc=text.length,pc=paras.length;$statsLine.innerHTML=`<span><span class="stat-num">${pc}</span> ${pc===1?'para':'paras'}</span><span><span class="stat-num">${wc}</span> words</span><span><span class="stat-num">${cc.toLocaleString()}</span> chars</span>`;}
