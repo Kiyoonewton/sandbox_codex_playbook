@@ -3,7 +3,7 @@
 // ============================================
 
 import { CHORDS } from './data.js';
-import { renderChordGrid, activateCol, getActiveColIndex, setActiveColIndex, colSVGs } from './ui/chordGrid.js';
+import { renderChordGrid, activateCol, getActiveColIndex, colSVGs } from './ui/chordGrid.js';
 import { renderIntervalTable } from './ui/intervalTable.js';
 import { renderBreakdown, syncBreakdownActive } from './ui/breakdown.js';
 import { renderRanking } from './ui/ranking.js';
@@ -16,17 +16,16 @@ function onActivate(idx) {
 }
 
 function init() {
-  // VIZ 1: Chord grid
   renderChordGrid(onActivate);
 
-  // VIZ 2: Interval table
   renderIntervalTable(function(idx) {
     var cols = document.querySelectorAll('.chord-col');
     cols[idx].dispatchEvent(new MouseEvent('click', { bubbles: true }));
     cols[idx].scrollIntoView({ block: 'center', behavior: 'smooth' });
   });
 
-  // VIZ 3: Breakdown donuts
+  // The composition view owns its highlight separately from the keyboard cursor.
+  // A handoff from this view can therefore leave the navigation cursor behind.
   renderBreakdown(function(idx) {
     var cols = document.querySelectorAll('.chord-col');
     var cell = document.querySelectorAll('.breakdown-cell')[idx];
@@ -37,18 +36,13 @@ function init() {
     cols.forEach(function(c) { c.classList.remove('active'); c.setAttribute('aria-pressed', 'false'); });
     cols[idx].classList.add('active');
     cols[idx].setAttribute('aria-pressed', 'true');
-    setActiveColIndex(idx);
     playChordAudio(CHORDS[idx]);
     triggerRipples(colSVGs[idx]);
   });
 
-  // VIZ 4: Tension ranking
   renderRanking();
-
-  // Builder
   renderBuilder();
 
-  // Keyboard navigation
   document.addEventListener('keydown', function(e) {
     if (e.target.closest('.builder-note-col') || e.target.closest('.builder-panel')) return;
 
@@ -76,7 +70,6 @@ function init() {
     }
   });
 
-  // Animate tension meters
   requestAnimationFrame(function() {
     setTimeout(function() {
       document.querySelectorAll('.tension-fill').forEach(function(f) {
