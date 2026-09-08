@@ -2,7 +2,7 @@
 
 There is a problem with year navigation when I move around the Internet Time Machine using more than one control. For example, if I start on 2005, go to 2010, and then press Undo, I expect to return to 2005. Instead, the app can stay on 2010. Once this happens, navigation history no longer behaves reliably as I continue using the page.
 
-Please make year changes behave as a single navigation system regardless of whether I use a year tab, the keyboard, a favorite, the timeline scrubber, or the URL hash. After a year changes, the hero, selected tab, scrubber, URL, saved year, and favorites bar should all represent the same current year.
+Please make year changes behave as a single navigation system regardless of whether I use a year tab, the keyboard, a favorite, the timeline scrubber, or the URL hash. After a year changes, the hero, selected tab, scrubber, URL, saved year, and favorites bar should all represent the same current year. That history also needs to stay coherent when I keep switching between those controls in one session; changing input method should not start a separate idea of what came before or what can be redone.
 
 Undo should return to the previous year I actually chose, and Redo should restore the year I undid. Ctrl/Cmd+Shift+Z should work as Redo too. If I undo and then choose a different year, that new choice should replace the abandoned redo path. Simply choosing the year I am already on should not create another history step or erase a redo that is still available.
 
