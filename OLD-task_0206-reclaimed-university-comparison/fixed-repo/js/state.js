@@ -13,7 +13,10 @@ let _customSchools = loadCustomSchools();
 function loadCustomSchools() {
   try {
     const raw = localStorage.getItem(CUSTOM_STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    }
   } catch (e) { /* ignore */ }
   return [];
 }
@@ -67,6 +70,21 @@ export function getAllUniversities() {
   return [...UNIVERSITIES, ..._customSchools];
 }
 
+function validUniversityIds() {
+  return new Set(getAllUniversities().map(u => u.id));
+}
+
+function normalizeComparisonIds(ids) {
+  if (!Array.isArray(ids)) return [];
+  const valid = validUniversityIds();
+  const seen = new Set();
+  return ids.filter(id => {
+    if (typeof id !== 'string' || !valid.has(id) || seen.has(id) || seen.size >= 4) return false;
+    seen.add(id);
+    return true;
+  });
+}
+
 // ---- Core State ----
 let _state = loadState();
 
@@ -84,8 +102,10 @@ function loadState() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      parsed.comparisonIds = (parsed.comparisonIds || []);
-      return { ...getDefaultState(), ...parsed };
+      const state = { ...getDefaultState(), ...parsed };
+      state.comparisonIds = normalizeComparisonIds(state.comparisonIds);
+      state.viewMode = state.viewMode === 'table' ? 'table' : 'cards';
+      return state;
     }
   } catch (e) { /* ignore */ }
   return getDefaultState();
@@ -113,25 +133,52 @@ export { saveState };
 let undoStack = [];
 let redoStack = [];
 
+function snapshot() {
+  return {
+    comparisonIds: [..._state.comparisonIds],
+    customSchools: _customSchools.map(s => ({ ...s })),
+  };
+}
+
+function sameSnapshot(a, b) {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+function restoreSnapshot(entry) {
+  _customSchools = entry.customSchools.map(s => ({ ...s }));
+  _state.comparisonIds = [...entry.comparisonIds];
+  saveCustomSchools();
+  saveState();
+}
+
 export function pushUndo() {
-  undoStack.push([..._state.comparisonIds]);
+  const current = snapshot();
+  const previous = undoStack[undoStack.length - 1];
+  if (!previous || !sameSnapshot(previous, current)) {
+    undoStack.push(current);
+    if (undoStack.length > 30) undoStack.shift();
+  }
   redoStack = [];
-  if (undoStack.length > 30) undoStack.shift();
 }
 
 export function undo() {
   if (undoStack.length === 0) return false;
-  redoStack.push([..._state.comparisonIds]);
-  _state.comparisonIds = undoStack.pop();
-  saveState();
+  const current = snapshot();
+  const previous = undoStack.pop();
+  if (sameSnapshot(previous, current)) return undo();
+  redoStack.push(current);
+  restoreSnapshot(previous);
   return true;
 }
 
 export function redo() {
   if (redoStack.length === 0) return false;
-  undoStack.push([..._state.comparisonIds]);
-  _state.comparisonIds = redoStack.pop();
-  saveState();
+  const current = snapshot();
+  const next = redoStack.pop();
+  if (sameSnapshot(next, current)) return redo();
+  undoStack.push(current);
+  if (undoStack.length > 30) undoStack.shift();
+  restoreSnapshot(next);
   return true;
 }
 
