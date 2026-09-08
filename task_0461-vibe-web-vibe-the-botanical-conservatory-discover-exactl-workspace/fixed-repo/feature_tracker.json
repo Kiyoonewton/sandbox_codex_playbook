@@ -1,0 +1,35 @@
+[
+  {
+    "name": "Plant Database",
+    "status": "done",
+    "notes": "20 plants with full care data, problems, solutions"
+  },
+  {
+    "name": "SVG Plant Illustrations",
+    "status": "done",
+    "notes": "Rich botanical SVGs for 6 key plants + category-based generators for remaining"
+  },
+  {
+    "name": "Visual Polish & Animation Reset",
+    "status": "done",
+    "notes": "All environmental effects working, recently viewed working, all sections tested"
+  },
+  {
+    "name": "Remove all emojis - utils.js PLANT_EMOJIS & SYMPTOM_ICONS",
+    "status": "done"
+  },
+  {
+    "name": "Fix detail panel top spacing and scrolling",
+    "status": "done"
+  },
+  {
+    "name": "Create unique SVGs for all 20 plants",
+    "status": "done",
+    "notes": "All 20 plants have unique inline SVG illustrations. Verified 20/20 fully unique SVGs in the live browser. Updated callers: plant-grid.js, detail-panel.js (120px), quiz.js (48px), light.js (40px), recently-viewed chips (16px)."
+  },
+  {
+    "name": "Bug fix: Detail overlay darkening issue",
+    "status": "done",
+    "notes": "Final fix applied: Changed .detail-panel background from rgba(11,29,15,0.95) to #0B1D0F (fully opaque) in styles/detail.css line 11. This prevents the dark overlay from bleeding through and darkening the panel. All three close methods (X button, overlay click, Escape) verified working. Desktop and mobile layouts verified."
+  }
+]

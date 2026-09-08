@@ -1,0 +1,63 @@
+/* ============================================================
+   THE BOTANICAL CONSERVATORY — Consolidated Styles
+   This file is loaded LAST and serves as responsive overrides.
+   Main styles split across: base.css, header.css, cards.css, detail.css, tools.css
+   ============================================================ */
+
+/* Mobile overrides */
+@media (max-width: 375px) {
+  .nav-btn svg { width: 20px; height: 20px; }
+  .logo-icon { width: 36px; height: 36px; }
+}
+
+/* Screen reader only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Back to top */
+.back-to-top {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  z-index: 150;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(19, 45, 27, 0.85);
+  border: 1px solid var(--glass-border);
+  border-radius: 50%;
+  color: var(--ink-dim);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.4s var(--ease-out);
+  pointer-events: none;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.back-to-top.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.back-to-top:hover {
+  color: var(--copper);
+  border-color: rgba(200, 135, 95, 0.3);
+  background: rgba(19, 45, 27, 0.95);
+  box-shadow: 0 0 20px rgba(200, 135, 95, 0.15);
+}
+
+@media (max-width: 768px) {
+  .back-to-top { bottom: 20px; right: 20px; width: 40px; height: 40px; }
+}

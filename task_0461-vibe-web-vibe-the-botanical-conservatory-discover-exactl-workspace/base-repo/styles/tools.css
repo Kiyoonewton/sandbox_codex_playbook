@@ -1,0 +1,181 @@
+/* Plant Doctor */
+
+.symptom-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 40px; }
+
+.symptom-btn {
+  padding: 16px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-out);
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.symptom-btn:hover { background: var(--bg-card-hover); border-color: var(--glass-border-hover); }
+.symptom-btn.selected { background: rgba(196, 92, 74, 0.12); border-color: rgba(196, 92, 74, 0.3); color: #E09080; }
+.symptom-icon { font-size: 1.2rem; }
+
+.doctor-results { min-height: 100px; }
+
+.doctor-result-card {
+  padding: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 16px;
+  animation: card-enter 0.4s var(--ease-out) both;
+}
+.doctor-result-plant { font-family: var(--font-display); font-size: 1.3rem; color: var(--ink-bright); margin-bottom: 4px; }
+.doctor-result-symptom { font-size: 0.82rem; color: var(--copper-light); margin-bottom: 12px; font-weight: 500; }
+.doctor-result-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.detail-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-dim); margin-bottom: 4px; }
+.detail-value { font-size: 0.88rem; color: var(--ink); }
+.detail-value.solution { color: var(--teal-light); }
+
+/* Light Simulator */
+
+.light-dome { text-align: center; margin-bottom: 48px; }
+
+.light-sphere {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  margin: 0 auto 32px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(26, 139, 106, 0.08) 0%, transparent 70%);
+  border: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.8s var(--ease-out);
+}
+.light-sphere.active-low { background: radial-gradient(circle, rgba(100, 100, 120, 0.15) 0%, transparent 70%); border-color: rgba(100, 100, 120, 0.3); box-shadow: 0 0 60px rgba(100, 100, 120, 0.1); }
+.light-sphere.active-medium { background: radial-gradient(circle, rgba(200, 180, 100, 0.15) 0%, transparent 70%); border-color: rgba(200, 180, 100, 0.3); box-shadow: 0 0 80px rgba(200, 180, 100, 0.1); }
+.light-sphere.active-bright { background: radial-gradient(circle, rgba(200, 160, 80, 0.2) 0%, transparent 70%); border-color: rgba(200, 160, 80, 0.4); box-shadow: 0 0 100px rgba(200, 160, 80, 0.15); }
+.light-sphere.active-direct { background: radial-gradient(circle, rgba(255, 180, 60, 0.25) 0%, transparent 70%); border-color: rgba(255, 180, 60, 0.5); box-shadow: 0 0 120px rgba(255, 180, 60, 0.2); animation: sun-pulse 3s ease-in-out infinite; }
+
+@keyframes sun-pulse { 0%, 100% { box-shadow: 0 0 120px rgba(255, 180, 60, 0.2); } 50% { box-shadow: 0 0 160px rgba(255, 180, 60, 0.3); } }
+
+.light-center { text-align: center; }
+.light-icon { font-size: 48px; margin-bottom: 12px; }
+.light-label { font-family: var(--font-display); font-size: 1.2rem; color: var(--ink-dim); }
+
+.light-controls { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+.light-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  color: var(--ink-dim);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-out);
+  min-width: 120px;
+}
+.light-btn:hover { background: var(--bg-card-hover); color: var(--ink); border-color: var(--glass-border-hover); }
+.light-btn.active { background: rgba(200, 135, 95, 0.1); color: var(--copper-light); border-color: rgba(200, 135, 95, 0.3); }
+.light-icon-sm { font-size: 1.6rem; }
+
+.light-results { max-width: 900px; margin: 0 auto; }
+.light-result-title { font-family: var(--font-display); font-size: 1.4rem; color: var(--ink-bright); text-align: center; margin-bottom: 24px; }
+.light-plants-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.light-plant-card { padding: 16px; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius); cursor: pointer; transition: all 0.3s var(--ease-out); }
+.light-plant-card:hover { transform: translateY(-2px); border-color: var(--glass-border-hover); }
+.light-plant-emoji { width: 48px; height: 48px; margin-bottom: 8px; }
+.light-plant-emoji svg { width: 100%; height: 100%; }
+.light-plant-name { font-family: var(--font-display); font-size: 1.1rem; color: var(--ink-bright); margin-bottom: 4px; }
+.light-plant-meta { font-size: 0.78rem; color: var(--ink-dim); }
+
+/* Watering Station */
+
+.water-station { max-width: 700px; margin: 0 auto; }
+.water-pipe { position: relative; text-align: center; height: 100px; margin-bottom: 32px; }
+.water-can-icon { font-size: 48px; display: inline-block; position: relative; z-index: 1; }
+.water-stream { position: absolute; top: 50%; left: 50%; transform: translateX(-50%); width: 4px; height: 0; background: linear-gradient(to bottom, rgba(26, 139, 106, 0.6), rgba(26, 184, 142, 0.3)); border-radius: 2px; transition: height 0.8s var(--ease-out); }
+.water-stream.active { height: 60px; }
+.water-controls { display: flex; flex-direction: column; gap: 24px; margin-bottom: 32px; }
+.water-field { text-align: center; }
+.water-label { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-dim); margin-bottom: 10px; font-weight: 500; }
+.water-options { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+
+.water-opt {
+  padding: 10px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  color: var(--ink-dim);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-out);
+}
+.water-opt:hover { background: var(--bg-card-hover); color: var(--ink); }
+.water-opt.active { background: rgba(26, 139, 106, 0.12); color: var(--teal-light); border-color: rgba(26, 139, 106, 0.3); }
+
+.water-result { text-align: center; }
+.water-result-card { display: inline-block; padding: 32px 48px; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); max-width: 500px; }
+.water-amount { font-family: var(--font-display); font-size: 3rem; color: var(--teal-light); font-weight: 300; margin-bottom: 8px; transition: all 0.4s var(--ease-out); }
+.water-frequency { font-family: var(--font-display); font-size: 1.3rem; color: var(--ink-bright); margin-bottom: 16px; }
+.water-tips { font-size: 0.88rem; color: var(--ink-dim); line-height: 1.6; }
+
+/* Quiz */
+
+.quiz-container { max-width: 600px; margin: 0 auto; }
+.quiz-step { display: none; animation: card-enter 0.4s var(--ease-out) both; }
+.quiz-step.active { display: block; }
+.quiz-question { font-family: var(--font-display); font-size: 2rem; color: var(--ink-bright); text-align: center; margin-bottom: 32px; font-weight: 300; }
+.quiz-options { display: flex; flex-direction: column; gap: 12px; }
+
+.quiz-opt {
+  padding: 18px 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-out);
+  text-align: left;
+}
+.quiz-opt:hover { background: var(--bg-card-hover); border-color: var(--glass-border-hover); transform: translateX(4px); }
+
+.quiz-progress { max-width: 600px; margin: 40px auto 0; }
+.quiz-progress-bar { width: 100%; height: 3px; background: rgba(200, 212, 192, 0.1); border-radius: 2px; overflow: hidden; margin-bottom: 12px; }
+.quiz-progress-fill { height: 100%; background: linear-gradient(90deg, var(--copper), var(--teal)); border-radius: 2px; transition: width 0.5s var(--ease-out); width: 25%; }
+.quiz-progress-text { text-align: center; font-size: 0.78rem; color: var(--ink-dim); }
+
+.quiz-results { max-width: 900px; margin: 0 auto; animation: card-enter 0.6s var(--ease-out) both; }
+.quiz-results-title { font-family: var(--font-display); font-size: 2rem; color: var(--ink-bright); text-align: center; margin-bottom: 32px; font-weight: 300; }
+.quiz-results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; margin-bottom: 32px; }
+.quiz-match-card { padding: 20px; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); cursor: pointer; transition: all 0.3s var(--ease-out); text-align: center; }
+.quiz-match-card:hover { transform: translateY(-3px); border-color: var(--copper); box-shadow: 0 0 30px var(--copper-glow); }
+.quiz-match-emoji { width: 56px; height: 56px; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; }
+.quiz-match-emoji svg { width: 100%; height: 100%; }
+.quiz-match-name { font-family: var(--font-display); font-size: 1.3rem; color: var(--ink-bright); margin-bottom: 4px; }
+.quiz-match-reason { font-size: 0.82rem; color: var(--teal-light); margin-bottom: 8px; }
+.quiz-match-meta { font-size: 0.75rem; color: var(--ink-dim); }
+.quiz-restart { display: block; margin: 0 auto; padding: 14px 32px; background: rgba(200, 135, 95, 0.1); border: 1px solid rgba(200, 135, 95, 0.25); border-radius: var(--radius); color: var(--copper-light); font-family: var(--font-body); font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.3s var(--ease-out); }
+.quiz-restart:hover { background: rgba(200, 135, 95, 0.18); }
+
+@media (max-width: 768px) {
+  .symptom-grid { grid-template-columns: 1fr; }
+  .light-controls { flex-direction: column; align-items: center; }
+  .light-sphere { width: 220px; height: 220px; }
+  .water-options { flex-direction: column; align-items: center; }
+  .quiz-question { font-size: 1.5rem; }
+  .quiz-results-grid { grid-template-columns: 1fr; }
+  .doctor-result-detail { grid-template-columns: 1fr; }
+}

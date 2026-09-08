@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Botanical Conservatory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/header.css">
+  <link rel="stylesheet" href="styles/cards.css">
+  <link rel="stylesheet" href="styles/detail.css">
+  <link rel="stylesheet" href="styles/tools.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Living Background Effects -->
+  <div id="environment" class="environment">
+    <div class="env-sky"></div>
+    <div class="env-sunbeams">
+      <div class="sunbeam sunbeam-1"></div>
+      <div class="sunbeam sunbeam-2"></div>
+      <div class="sunbeam sunbeam-3"></div>
+      <div class="sunbeam sunbeam-4"></div>
+    </div>
+    <canvas id="particle-canvas"></canvas>
+    <div class="env-rain" id="env-rain"></div>
+    <div class="env-mist" id="env-mist">
+      <div class="mist-layer mist-1"></div>
+      <div class="mist-layer mist-2"></div>
+      <div class="mist-layer mist-3"></div>
+    </div>
+    <div class="env-vines">
+      <svg class="vine vine-left" viewBox="0 0 200 800" preserveAspectRatio="none">
+        <path class="vine-path" d="M-10,0 Q50,100 30,200 Q10,300 60,400 Q40,500 20,600 Q-10,700 40,800" />
+        <path class="vine-leaf" d="M30,200 Q60,180 50,210 Q40,230 30,200Z" />
+        <path class="vine-leaf" d="M60,400 Q90,380 80,410 Q70,430 60,400Z" />
+        <path class="vine-leaf" d="M20,600 Q50,580 40,610 Q30,630 20,600Z" />
+      </svg>
+      <svg class="vine vine-right" viewBox="0 0 200 800" preserveAspectRatio="none">
+        <path class="vine-path" d="M210,0 Q150,100 170,200 Q190,300 140,400 Q160,500 180,600 Q210,700 160,800" />
+        <path class="vine-leaf" d="M170,200 Q140,180 150,210 Q160,230 170,200Z" />
+        <path class="vine-leaf" d="M140,400 Q110,380 120,410 Q130,430 140,400Z" />
+        <path class="vine-leaf" d="M180,600 Q150,580 160,610 Q170,630 180,600Z" />
+      </svg>
+    </div>
+  </div>
+
+  <!-- Glass Panels Overlay -->
+  <div class="glass-panels">
+    <div class="glass-panel glass-top-left"></div>
+    <div class="glass-panel glass-top-right"></div>
+    <div class="glass-panel glass-bottom-left"></div>
+    <div class="glass-panel glass-bottom-right"></div>
+  </div>
+
+  <!-- Screen reader announcements -->
+  <div id="sr-announcements" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Back to top button -->
+  <button id="back-to-top" class="back-to-top" aria-label="Back to top" title="Back to top (T)">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+  </button>
+
+  <!-- Main App -->
+  <div class="app" id="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-inner">
+        <div class="logo-group">
+          <div class="logo-icon">
+            <svg viewBox="0 0 48 48" fill="none">
+              <path d="M24 4C18 4 14 12 14 20C14 28 18 32 24 36C30 32 34 28 34 20C34 12 30 4 24 4Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+              <path d="M24 36V44" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M20 40H28" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M24 14C20 18 18 24 24 28" stroke="currentColor" stroke-width="1" opacity="0.5"/>
+              <path d="M24 14C28 18 30 24 24 28" stroke="currentColor" stroke-width="1" opacity="0.5"/>
+            </svg>
+          </div>
+          <div class="logo-text">
+            <h1 class="logo-title">The Botanical Conservatory</h1>
+            <p class="logo-subtitle">Discover how to help your plants thrive</p>
+          </div>
+        </div>
+        <nav class="nav" role="navigation" aria-label="Main navigation">
+          <button class="nav-btn active" data-section="plants" data-key="1" aria-current="page">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2C6 2 4 8 4 12C4 16 6 18 10 20C14 18 16 16 16 12C16 8 14 2 10 2Z"/><path d="M10 20V16"/></svg>
+            <span>Plants</span>
+          </button>
+          <button class="nav-btn" data-section="doctor" data-key="2">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7"/><path d="M7 10H13M10 7V13"/></svg>
+            <span>Plant Doctor</span>
+          </button>
+          <button class="nav-btn" data-section="light" data-key="3">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="4"/><path d="M10 1V3M10 17V19M1 10H3M17 10H19M4 4L5.5 5.5M14.5 14.5L16 16M16 4L14.5 5.5M5.5 14.5L4 16"/></svg>
+            <span>Light Simulator</span>
+          </button>
+          <button class="nav-btn" data-section="water" data-key="4">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2C10 2 4 8 4 12C4 16 6 18 10 18C14 18 16 16 16 12C16 8 10 2 10 2Z"/><path d="M8 13C8 11 10 9 10 9C10 9 12 11 12 13"/></svg>
+            <span>Watering</span>
+          </button>
+          <button class="nav-btn" data-section="quiz" data-key="5">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2L6 8H2L5.5 12L4 18L10 14L16 18L14.5 12L18 8H14L12 2"/></svg>
+            <span>Plant Match</span>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Section: Plants -->
+    <section class="section section-plants active" id="section-plants">
+      <!-- Category Filter -->
+      <div class="category-filter">
+        <button class="cat-btn active" data-category="all">All Plants</button>
+        <button class="cat-btn" data-category="Beginner">Beginner</button>
+        <button class="cat-btn" data-category="Tropical">Tropical</button>
+        <button class="cat-btn" data-category="Desert">Desert</button>
+        <button class="cat-btn" data-category="Rare Collector">Rare Collector</button>
+        <button class="cat-btn" data-category="Pet-Friendly">Pet-Friendly</button>
+      </div>
+
+      <!-- Filter Controls -->
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label class="filter-label">Light</label>
+          <select id="filter-light" class="filter-select">
+            <option value="">Any Light</option>
+            <option value="Low">Low Light</option>
+            <option value="Medium">Medium Light</option>
+            <option value="Bright">Bright Indirect</option>
+            <option value="Direct">Direct Sun</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Pet Safe</label>
+          <label class="toggle-label">
+            <input type="checkbox" id="filter-pet" class="toggle-input">
+            <span class="toggle-switch"></span>
+          </label>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Search</label>
+          <input type="text" id="filter-search" class="filter-input" placeholder="Search plants...">
+        </div>
+      </div>
+
+      <!-- Plant Grid -->
+      <div class="plant-grid" id="plant-grid">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- Recently Viewed -->
+      <div class="recently-viewed" id="recently-viewed" style="display:none">
+        <h3 class="recent-title">Recently Viewed</h3>
+        <div class="recent-scroll" id="recent-scroll"></div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" id="empty-state" style="display:none">
+        <div class="empty-icon">
+          <svg viewBox="0 0 80 80" fill="none">
+            <path d="M40 10C30 10 24 22 24 34C24 46 30 52 40 58C50 52 56 46 56 34C56 22 50 10 40 10Z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M40 58V72" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M32 66H48" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <p class="empty-text">No plants match your filters.</p>
+        <p class="empty-sub">Try adjusting your search or category.</p>
+      </div>
+    </section>
+
+    <!-- Plant Detail Panel -->
+    <div class="detail-panel" id="detail-panel">
+      <button class="detail-close" id="detail-close" aria-label="Close detail panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+      <div class="detail-content" id="detail-content">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- Section: Plant Doctor -->
+    <section class="section section-doctor" id="section-doctor">
+      <div class="section-header">
+        <h2 class="section-title">Plant Doctor</h2>
+        <p class="section-desc">Select the symptoms you're seeing. We'll help diagnose and treat the problem.</p>
+      </div>
+      <div class="symptom-grid" id="symptom-grid">
+        <!-- Populated by JS -->
+      </div>
+      <div class="doctor-results" id="doctor-results">
+        <div class="doctor-results-inner" id="doctor-results-inner"></div>
+      </div>
+    </section>
+
+    <!-- Section: Light Simulator -->
+    <section class="section section-light" id="section-light">
+      <div class="section-header">
+        <h2 class="section-title">Light Simulator</h2>
+        <p class="section-desc">Select your available light conditions to discover which plants will thrive in your space.</p>
+      </div>
+      <div class="light-dome" id="light-dome">
+        <div class="light-sphere" id="light-sphere">
+          <div class="light-center">
+            <div class="light-icon" id="light-icon"></div>
+            <div class="light-label" id="light-label">Select a Light Level</div>
+          </div>
+          <div class="light-rays" id="light-rays"></div>
+        </div>
+        <div class="light-controls">
+          <button class="light-btn" data-level="low">
+            <div class="light-icon-sm"><svg viewBox="0 0 24 24" width="24" height="24" fill="none"><circle cx="12" cy="12" r="10" fill="#2a3a4a" opacity="0.7"/><circle cx="12" cy="12" r="6" fill="#4a5a6a" opacity="0.5"/></svg></div>
+            <span>Low Light</span>
+          </button>
+          <button class="light-btn" data-level="medium">
+            <div class="light-icon-sm"><svg viewBox="0 0 24 24" width="24" height="24" fill="none"><circle cx="12" cy="12" r="10" fill="#5a7a9a" opacity="0.4"/><circle cx="9" cy="10" r="6" fill="#e8c84a" opacity="0.7"/><path d="M14 8C16 10 16 14 14 16" stroke="#b0c8d8" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+            <span>Medium Light</span>
+          </button>
+          <button class="light-btn" data-level="bright">
+            <div class="light-icon-sm"><svg viewBox="0 0 24 24" width="24" height="24" fill="none"><circle cx="12" cy="12" r="5" fill="#f0d040" opacity="0.9"/><g stroke="#f0d040" stroke-width="1.2" stroke-linecap="round"><path d="M12 2V5M12 19V22M2 12H5M19 12H22M5.6 5.6L7.8 7.8M16.2 16.2L18.4 18.4M18.4 5.6L16.2 7.8M7.8 16.2L5.6 18.4"/></g></svg></div>
+            <span>Bright Indirect</span>
+          </button>
+          <button class="light-btn" data-level="direct">
+            <div class="light-icon-sm"><svg viewBox="0 0 24 24" width="24" height="24" fill="none"><circle cx="12" cy="12" r="5" fill="#f08030" opacity="0.9"/><g stroke="#f08030" stroke-width="1.5" stroke-linecap="round"><path d="M12 1V4M12 20V23M1 12H4M20 12H23M4.9 4.9L7.1 7.1M16.9 16.9L19.1 19.1M19.1 4.9L16.9 7.1M7.1 16.9L4.9 19.1"/></g></svg></div>
+            <span>Direct Sun</span>
+          </button>
+        </div>
+      </div>
+      <div class="light-results" id="light-results"></div>
+    </section>
+
+    <!-- Section: Watering -->
+    <section class="section section-water" id="section-water">
+      <div class="section-header">
+        <h2 class="section-title">Watering Station</h2>
+        <p class="section-desc">Get personalized watering recommendations based on your plant and conditions.</p>
+      </div>
+      <div class="water-station">
+        <div class="water-pipe">
+          <div class="water-stream" id="water-stream"></div>
+          <div class="water-can-icon"><svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5C12 2.5 6 9.5 6 14a6 6 0 1 0 12 0c0-4.5-6-11.5-6-11.5Z"/><path d="M10 15.5a3 3 0 0 0 4 0" opacity="0.5"/></svg></div>
+        </div>
+        <div class="water-controls">
+          <div class="water-field">
+            <label class="water-label">Pot Size</label>
+            <div class="water-options" id="water-pot">
+              <button class="water-opt" data-value="small">Small (2-4")</button>
+              <button class="water-opt active" data-value="medium">Medium (6-8")</button>
+              <button class="water-opt" data-value="large">Large (10-12")</button>
+              <button class="water-opt" data-value="xlarge">Extra Large (14"+)</button>
+            </div>
+          </div>
+          <div class="water-field">
+            <label class="water-label">Climate</label>
+            <div class="water-options" id="water-climate">
+              <button class="water-opt" data-value="dry">Dry / Arid</button>
+              <button class="water-opt active" data-value="average">Average</button>
+              <button class="water-opt" data-value="humid">Humid</button>
+            </div>
+          </div>
+          <div class="water-field">
+            <label class="water-label">Plant Type</label>
+            <div class="water-options" id="water-type">
+              <button class="water-opt active" data-value="tropical">Tropical</button>
+              <button class="water-opt" data-value="succulent">Succulent / Cactus</button>
+              <button class="water-opt" data-value="fern">Fern</button>
+              <button class="water-opt" data-value="flowering">Flowering</button>
+            </div>
+          </div>
+        </div>
+        <div class="water-result" id="water-result">
+          <div class="water-result-card">
+            <div class="water-amount" id="water-amount">250ml</div>
+            <div class="water-frequency" id="water-frequency">Every 7–10 days</div>
+            <div class="water-tips" id="water-tips">Allow top 1" of soil to dry between waterings. Water thoroughly until it drains from the bottom.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: Quiz -->
+    <section class="section section-quiz" id="section-quiz">
+      <div class="section-header">
+        <h2 class="section-title">Plant Match</h2>
+        <p class="section-desc">Answer a few questions and we'll find your perfect plant match.</p>
+      </div>
+      <div class="quiz-container" id="quiz-container">
+        <!-- Question 1 -->
+        <div class="quiz-step active" data-step="1">
+          <div class="quiz-question">How often do you travel?</div>
+          <div class="quiz-options">
+            <button class="quiz-opt" data-q="travel" data-v="often">Frequently (weekly+)</button>
+            <button class="quiz-opt" data-q="travel" data-v="sometimes">Sometimes (monthly)</button>
+            <button class="quiz-opt" data-q="travel" data-v="rarely">Rarely</button>
+            <button class="quiz-opt" data-q="travel" data-v="never">Almost never</button>
+          </div>
+        </div>
+        <!-- Question 2 -->
+        <div class="quiz-step" data-step="2">
+          <div class="quiz-question">What's your experience level?</div>
+          <div class="quiz-options">
+            <button class="quiz-opt" data-q="experience" data-v="beginner">Complete beginner</button>
+            <button class="quiz-opt" data-q="experience" data-v="intermediate">Some experience</button>
+            <button class="quiz-opt" data-q="experience" data-v="advanced">Experienced plant parent</button>
+            <button class="quiz-opt" data-q="experience" data-v="expert">Plant expert</button>
+          </div>
+        </div>
+        <!-- Question 3 -->
+        <div class="quiz-step" data-step="3">
+          <div class="quiz-question">What's your lighting situation?</div>
+          <div class="quiz-options">
+            <button class="quiz-opt" data-q="lighting" data-v="low">Mostly low light</button>
+            <button class="quiz-opt" data-q="lighting" data-v="medium">Some indirect light</button>
+            <button class="quiz-opt" data-q="lighting" data-v="bright">Bright indirect light</button>
+            <button class="quiz-opt" data-q="lighting" data-v="direct">Lots of direct sun</button>
+          </div>
+        </div>
+        <!-- Question 4 -->
+        <div class="quiz-step" data-step="4">
+          <div class="quiz-question">Do you have pets?</div>
+          <div class="quiz-options">
+            <button class="quiz-opt" data-q="pets" data-v="yes">Yes, they nibble everything</button>
+            <button class="quiz-opt" data-q="pets" data-v="sometimes">Yes, but they're chill</button>
+            <button class="quiz-opt" data-q="pets" data-v="no">No pets</button>
+          </div>
+        </div>
+      </div>
+      <!-- Quiz Progress -->
+      <div class="quiz-progress" id="quiz-progress">
+        <div class="quiz-progress-bar">
+          <div class="quiz-progress-fill" id="quiz-progress-fill"></div>
+        </div>
+        <div class="quiz-progress-text" id="quiz-progress-text">Question 1 of 4</div>
+      </div>
+      <!-- Quiz Results -->
+      <div class="quiz-results" id="quiz-results" style="display:none">
+        <h3 class="quiz-results-title">Your Perfect Matches</h3>
+        <div class="quiz-results-grid" id="quiz-results-grid"></div>
+        <button class="quiz-restart" id="quiz-restart">Take Quiz Again</button>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>The Botanical Conservatory &mdash; Helping plants thrive, one leaf at a time.</p>
+    </footer>
+  </div>
+
+  <script src="js/main.js" type="module"></script>
+</body>
+</html>
