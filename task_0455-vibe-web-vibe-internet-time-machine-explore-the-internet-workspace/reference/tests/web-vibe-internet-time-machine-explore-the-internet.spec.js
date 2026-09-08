@@ -198,3 +198,38 @@ test('[F2P] URL navigation keeps the favorites bar synchronized with the selecte
   await expectYearSynced(page, 2005);
   await expect(page.locator('.fav-year-btn', { hasText: '2005' })).toHaveClass(/active/);
 });
+
+test('[F2P] mixed navigation sources preserve one coherent history branch across repeated undo and redo', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('itm-favorites', JSON.stringify([2020]));
+  });
+  await boot(page);
+
+  await selectTab(page, 2005);
+  await selectTab(page, 2010);
+  await page.locator('#undo-btn').click();
+  await expectYearSynced(page, 2005);
+
+  await scrubTo(page, 2005, 2018, 10);
+  await expectYearSynced(page, 2018);
+  await page.locator('#undo-btn').click();
+  await expectYearSynced(page, 2005);
+
+  await page.evaluate(() => { location.hash = '#2015'; });
+  await expectYearSynced(page, 2015);
+  await page.locator('#undo-btn').click();
+  await expectYearSynced(page, 2005);
+  await page.locator('#redo-btn').click();
+  await expectYearSynced(page, 2015);
+
+  await expect(page.locator('.fav-year-btn', { hasText: '2020' })).toBeVisible();
+  await page.locator('.fav-year-btn', { hasText: '2020' }).click();
+  await expectYearSynced(page, 2020);
+  await expect(page.locator('.fav-year-btn', { hasText: '2020' })).toHaveClass(/active/);
+
+  await page.locator('#undo-btn').click();
+  await expectYearSynced(page, 2015);
+  await expect(page.locator('.fav-year-btn', { hasText: '2020' })).not.toHaveClass(/active/);
+  await page.locator('#redo-btn').click();
+  await expectYearSynced(page, 2020);
+});
