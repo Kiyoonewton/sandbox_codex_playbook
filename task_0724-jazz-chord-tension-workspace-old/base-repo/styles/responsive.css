@@ -1,0 +1,42 @@
+/* ============================================
+   RESPONSIVE STYLES
+   ============================================ */
+
+@media (max-width: 900px) {
+  .chord-grid { grid-template-columns: repeat(4, 1fr); }
+  .breakdown-grid { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 560px) {
+  .chord-grid { grid-template-columns: repeat(2, 1fr); gap: 4px; }
+  .breakdown-grid { grid-template-columns: repeat(3, 1fr); }
+  .builder-note-btn { width: 32px; height: 32px; font-size: 0.5rem; }
+  .builder-row { gap: 5px; }
+  .rank-label { width: 58px; font-size: 0.48rem; }
+  .builder-panel { padding: 0.8rem 0.5rem; }
+  .hero { padding: 2rem 1rem 1.5rem; }
+  .vinyl { width: 48px; height: 48px; }
+  .vinyl::after { width: 12px; height: 12px; }
+}
+
+/* ---- ANIMATIONS ---- */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.chord-col { animation: fadeInUp 0.4s ease-out backwards; }
+.chord-col:nth-child(1) { animation-delay: 0.04s; }
+.chord-col:nth-child(2) { animation-delay: 0.08s; }
+.chord-col:nth-child(3) { animation-delay: 0.12s; }
+.chord-col:nth-child(4) { animation-delay: 0.16s; }
+.chord-col:nth-child(5) { animation-delay: 0.2s; }
+.chord-col:nth-child(6) { animation-delay: 0.24s; }
+.chord-col:nth-child(7) { animation-delay: 0.28s; }
+
+.breakdown-cell { animation: fadeInUp 0.35s ease-out backwards; }
+.breakdown-cell:nth-child(1) { animation-delay: 0.04s; }
+.breakdown-cell:nth-child(2) { animation-delay: 0.08s; }
+.breakdown-cell:nth-child(3) { animation-delay: 0.12s; }
+.breakdown-cell:nth-child(4) { animation-delay: 0.16s; }
+.breakdown-cell:nth-child(5) { animation-delay: 0.2s; }
+.breakdown-cell:nth-child(6) { animation-delay: 0.24s; }
+.breakdown-cell:nth-child(7) { animation-delay: 0.28s; }

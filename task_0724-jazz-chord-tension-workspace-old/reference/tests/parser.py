@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic result parser for task_0001-jazz-chord-tension.
+"""Deterministic result parser for task_0724-jazz-chord-tension.
 
 Reward is 1 only when Playwright exited 0 and EVERY test passed — both the
 [F2P] fail-to-pass tests (red on broken, green on fixed) and the [P2P]
