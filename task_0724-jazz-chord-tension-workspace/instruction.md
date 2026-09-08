@@ -1,14 +1,10 @@
 # Chord selection gets out of sync across the analysis views
 
-I keep losing track of which chord I am actually looking at when I move between the voicing cards, Interval Anatomy, and Tension Composition.
+Hey, I noticed the chord selection gets pretty confusing and buggy as you move between the different sections on the page.
 
-Those three sections are different views of the same seven chords, so selecting a chord in any one of them should make that chord the single current selection everywhere. Right now I can choose one chord in the interval table, move to another chord elsewhere, and end up with different sections still indicating different chords.
+When I click on C7alt inside the Interval Anatomy section, the voicing cards end up highlighting a completely different chord as selected, even though C7alt is clearly the row I just clicked. I ran into a similar issue after picking a chord in Tension Composition and then using the arrow keys to step through chords—instead of moving from the one I just chose, it jumps around and continues from some older chord I was looking at earlier.
 
-The arrow-key navigation makes the mismatch more confusing. After I choose a chord from Tension Composition, pressing left or right should continue from that chord. Instead, after switching between sections, the arrow keys can jump from an older selection rather than the chord I just chose.
-
-Please make selection handoffs consistent whether I use a voicing card, an Interval Anatomy row, a Tension Composition cell, or the left/right arrow keys. There should never be more than one chord presented as selected, and the interval row for the current chord should have a clear selected treatment just like the other analysis views. Keyboard activation of the selectable analysis controls should behave the same as clicking them.
-
-The custom chord builder is separate from this navigation and should continue working normally.
+The same thing happens in reverse: clicking a chord card in the voicings section can leave Interval Anatomy displaying something else entirely. Moving through chords using the keyboard should feel just as consistent as clicking them with the mouse. Whichever chord I most recently picked—whether by clicking or using arrow keys—should be the one that stays actively selected across the entire page. The custom chord builder has been working fine through all of this, so that shouldn't be touched.
 
 The broken app currently looks like this:
 
