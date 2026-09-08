@@ -10,7 +10,7 @@ The timeline scrubber is particularly easy to break. Dragging across several yea
 
 The URL needs to participate in the same behavior. If the page opens with a valid year in its hash, that year should be used even when localStorage contains an older saved year. Changing the hash while the page is already open should switch to that year immediately without leaving the other controls out of sync.
 
-Favorites should behave the same way: adding or removing one should update the favorites bar immediately, and opening a favorite should be undoable just like selecting a year anywhere else. The normal welcome message should still appear when the app opens on its default year, 2000.
+Favorites should behave the same way: adding or removing one should update the favorites bar immediately, and opening a favorite should be undoable just like selecting a year anywhere else.
 
 The screenshots show the Undo example above. Both start from 2005 and then navigate to 2010 before Undo is pressed. In the broken version below, Undo fails and the app is still showing the 2010/Facebook year:
 
