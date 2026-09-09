@@ -638,7 +638,10 @@ function saveCurrentProgression() {
     progression = { type: 'custom', indices: [...state.customProgression] };
   } else if (state.selectedProgression) {
     progression = { type: 'preset', name: state.selectedProgression };
-  } else return;
+  } else {
+    showToast('Select a progression first');
+    return false;
+  }
 
   state.savedProgressions.push({
     id: Date.now(), root: state.root, scale: state.scale,
@@ -647,6 +650,8 @@ function saveCurrentProgression() {
   });
   saveProgressionsToStorage();
   loadSavedProgressions();
+  showToast('Progression saved');
+  return true;
 }
 
 function loadSavedProgressions() {
@@ -657,7 +662,7 @@ function loadSavedProgressions() {
   if (state.savedProgressions.length === 0) {
     container.innerHTML = '';
     emptyState.style.display = '';
-    if (actionsRow) actionsRow.style.display = 'none';
+    if (actionsRow) actionsRow.style.display = 'flex';
     return;
   }
 
@@ -720,7 +725,7 @@ function loadSavedProgression(id) {
   } else {
     state.selectedProgression = null;
     state.isCustom = true;
-    state.customProgression = entry.progression.indices;
+    state.customProgression = [...entry.progression.indices];
   }
   state.customEdit = false;
   document.getElementById('btn-custom-mode').classList.remove('active');
@@ -786,18 +791,33 @@ document.addEventListener('DOMContentLoaded', () => {
       reader.onload = (ev) => {
         try {
           const imported = JSON.parse(ev.target.result);
-          if (!Array.isArray(imported)) throw new Error('Invalid format');
-          let count = 0;
-          imported.forEach(entry => {
-            if (entry.root && entry.scale && entry.progression && entry.date) {
-              entry.id = Date.now() + count;
-              state.savedProgressions.push(entry);
-              count++;
-            }
+          if (!Array.isArray(imported) || imported.length === 0 || !imported.every(isValidImportEntry)) {
+            throw new Error('Invalid format');
+          }
+          const usedIds = new Set(state.savedProgressions.map(entry => entry.id));
+          const knownProgressions = new Set(state.savedProgressions.map(importFingerprint));
+          const additions = [];
+          imported.forEach((entry, index) => {
+            const fingerprint = importFingerprint(entry);
+            if (knownProgressions.has(fingerprint)) return;
+            knownProgressions.add(fingerprint);
+            additions.push({
+              id: createUniqueId(usedIds, index),
+              root: entry.root,
+              scale: entry.scale,
+              progression: entry.progression.type === 'custom'
+                ? { type: 'custom', indices: [...entry.progression.indices] }
+                : { type: 'preset', name: entry.progression.name },
+              label: `${entry.root} ${entry.scale}`,
+              date: entry.date,
+            });
           });
+          state.savedProgressions.push(...additions);
           saveProgressionsToStorage();
           loadSavedProgressions();
-          showToast(`Imported ${count} progressions`);
+          showToast(additions.length > 0
+            ? `Imported ${additions.length} progressions`
+            : 'No new progressions to import');
         } catch (err) {
           showToast('Invalid file format');
         }
@@ -808,16 +828,36 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// ─── Save success toast ───
-document.addEventListener('DOMContentLoaded', () => {
-  const saveBtn = document.getElementById('btn-save');
-  if (saveBtn) {
-    saveBtn.addEventListener('click', () => {
-      setTimeout(() => {
-        if (state.savedProgressions.length > 0) {
-          showToast('Progression saved');
-        }
-      }, 50);
-    });
+function isValidImportEntry(entry) {
+  if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return false;
+  if (!NOTE_NAMES.includes(entry.root) || !Object.hasOwn(SCALES, entry.scale)) return false;
+  if (typeof entry.date !== 'string' || Number.isNaN(Date.parse(entry.date))) return false;
+  if (!entry.progression || typeof entry.progression !== 'object') return false;
+
+  if (entry.progression.type === 'preset') {
+    return typeof entry.progression.name === 'string'
+      && Object.hasOwn(PROGRESSIONS, entry.progression.name)
+      && formatProgression(entry.progression.name, entry.root, entry.scale) !== null;
   }
-});
+  if (entry.progression.type === 'custom') {
+    const indices = entry.progression.indices;
+    const chordCount = DIATONIC_CHORDS[entry.scale]?.length || 0;
+    return Array.isArray(indices) && indices.length > 0
+      && indices.every(index => Number.isInteger(index) && index >= 0 && index < chordCount);
+  }
+  return false;
+}
+
+function createUniqueId(usedIds, offset) {
+  let id = Date.now() + offset;
+  while (usedIds.has(id)) id++;
+  usedIds.add(id);
+  return id;
+}
+
+function importFingerprint(entry) {
+  const progression = entry.progression.type === 'custom'
+    ? `custom:${entry.progression.indices.join(',')}`
+    : `preset:${entry.progression.name}`;
+  return `${entry.root}|${entry.scale}|${progression}`;
+}
