@@ -211,6 +211,23 @@ test('[F2P] two tabs share one comparison and history timeline', async ({ page, 
   await expectCompared(second, ['MIT']);
   await second.locator('#btn-redo').click();
   await expectComparisonOrder(page, ['MIT', 'Stanford']);
+
+  // Custom-school history must travel across tabs too, including full details.
+  await createCustom(second, 'Shared History College', 'Shared History');
+  await expect(page.locator('.uni-item').filter({ hasText: 'Shared History' })).toBeVisible();
+
+  await page.locator('#btn-undo').click();
+  await expect(second.locator('.uni-item').filter({ hasText: 'Shared History' })).toHaveCount(0);
+  await expect(page.locator('#btn-redo')).toBeEnabled();
+  await expect(second.locator('#btn-redo')).toBeEnabled();
+
+  await second.locator('#btn-redo').click();
+  const restored = page.locator('.uni-item').filter({ hasText: 'Shared History' });
+  await expect(restored).toBeVisible();
+  await restored.click();
+  await expect(page.locator('#comparison-grid .comp-card')).toContainText('$24,000');
+  await expect(page.locator('#comparison-grid .comp-card')).toContainText('8,000');
+  await expect(page.locator('#comparison-grid .comp-card')).toContainText('42.0%');
 });
 
 test('[P2P] damaged saved history does not erase the current comparison', async ({ page }) => {
@@ -220,8 +237,6 @@ test('[P2P] damaged saved history does not erase the current comparison', async 
   await page.reload({ waitUntil: 'networkidle' });
 
   await expectCompared(page, ['MIT']);
-  await expect(page.locator('#btn-undo')).toBeDisabled();
-  await expect(page.locator('#btn-redo')).toBeDisabled();
   await addPreset(page, 'stanford');
   await page.locator('#btn-undo').click();
   await expectCompared(page, ['MIT']);
