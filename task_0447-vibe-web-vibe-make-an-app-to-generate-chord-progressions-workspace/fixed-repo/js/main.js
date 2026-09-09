@@ -816,7 +816,7 @@ document.addEventListener('DOMContentLoaded', () => {
           saveProgressionsToStorage();
           loadSavedProgressions();
           showToast(additions.length > 0
-            ? `Imported ${additions.length} progressions`
+            ? `Imported ${additions.length} ${additions.length === 1 ? 'progression' : 'progressions'}`
             : 'No new progressions to import');
         } catch (err) {
           showToast('Invalid file format');
