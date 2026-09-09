@@ -141,6 +141,21 @@ test('[F2P] valid imports get unique IDs, persist, and load correctly', async ({
   await expect(page.locator('#saved-list .saved-item')).toHaveCount(2);
 });
 
+test('[F2P] duplicate progressions inside one import are added only once', async ({ page }) => {
+  await boot(page);
+  const duplicate = {
+    ...validPreset,
+    id: 99,
+    label: 'Another copy',
+    date: '2026-09-01T12:00:00.000Z',
+  };
+
+  await importJson(page, [validPreset, duplicate], 'duplicates.json');
+  await expect(page.locator('.toast')).toHaveText('Imported 1 progression');
+  await expect(page.locator('#saved-list .saved-item')).toHaveCount(1);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('chordforge_saved')).length)).toBe(1);
+});
+
 test('[F2P] Save reports failure when there is no active progression', async ({ page }) => {
   await boot(page);
   await selectPreset(page);
