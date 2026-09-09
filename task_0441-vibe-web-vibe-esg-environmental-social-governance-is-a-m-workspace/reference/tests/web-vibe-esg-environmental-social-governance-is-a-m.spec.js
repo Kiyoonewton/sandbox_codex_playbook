@@ -78,7 +78,8 @@ test('[F2P] every pillar insight uses its real sector benchmark', async ({ page 
   await expect(page.locator('#ginsE')).toContainText('Technology avg (62)');
   await expect(page.locator('#ginsS')).toContainText('avg 71');
   await expect(page.locator('#ginsG')).toContainText('avg 68');
-  await expect(page.locator('#ginsE, #ginsS, #ginsG')).not.toContainText(/undefined|NaN/);
+  const insights = await page.locator('#ginsE, #ginsS, #ginsG').allTextContents();
+  expect(insights.join(' ')).not.toMatch(/undefined|NaN/);
 });
 
 test('[F2P] pillar detail uses the matching benchmark and finite comparison', async ({ page }) => {
