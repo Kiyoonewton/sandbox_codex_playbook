@@ -1,0 +1,66 @@
+[
+  {
+    "name": "Design System & Visual Direction",
+    "status": "done",
+    "notes": "Academic Atlas: warm ivory background, scholarly blue + gold accent palette, Fraunces + DM Sans type pairing"
+  },
+  {
+    "name": "University Data & State Management",
+    "status": "done",
+    "notes": "20 universities with real-ish data, localStorage persistence, comparison state"
+  },
+  {
+    "name": "Keyboard Navigation & Accessibility",
+    "status": "done",
+    "notes": "Arrow key navigation, ARIA labels, keyboard shortcuts (/ ? 1 2 Ctrl+Z Ctrl+Shift+Z Ctrl+E Ctrl+R), focus management"
+  },
+  {
+    "name": "Table View & Undo/Redo",
+    "status": "done",
+    "notes": "Card/table view toggle, undo/redo with 30-step stack, button state management"
+  },
+  {
+    "name": "Visual Polish & Micro-Interactions",
+    "status": "done",
+    "notes": "Staggered card animations, hover lifts, active scale, toast system, skeleton loading, print styles, paper texture overlay"
+  },
+  {
+    "name": "Deep Green Background Theme",
+    "status": "done",
+    "notes": "Changed to deep forest green (#162E22) with subtle gradient radial overlays. Updated all surfaces, ink, borders, shadows, topbar backdrop, toast colors, favicon, form validation states. Verdant Academy aesthetic."
+  },
+  {
+    "name": "Add Custom Schools Feature",
+    "status": "done",
+    "notes": "Centered the Add School, Delete Confirmation, and Keyboard Shortcuts modals using position:fixed + transform:translate(-50%,-50%) on the dialog element in base.css."
+  },
+  {
+    "name": "Fix Add School button positioning in browser section",
+    "status": "done",
+    "notes": "Fixed: On mobile, the \"Add School\" button now renders as a full-width centered button below filter chips. On desktop, it remains in the filter row aligned right. Scoped mobile btn text hiding to topbar only."
+  },
+  {
+    "name": "Fix reset to delete all custom schools",
+    "status": "done"
+  },
+  {
+    "name": "Modal Focus Trapping",
+    "status": "done",
+    "notes": "Add focus trap to all modals for accessibility"
+  },
+  {
+    "name": "Visual Polish & Button States",
+    "status": "done",
+    "notes": "Added pressed/active states, hover effects with translateY and box-shadow, danger button polish, focus trap integration for all modals, summary bar animations"
+  },
+  {
+    "name": "Fix modal heading text color for dark theme",
+    "status": "done",
+    "notes": "Modal titles use default browser black (rgb(0,0,0)) instead of inheriting var(--ink). Need to add color: var(--ink) to .modal__content"
+  },
+  {
+    "name": "End-to-end workflow testing",
+    "status": "done",
+    "notes": "Testing all features: search, filter, add/remove universities, custom schools, undo/redo, export, table view, keyboard shortcuts, mobile responsive"
+  }
+]

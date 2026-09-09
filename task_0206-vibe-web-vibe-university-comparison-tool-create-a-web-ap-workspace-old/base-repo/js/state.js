@@ -7,7 +7,6 @@ import { UNIVERSITIES } from './data.js';
 const STORAGE_KEY = 'uni-compare-v2';
 const CUSTOM_STORAGE_KEY = 'uni-compare-custom';
 
-// ---- Custom Schools ----
 let _customSchools = loadCustomSchools();
 
 function loadCustomSchools() {
@@ -19,33 +18,23 @@ function loadCustomSchools() {
 }
 
 function saveCustomSchools() {
-  try {
-    localStorage.setItem(CUSTOM_STORAGE_KEY, JSON.stringify(_customSchools));
-  } catch (e) { /* ignore */ }
+  try { localStorage.setItem(CUSTOM_STORAGE_KEY, JSON.stringify(_customSchools)); }
+  catch (e) { /* ignore */ }
 }
 
-export function getCustomSchools() {
-  return _customSchools;
-}
+export function getCustomSchools() { return _customSchools; }
 
 export function addCustomSchool(school) {
   const id = 'custom-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
   const newSchool = {
-    id,
-    name: school.name,
-    short: school.short || school.name,
-    state: school.state || '',
-    type: school.type || 'public',
-    ivy: false,
-    tuition: Number(school.tuition) || 0,
-    enrollment: Number(school.enrollment) || 0,
+    id, name: school.name, short: school.short || school.name,
+    state: school.state || '', type: school.type || 'public', ivy: false,
+    tuition: Number(school.tuition) || 0, enrollment: Number(school.enrollment) || 0,
     acceptanceRate: Number(school.acceptanceRate) || 0,
     studentFacultyRatio: Number(school.studentFacultyRatio) || 10,
-    location: school.location || '',
-    color: school.color || '#52B883',
+    location: school.location || '', color: school.color || '#52B883',
     graduationRate: Number(school.graduationRate) || 0,
-    avgSalary: Number(school.avgSalary) || 0,
-    isCustom: true,
+    avgSalary: Number(school.avgSalary) || 0, isCustom: true,
   };
   _customSchools.push(newSchool);
   saveCustomSchools();
@@ -62,21 +51,12 @@ export function clearCustomSchools() {
   saveCustomSchools();
 }
 
-// ---- All Universities (preset + custom) ----
-export function getAllUniversities() {
-  return [...UNIVERSITIES, ..._customSchools];
-}
+export function getAllUniversities() { return [...UNIVERSITIES, ..._customSchools]; }
 
-// ---- Core State ----
 let _state = loadState();
 
 function getDefaultState() {
-  return {
-    comparisonIds: [],
-    searchQuery: '',
-    filterType: 'all',
-    viewMode: 'cards',
-  };
+  return { comparisonIds: [], searchQuery: '', filterType: 'all', viewMode: 'cards' };
 }
 
 function loadState() {
@@ -84,7 +64,7 @@ function loadState() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      parsed.comparisonIds = (parsed.comparisonIds || []);
+      parsed.comparisonIds = parsed.comparisonIds || [];
       return { ...getDefaultState(), ...parsed };
     }
   } catch (e) { /* ignore */ }
@@ -106,10 +86,8 @@ function saveState() {
     }));
   } catch (e) { /* ignore */ }
 }
-
 export { saveState };
 
-// ---- Undo/Redo ----
 let undoStack = [];
 let redoStack = [];
 
@@ -119,10 +97,15 @@ export function pushUndo() {
   if (undoStack.length > 30) undoStack.shift();
 }
 
+function restoreComparisonIds(ids) {
+  const available = new Set(getAllUniversities().map(u => u.id));
+  _state.comparisonIds = ids.filter(id => available.has(id));
+}
+
 export function undo() {
   if (undoStack.length === 0) return false;
   redoStack.push([..._state.comparisonIds]);
-  _state.comparisonIds = undoStack.pop();
+  restoreComparisonIds(undoStack.pop());
   saveState();
   return true;
 }
@@ -130,7 +113,7 @@ export function undo() {
 export function redo() {
   if (redoStack.length === 0) return false;
   undoStack.push([..._state.comparisonIds]);
-  _state.comparisonIds = redoStack.pop();
+  restoreComparisonIds(redoStack.pop());
   saveState();
   return true;
 }
@@ -138,16 +121,9 @@ export function redo() {
 export function canUndo() { return undoStack.length > 0; }
 export function canRedo() { return redoStack.length > 0; }
 
-// ---- University Lookups ----
-export function getUni(id) {
-  return getAllUniversities().find(u => u.id === id);
-}
+export function getUni(id) { return getAllUniversities().find(u => u.id === id); }
+export function getComparisonUnis() { return _state.comparisonIds.map(getUni).filter(Boolean); }
 
-export function getComparisonUnis() {
-  return _state.comparisonIds.map(getUni).filter(Boolean);
-}
-
-// ---- Value Scoring ----
 export function calculateValueScore(uni) {
   const tuitionScore = 1 - (uni.tuition / 70000);
   const acceptScore = uni.acceptanceRate / 30;
@@ -171,7 +147,6 @@ export function getBestInMetric(comparisons, metric) {
     }
   });
   const bestIdx = metric === 'tuition' || metric === 'studentFacultyRatio'
-    ? values.indexOf(Math.min(...values))
-    : values.indexOf(Math.max(...values));
+    ? values.indexOf(Math.min(...values)) : values.indexOf(Math.max(...values));
   return comparisons[bestIdx].id;
 }
