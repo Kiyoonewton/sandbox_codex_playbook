@@ -137,7 +137,9 @@ test('[F2P] valid imports get unique IDs, persist, and load correctly', async ({
   await expect(page.locator('#chord-display .chord-name')).toHaveText('D');
 
   await importJson(page, [validPreset, custom], 'same-progressions.json');
-  await expect(page.locator('.toast')).toHaveText(\n    /^(No new progressions to import|Imported 0 progressions)$/\n  );
+  await expect(page.locator('.toast')).toHaveText(
+    /^(No new progressions to import|Imported 0 progressions)$/
+  );
   await expect(page.locator('#saved-list .saved-item')).toHaveCount(2);
 });
 
