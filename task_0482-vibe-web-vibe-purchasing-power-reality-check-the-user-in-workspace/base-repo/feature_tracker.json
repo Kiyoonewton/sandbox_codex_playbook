@@ -1,0 +1,31 @@
+[
+  {
+    "name": "Design system & visual direction",
+    "status": "done",
+    "notes": "Cool Slate Editorial: #F0F4F8 bg, #E11D48 crimson, #0891B2 teal, Fraunces + Space Grotesk + JetBrains Mono"
+  },
+  {
+    "name": "Input form with validation",
+    "status": "todo"
+  },
+  {
+    "name": "Historical CPI data engine",
+    "status": "todo"
+  },
+  {
+    "name": "Chart visualization (nominal vs real)",
+    "status": "todo"
+  },
+  {
+    "name": "Reality Check result panel",
+    "status": "todo"
+  },
+  {
+    "name": "Save/compare scenarios with persistence",
+    "status": "todo"
+  },
+  {
+    "name": "Responsive design & polish",
+    "status": "todo"
+  }
+]
