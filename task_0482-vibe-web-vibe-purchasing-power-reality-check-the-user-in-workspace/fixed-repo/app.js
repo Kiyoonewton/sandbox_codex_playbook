@@ -43,6 +43,9 @@ var gapValueEl, gapDetailEl, neededSalaryEl, deficitCardEl;
 var negotiationBodyEl, copyBriefBtn, saveBtnEl, savedScenariosEl;
 var chart = null;
 var currentScenario = null;
+var calculationTimer = null;
+var calculationRequest = 0;
+var STORAGE_KEY = 'realityCheckScenarios';
 
 // ── Currency Formatting ──
 function formatCurrency(amount) {
@@ -55,7 +58,9 @@ function formatCurrency(amount) {
 }
 
 function parseSalaryInput(value) {
-  return parseInt(String(value).replace(/[^0-9]/g, ''), 10) || 0;
+  var normalized = String(value).replace(/[$,\s]/g, '');
+  if (!/^\d+(\.\d{1,2})?$/.test(normalized)) return 0;
+  return Number(normalized);
 }
 
 function formatSalaryDisplay(value) {
@@ -77,7 +82,7 @@ function calculateRealSalary(startYr, startSal, endYr, endSal) {
   var purchasingPowerChange = ((endSal - realEndSalary) / realEndSalary) * 100;
   var gap = endSal - realEndSalary;
   var yearsBetween = endYr - startYr;
-  var annualInflationAvg = inflationRate / yearsBetween;
+  var annualInflationAvg = (Math.pow(endCPI / startCPI, 1 / yearsBetween) - 1) * 100;
   
   // Build year-by-year data for chart
   var yearData = [];
@@ -143,7 +148,7 @@ function renderResults(data) {
   
   // Metrics
   totalInflationEl.textContent = data.inflationRate.toFixed(1) + '%';
-  inflationDetailEl.textContent = data.startCPI + ' \u2192 ' + data.endCPI + ' CPI';
+  inflationDetailEl.textContent = data.startCPI.toFixed(1) + ' \u2192 ' + data.endCPI.toFixed(1) + ' CPI';
   
   realValueEl.textContent = formatCurrency(Math.round(data.realEndSalary));
   realDetailEl.textContent = "Starting salary in today's dollars";
@@ -301,7 +306,7 @@ function renderNegotiationBrief(data) {
   } else if (isGain) {
     brief = '<p><strong>The Good News:</strong> You\'re beating inflation. Your salary grew faster than the cost of living.</p>' +
       '<p><strong>The Math:</strong> Inflation was <span class="highlight">' + data.inflationRate.toFixed(1) + '%</span>. Your salary grew ' + nomGrowth + '% nominally, gaining <span class="highlight">' + formatCurrency(Math.round(data.gap)) + '</span> in real purchasing power.</p>' +
-      '<p><strong>Your Leverage:</strong> You\'re at <span class="highlight">' + formatCurrency(Math.round(endSalaryInStartDollars)) + '</span> in real terms (' + data.startYr + ' dollars). Ask for a <span class="highlight">' + Math.max(5, Math.round(data.annualInflationAvg + 5)) + '%</span> raise to maintain your trajectory.</p>';
+      '<p><strong>Your Leverage:</strong> Your current salary is worth <span class="highlight">' + formatCurrency(Math.round(endSalaryInStartDollars)) + '</span> in ' + data.startYr + ' dollars. Ask for a <span class="highlight">' + Math.max(5, Math.round(data.annualInflationAvg + 5)) + '%</span> raise to maintain your trajectory.</p>';
   } else {
     brief = '<p><strong>The Verdict:</strong> You\'re exactly keeping pace. Your ' + data.yearsBetween + '-year increase of ' + nomGrowth + '% matches the ' + data.inflationRate.toFixed(1) + '% inflation rate.</p>' +
       '<p><strong>Your Ask:</strong> Ask for <span class="highlight">' + formatCurrency(Math.round(data.realEndSalary * 1.05)) + '</span> to start building real gains.</p>';
@@ -313,14 +318,47 @@ function renderNegotiationBrief(data) {
 // ── Save/Load Scenarios ──
 function loadSavedScenarios() {
   try {
-    return JSON.parse(localStorage.getItem('realityCheckScenarios') || '[]');
+    var parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    if (!Array.isArray(parsed)) return [];
+    var seen = {};
+    return parsed.map(normalizeScenario).filter(function(s) {
+      if (!s) return false;
+      var key = scenarioKey(s);
+      if (seen[key]) return false;
+      seen[key] = true;
+      return true;
+    }).slice(0, 10);
   } catch (e) {
     return [];
   }
 }
 
 function saveScenariosToStorage(scenarios) {
-  localStorage.setItem('realityCheckScenarios', JSON.stringify(scenarios));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(scenarios));
+}
+
+function scenarioKey(s) {
+  return [s.startYr, s.startYrSalary, s.endYr, s.endYrSalary].join('|');
+}
+
+function normalizeScenario(s) {
+  if (!s || typeof s !== 'object') return null;
+  var sy = Number(s.startYr);
+  var ey = Number(s.endYr);
+  var ss = Number(s.startYrSalary);
+  var es = Number(s.endYrSalary);
+  if (!CPI_DATA[sy] || !CPI_DATA[ey] || sy >= ey || !Number.isFinite(ss) || !Number.isFinite(es) || ss <= 0 || es <= 0 || ss > 10000000 || es > 10000000) return null;
+  var fresh = calculateRealSalary(sy, ss, ey, es);
+  return {
+    startYr: sy,
+    startYrSalary: ss,
+    endYr: ey,
+    endYrSalary: es,
+    gap: fresh.gap,
+    inflationRate: fresh.inflationRate,
+    realEndSalary: fresh.realEndSalary,
+    timestamp: Number.isFinite(Number(s.timestamp)) ? Number(s.timestamp) : 0
+  };
 }
 
 function renderSavedScenarios() {
@@ -378,6 +416,8 @@ function saveCurrentScenario() {
   if (!currentScenario) return;
   
   var scenarios = loadSavedScenarios();
+  var key = scenarioKey(currentScenario);
+  scenarios = scenarios.filter(function(s) { return scenarioKey(s) !== key; });
   scenarios.unshift({
     startYr: currentScenario.startYr,
     startYrSalary: currentScenario.startYrSalary,
@@ -405,17 +445,26 @@ function saveCurrentScenario() {
 }
 
 // ── Validation ──
-function validateForm() {
-  var sy = startYearSel.value;
-  var ey = endYearSel.value;
-  var ss = parseSalaryInput(startSalaryInput.value);
-  var es = parseSalaryInput(endSalaryInput.value);
+function readFormSnapshot() {
+  return {
+    startYr: Number(startYearSel.value),
+    startSal: parseSalaryInput(startSalaryInput.value),
+    endYr: Number(endYearSel.value),
+    endSal: parseSalaryInput(endSalaryInput.value)
+  };
+}
+
+function validateForm(values) {
+  var sy = values.startYr;
+  var ey = values.endYr;
+  var ss = values.startSal;
+  var es = values.endSal;
   
   var errors = [];
   
   if (!sy) errors.push('Select a starting year.');
   if (!ey) errors.push('Select a current year.');
-  if (sy && ey && parseInt(sy) >= parseInt(ey)) errors.push('Starting year must be before current year.');
+  if (sy && ey && sy >= ey) errors.push('Starting year must be before current year.');
   if (!ss || ss <= 0) errors.push('Enter a valid starting salary.');
   if (!es || es <= 0) errors.push('Enter a valid current salary.');
   if (ss > 10000000) errors.push('Starting salary seems too high \u2014 check your input.');
@@ -437,32 +486,33 @@ function clearError() {
 // ── Core Submit Logic ──
 function doSubmit() {
   clearError();
-  
-  var errors = validateForm();
+  var values = readFormSnapshot();
+  var errors = validateForm(values);
   if (errors.length > 0) {
     showError(errors.join(' '));
     return;
   }
   
+  calculationRequest += 1;
+  var request = calculationRequest;
+  if (calculationTimer) clearTimeout(calculationTimer);
   submitBtnEl.classList.add('loading');
   submitBtnEl.disabled = true;
   
-  setTimeout(function() {
+  calculationTimer = setTimeout(function() {
+    if (request !== calculationRequest) return;
     try {
-      var data = calculateRealSalary(
-        parseInt(startYearSel.value),
-        parseSalaryInput(startSalaryInput.value),
-        parseInt(endYearSel.value),
-        parseSalaryInput(endSalaryInput.value)
-      );
+      var data = calculateRealSalary(values.startYr, values.startSal, values.endYr, values.endSal);
       
       renderResults(data);
       renderSavedScenarios();
     } catch (err) {
       showError(err.message);
     } finally {
-      submitBtnEl.classList.remove('loading');
-      submitBtnEl.disabled = false;
+      if (request === calculationRequest) {
+        submitBtnEl.classList.remove('loading');
+        submitBtnEl.disabled = false;
+      }
     }
   }, 400);
 }
@@ -513,23 +563,19 @@ function init() {
   endYearSel.value = '2024';
   
   // Salary input formatting (only on user typing)
-  startSalaryInput.addEventListener('input', function(e) {
-    var raw = e.target.value.replace(/[^0-9]/g, '');
-    if (raw) {
-      e.target.value = parseInt(raw, 10).toLocaleString('en-US');
-    } else {
-      e.target.value = '';
+  function formatSalaryInput(e) {
+    var raw = e.target.value.replace(/[$,\s]/g, '').replace(/[^0-9.]/g, '');
+    var parts = raw.split('.');
+    var whole = parts.shift();
+    var decimal = parts.join('').slice(0, 2);
+    if (!whole) {
+      e.target.value = raw.indexOf('.') >= 0 ? '0.' + decimal : '';
+      return;
     }
-  });
-  
-  endSalaryInput.addEventListener('input', function(e) {
-    var raw = e.target.value.replace(/[^0-9]/g, '');
-    if (raw) {
-      e.target.value = parseInt(raw, 10).toLocaleString('en-US');
-    } else {
-      e.target.value = '';
-    }
-  });
+    e.target.value = Number(whole).toLocaleString('en-US') + (raw.indexOf('.') >= 0 ? '.' + decimal : '');
+  }
+  startSalaryInput.addEventListener('input', formatSalaryInput);
+  endSalaryInput.addEventListener('input', formatSalaryInput);
   
   // Focus select on click
   startSalaryInput.addEventListener('focus', function(e) { e.target.select(); });
@@ -543,6 +589,11 @@ function init() {
   
   // Clear
   clearBtnEl.addEventListener('click', function() {
+    calculationRequest += 1;
+    if (calculationTimer) clearTimeout(calculationTimer);
+    calculationTimer = null;
+    submitBtnEl.classList.remove('loading');
+    submitBtnEl.disabled = false;
     startYearSel.value = '';
     endYearSel.value = '';
     startSalaryInput.value = '';
@@ -596,6 +647,10 @@ function init() {
   
   // Render saved scenarios
   renderSavedScenarios();
+
+  window.addEventListener('storage', function(e) {
+    if (e.key === STORAGE_KEY) renderSavedScenarios();
+  });
   
   // Test helper for debugging
   window.testSubmit = function() {
