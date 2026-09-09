@@ -13,8 +13,13 @@
   align-items: center;
   gap: 6px;
   margin-bottom: 3px;
-  cursor: default;
+  cursor: pointer;
   padding: 1px 0;
+}
+
+.rank-row.active {
+  outline: 3px solid var(--blue-note);
+  outline-offset: 3px;
 }
 .rank-label {
   width: 75px;

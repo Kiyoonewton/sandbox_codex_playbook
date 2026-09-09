@@ -1,30 +1,115 @@
 const { test, expect } = require('@playwright/test');
 const APP_URL = process.env.APP_URL;
+
 async function boot(page) {
   await page.goto(APP_URL, { waitUntil: 'networkidle', timeout: 30000 });
-  await page.waitForTimeout(600);
+  await page.locator('.chord-col').first().waitFor({ timeout: 15000 });
 }
-test('[P2P] app boots and renders content', async ({ page }) => {
+
+async function activeCard(page) {
+  return (await page.locator('.chord-col.active .chord-name').innerText()).trim();
+}
+
+function intervalRow(page, chordName) {
+  return page.locator('#interval-tbody tr').filter({ hasText: chordName }).first();
+}
+
+function rankingRow(page, chordName) {
+  return page.locator('#tension-ranking .rank-row').filter({ hasText: chordName }).first();
+}
+
+async function expectSelection(page, cardIndex, chordName) {
+  await expect(page.locator('.chord-col').nth(cardIndex)).toHaveClass(/active/);
+  await expect(page.locator('.chord-col').nth(cardIndex)).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.breakdown-cell').nth(cardIndex)).toHaveClass(/active/);
+  await expect(intervalRow(page, chordName)).toHaveClass(/active/);
+  await expect(intervalRow(page, chordName)).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#interval-tbody tr.active')).toHaveCount(1);
+  await expect(rankingRow(page, chordName)).toHaveClass(/active/);
+  await expect(rankingRow(page, chordName)).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#tension-ranking .rank-row.active')).toHaveCount(1);
+}
+
+test('[P2P] chord analysis views render all seven voicings', async ({ page }) => {
   await boot(page);
-  const has = await page.evaluate(() => !!document.body && document.body.children.length > 0);
-  expect(has).toBe(true);
+  await expect(page.locator('.chord-col')).toHaveCount(7);
+  await expect(page.locator('#interval-tbody tr')).toHaveCount(7);
+  await expect(page.locator('.breakdown-cell')).toHaveCount(7);
+  await expect(page.locator('#tension-ranking .rank-row')).toHaveCount(7);
 });
-test('[P2P] no layout overflow (UI fits the viewport)', async ({ page }) => {
+
+test('[P2P] custom chord builder remains interactive and resettable', async ({ page }) => {
   await boot(page);
-  const o = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-  expect(o).toBeLessThanOrEqual(2);
+  const first = page.locator('.builder-note-btn').first();
+  await first.focus();
+  await page.keyboard.press('ArrowUp');
+  await expect(first).toHaveAttribute('aria-valuenow', '1');
+  await page.locator('#builder-reset').click();
+  await expect(first).toHaveAttribute('aria-valuenow', '0');
 });
-test('[F2P] In the altered-dominant chord the flat-9 note sits right on top of the root — the two dots and their \'C\'/\'C#\' labels', async ({ page }) => {
+
+test('[F2P] selecting a chord card carries the same chord into interval anatomy', async ({ page }) => {
   await boot(page);
-  await page.locator("#interval-tbody tr").first().waitFor({ timeout: 15000 });
-  await page.waitForTimeout(400);
-  const v = (await page.locator("#interval-tbody tr:nth-child(6) td:nth-child(2) span:nth-child(4)").first().innerText({ timeout: 10000 })).trim();
-  expect(v).toEqual("C\u2013C# Minor 9th");
+  await page.locator('.chord-col').nth(3).click();
+  await expectSelection(page, 3, 'Cø7');
 });
-test('[F2P] In the Tension Spectrum ranking the second bar from the top is Cmaj7#11 — the app claims the bright, floating major-7♯11', async ({ page }) => {
+
+test('[F2P] choosing an interval row follows the chord rather than the row position', async ({ page }) => {
   await boot(page);
-  await page.locator("#tension-ranking .rank-row").first().waitFor({ timeout: 15000 });
-  await page.waitForTimeout(400);
-  const v = (await page.locator("#tension-ranking .rank-row:nth-child(2) .rank-label").first().innerText({ timeout: 10000 })).trim();
-  expect(v).toEqual("C\u00b07");
+  await intervalRow(page, 'C7alt').click();
+  expect(await activeCard(page)).toBe('C7alt');
+  await expectSelection(page, 5, 'C7alt');
+});
+
+test('[F2P] selecting a tension-composition cell updates every view of the selected chord', async ({ page }) => {
+  await boot(page);
+  await page.locator('.breakdown-cell').nth(4).click();
+  await expectSelection(page, 4, 'C°7');
+});
+
+test('[F2P] arrow navigation continues from the chord most recently chosen in tension composition', async ({ page }) => {
+  await boot(page);
+  await page.locator('.chord-col').nth(1).click();
+  await page.locator('.breakdown-cell').nth(4).click();
+  await page.keyboard.press('ArrowRight');
+  expect(await activeCard(page)).toBe('C7alt');
+  await expectSelection(page, 5, 'C7alt');
+});
+
+test('[F2P] mixed interval and composition handoffs keep ArrowLeft anchored to the latest chord', async ({ page }) => {
+  await boot(page);
+  await intervalRow(page, 'Cm7').click();
+  await page.locator('.breakdown-cell').nth(5).click();
+  await page.keyboard.press('ArrowLeft');
+  expect(await activeCard(page)).toBe('C°7');
+  await expectSelection(page, 4, 'C°7');
+});
+
+test('[F2P] keyboard activation of a reordered interval row becomes the arrow-navigation source', async ({ page }) => {
+  await boot(page);
+  const row = intervalRow(page, 'Cø7');
+  await row.focus();
+  await page.keyboard.press('Enter');
+  expect(await activeCard(page)).toBe('Cø7');
+  await page.keyboard.press('ArrowRight');
+  expect(await activeCard(page)).toBe('C°7');
+  await expectSelection(page, 4, 'C°7');
+});
+
+test('[F2P] selecting a ranked spectrum row carries the same chord into every analysis view', async ({ page }) => {
+  await boot(page);
+  await rankingRow(page, 'Cø7').click();
+  expect(await activeCard(page)).toBe('Cø7');
+  await expectSelection(page, 3, 'Cø7');
+});
+
+test('[F2P] keyboard activation in the spectrum becomes the source for arrow navigation', async ({ page }) => {
+  await boot(page);
+  const row = rankingRow(page, 'C7alt');
+  await row.focus();
+  await page.keyboard.press('Space');
+  expect(await activeCard(page)).toBe('C7alt');
+  await page.keyboard.press('ArrowLeft');
+  expect(await activeCard(page)).toBe('C°7');
+  await expectSelection(page, 4, 'C°7');
 });
