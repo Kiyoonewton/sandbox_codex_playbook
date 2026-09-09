@@ -7,6 +7,7 @@ import { UNIVERSITIES } from './data.js';
 const STORAGE_KEY = 'uni-compare-v2';
 const CUSTOM_STORAGE_KEY = 'uni-compare-custom';
 const HISTORY_STORAGE_KEY = 'uni-compare-history';
+export const SYNC_STORAGE_KEY = 'uni-compare-sync';
 
 let _customSchools = loadCustomSchools();
 
@@ -54,9 +55,14 @@ function loadState() {
 }
 export function getState() { return _state; }
 export function setState(patch) { Object.assign(_state, patch); saveState(); }
-function saveState() {
+function notifyTabs() {
+  try { localStorage.setItem(SYNC_STORAGE_KEY, `${Date.now()}-${Math.random()}`); }
+  catch (e) { /* ignore */ }
+}
+function saveState(notify = true) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ comparisonIds: _state.comparisonIds, viewMode: _state.viewMode })); }
   catch (e) { /* ignore */ }
+  if (notify) notifyTabs();
 }
 export { saveState };
 
@@ -95,7 +101,7 @@ function restore(snap) {
   _customSchools = snap.customSchools.map(s => ({ ...s }));
   _state.comparisonIds = [...snap.comparisonIds];
   saveCustomSchools();
-  saveState();
+  saveState(false);
 }
 export function pushUndo() {
   undoStack.push(snapshot());
@@ -108,6 +114,7 @@ export function undo() {
   redoStack.push(snapshot());
   restore(undoStack.pop());
   saveHistory();
+  notifyTabs();
   return true;
 }
 export function redo() {
@@ -115,6 +122,7 @@ export function redo() {
   undoStack.push(snapshot());
   restore(redoStack.pop());
   saveHistory();
+  notifyTabs();
   return true;
 }
 export function canUndo() { return undoStack.length > 0; }
