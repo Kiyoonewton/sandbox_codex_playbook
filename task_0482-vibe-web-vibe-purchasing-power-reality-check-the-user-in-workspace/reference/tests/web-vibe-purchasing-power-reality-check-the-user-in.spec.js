@@ -66,6 +66,7 @@ test('[F2P] clearing while a calculation is pending cancels it', async ({ page }
   await page.waitForTimeout(650);
   await expect(page.locator('#resultsPanel')).toBeHidden();
   await expect(page.locator('#submitBtn')).toBeEnabled();
+  await expect(page.locator('#formError')).not.toHaveClass(/visible/);
 });
 
 test('[F2P] the newest rapid submission is the only result committed', async ({ page }) => {
@@ -76,6 +77,8 @@ test('[F2P] the newest rapid submission is the only result committed', async ({ 
   await page.locator('#startSalary').fill('60000');
   await page.locator('#endSalary').fill('100000');
   await page.locator('#salaryForm').evaluate(form => form.requestSubmit());
+  await page.locator('#startSalary').fill('70000');
+  await page.locator('#endSalary').fill('120000');
   await expect(page.locator('#resultsPanel')).toBeVisible();
   await expect(page.locator('#negotiationBody')).toContainText('Your salary went from $60,000 to $100,000');
 });
