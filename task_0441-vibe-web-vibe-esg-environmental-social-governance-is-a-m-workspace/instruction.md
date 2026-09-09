@@ -1,12 +1,12 @@
-# The homepage makes a promise the app can't keep
+# My ESG comparison changes when I return to it
 
-## What you see
+Fallback ESG scores and company facts change after a refresh, which makes saved comparisons impossible to trust. The same company should keep the same estimated scores, trend, sub-metrics and profile facts whenever it is loaded again.
 
-Right at the top of the landing page, the headline invites you to search across a huge number of public companies. But when you actually start typing into the search box and browse what comes back, the list of companies available is dramatically smaller than what the headline advertised — nowhere near the scale you were led to expect. It feels like the app is stretching the truth to look bigger than it is, and after a few searches you start doubting whether the results are complete or whether something is broken behind the scenes.
+Comparison sessions also need to be restorable. Save comparison additions, removals and their order immediately, and make the removal Undo survive a refresh. A company must not appear as both the main company and a comparison entry.
 
-## What correct looks like
+“Share URL” should copy a link that opens the same main company, ordered comparison list, lens and active tab even in a clean browser. If searches finish out of order, only the newest search should become the main company.
 
-The headline on the landing page should describe the coverage you'll actually get, so what the search returns matches what you were promised before you started typing.
+Finally, the benchmark number and above/below calculation shown in every pillar insight and detail dialog must use that pillar’s actual sector benchmark—never `undefined` or `NaN`.
 
 The broken app currently looks like this:
 
