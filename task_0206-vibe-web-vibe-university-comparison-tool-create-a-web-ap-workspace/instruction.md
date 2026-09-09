@@ -4,6 +4,8 @@ When my comparison is full, trying a fifth university is correctly refused. But 
 
 History also becomes unreliable when custom schools are deleted or everything is reset. Undo and Redo must restore the complete comparison I previously saw, including custom schools and their selected order. If I make a new change after using Undo, Redo must not bring back the abandoned comparison.
 
+Refreshing the page should not wipe out where I am in that history. I should still be able to Undo or Redo the same next step afterward.
+
 The buttons and keyboard shortcuts must behave consistently. Reset must be reversible and display "Comparison reset."
 
 The broken app currently looks like this:
