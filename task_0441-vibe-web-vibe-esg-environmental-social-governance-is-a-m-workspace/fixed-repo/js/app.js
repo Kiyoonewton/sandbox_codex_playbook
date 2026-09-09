@@ -59,19 +59,20 @@ const GCIRC=2*Math.PI*78, RCIRC=2*Math.PI*52;
 function sc(c){return c>=70?SEC.mint:c>=40?SEC.amber:SEC.red}
 function sg(c){return c>=90?'A+':c>=80?'A':c>=70?'B+':c>=60?'B':c>=50?'C+':c>=40?'C':c>=30?'D':'F'}
 function fmt(n){if(n==null)return'—';if(n>=1e12)return'$'+(n/1e12).toFixed(1)+'T';if(n>=1e9)return'$'+(n/1e9).toFixed(1)+'B';if(n>=1e6)return'$'+(n/1e6).toFixed(1)+'M';return typeof n==='number'?n.toLocaleString():String(n)}
-function v(base,s){return Math.max(10,Math.min(95,base+Math.floor((Math.random()-.5)*s*2)))}
+function hashValue(value){let h=2166136261;for(const ch of String(value)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return(h>>>0)/4294967295}
+function v(base,s,key){return Math.max(10,Math.min(95,base+Math.floor((hashValue(key)-.5)*s*2)))}
 function cl(v,a,b){return Math.max(a,Math.min(b,v))}
 
 function toast(m,t='info'){const c=document.getElementById('toastContainer'),e=document.createElement('div');e.className='toast '+t;e.textContent=m;c.appendChild(e);setTimeout(()=>{e.classList.add('fading');setTimeout(()=>e.remove(),300)},3000)}
 
 // ─── STATE ───
-const S={current:null,compare:[],lens:'investor',tab:'breakdown',charts:{},loading:false};
+const S={current:null,compare:[],lens:'investor',tab:'breakdown',charts:{},loading:false,searchRequest:0};
 
 // ─── API ───
 function fbProfile(ticker){
   const k=COMPANY_LIST.find(c=>c.ticker===ticker);
   if(!k)return null;
-  return{companyName:k.name,ticker:k.ticker,sector:k.sector,industry:k.sector,country:'United States',fullTimeEmployees:Math.floor(30000+Math.random()*150000),mktCap:Math.floor(50e9+Math.random()*2.5e12),description:k.name+' is a publicly traded '+k.sector+' company.'};
+  return{companyName:k.name,ticker:k.ticker,sector:k.sector,industry:k.sector,country:'United States',fullTimeEmployees:Math.floor(30000+hashValue(ticker+':employees')*150000),mktCap:Math.floor(50e9+hashValue(ticker+':market-cap')*2.5e12),description:k.name+' is a publicly traded '+k.sector+' company.'};
 }
 
 async function apiProfile(t){
@@ -89,7 +90,7 @@ async function apiNews(name){
   try{const r=await fetch('https://gnews.io/api/v4/search?q='+encodeURIComponent(name+' ESG sustainability')+'&lang=en&max=10&token=demo');const d=await r.json();return d&&d.articles?d.articles:[]}catch{return[]}
 }
 
-function processScores(data,rating,bench){
+function processScores(data,rating,bench,ticker){
   let e,s,g,o,est=false,h=[];
   if(rating&&rating.length){
     const p=x=>{const n=Number(x);return(!isNaN(n)&&n>0&&n<=100)?Math.round(n):null};
@@ -102,8 +103,8 @@ function processScores(data,rating,bench){
     if(o==null)o=data[0].esgScore!=null?Math.round(Number(data[0].esgScore)):null;
     h=data.slice(0,5).reverse().map(d=>({year:String(d.date||d.year||''),e:d.environmentalScore!=null?Math.round(Number(d.environmentalScore)):null,s:d.socialScore!=null?Math.round(Number(d.socialScore)):null,g:d.governanceScore!=null?Math.round(Number(d.governanceScore)):null})).filter(x=>x.year&&(x.e!=null||x.s!=null||x.g!=null));
   }
-  if(e==null||s==null||g==null||o==null){est=true;e=e||v(bench.environmental,20);s=s||v(bench.social,20);g=g||v(bench.governance,20);o=o||Math.round((e+s+g)/3)}
-  if(h.length<2)h=[{year:'2022',e:v(e,10),s:v(s,10),g:v(g,10)},{year:'2023',e:v(e,6),s:v(s,6),g:v(g,6)},{year:'2024',e,s,g}];
+  if(e==null||s==null||g==null||o==null){est=true;e=e||v(bench.environmental,20,ticker+':e');s=s||v(bench.social,20,ticker+':s');g=g||v(bench.governance,20,ticker+':g');o=o||Math.round((e+s+g)/3)}
+  if(h.length<2)h=[{year:'2022',e:v(e,10,ticker+':2022:e'),s:v(s,10,ticker+':2022:s'),g:v(g,10,ticker+':2022:g')},{year:'2023',e:v(e,6,ticker+':2023:e'),s:v(s,6,ticker+':2023:s'),g:v(g,6,ticker+':2023:g')},{year:'2024',e,s,g}];
   return{e,s,g,overall:o,history:h,estimated:est};
 }
 
@@ -111,7 +112,7 @@ async function loadCo(ticker){
   const sector=COMPANY_LIST.find(c=>c.ticker===ticker)?.sector||'default';
   const bench=INDUSTRY_BENCHMARKS[sector]||INDUSTRY_BENCHMARKS.default;
   const[profile,esg,rating,news]=await Promise.all([apiProfile(ticker),apiESG(ticker),apiRating(ticker),apiNews(ticker)]);
-  const scores=processScores(esg,rating,bench);
+  const scores=processScores(esg,rating,bench,ticker);
   return{profile,esg,rating,news,bench,ticker,sector,scores};
 }
 
@@ -157,13 +158,13 @@ function renderGauges(d){
     // Submetrics
     const subs=LENS[S.lens][p];
     const spread=15;
-    const subScores=subs.map((n,i)=>({name:n,score:cl(Math.round(s[p]+(i-1)*spread*.5+(Math.random()-.5)*spread),10,95)}));
+    const subScores=subs.map((n,i)=>({name:n,score:cl(Math.round(s[p]+(i-1)*spread*.5+(hashValue(d.ticker+':'+S.lens+':'+p+':'+i)-.5)*spread),10,95)}));
     document.getElementById('subs'+lbl.toUpperCase()).innerHTML=subScores.map(sub=>`<div class="sub"><div class="sub-t"><span class="sub-n">${sub.name}</span><span class="sub-v" style="color:${sc(sub.score)}">${sub.score}</span></div><div class="sub-bar"><div class="sub-fill" style="width:0%;background:${clr}"></div></div></div>`).join('');
     requestAnimationFrame(()=>setTimeout(()=>{document.getElementById('subs'+lbl.toUpperCase()).querySelectorAll('.sub-fill').forEach((f,i)=>{f.style.width=subScores[i].score+'%'})},100));
     // Insight
-    const bv=b[{e:'environmental',s:'social',g:'governance'}[p]];
-    const diff=s[p]-bv;const pctl=cl(Math.round(50+diff*1.5),10,90);
-    const ins={e:`Environmental: ${diff>=0?'above':'below'} ${d.sector} avg (${bv}). Top ${100-pctl}th percentile.`,s:`Social practices ${diff>=0?'stronger':'weaker'} than peers (avg ${bv}).`,g:`Governance ${diff>=0?'exceeds':'falls short of'} sector norms (avg ${bv}).`};
+    const benchmark=b[{e:'environmental',s:'social',g:'governance'}[p]];
+    const diff=s[p]-benchmark;const pctl=cl(Math.round(50+diff*1.5),10,90);
+    const ins={e:`Environmental: ${diff>=0?'above':'below'} ${d.sector} avg (${benchmark}). Top ${100-pctl}th percentile.`,s:`Social practices ${diff>=0?'stronger':'weaker'} than peers (avg ${benchmark}).`,g:`Governance ${diff>=0?'exceeds':'falls short of'} sector norms (avg ${benchmark}).`};
     document.getElementById('gins'+lbl.toUpperCase()).textContent=ins[p];
   });
 }
@@ -224,7 +225,7 @@ function renderDash(d){
   showView('dash');
 }
 function renderBD(d){renderTrend(d.scores.history);renderBench(d.scores,d.bench,d.sector);renderFindings(d)}
-function switchTab(t){S.tab=t;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.t===t));document.querySelectorAll('.tp').forEach(p=>p.classList.remove('active'));document.getElementById({breakdown:'pBreakdown',controversies:'pControversies',compare:'pCompare',redflags:'pRedflags'}[t])?.classList.add('active');if(!S.current)return;if(t==='breakdown')renderBD(S.current);else if(t==='controversies')renderControversies(S.current);else if(t==='compare'){renderRadar([S.current,...S.compare]);renderCmpTable()}else if(t==='redflags')renderFlags(S.current)}
+function switchTab(t){S.tab=t;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.t===t));document.querySelectorAll('.tp').forEach(p=>p.classList.remove('active'));document.getElementById({breakdown:'pBreakdown',controversies:'pControversies',compare:'pCompare',redflags:'pRedflags'}[t])?.classList.add('active');if(S.current){if(t==='breakdown')renderBD(S.current);else if(t==='controversies')renderControversies(S.current);else if(t==='compare'){renderRadar([S.current,...S.compare]);renderCmpTable()}else if(t==='redflags')renderFlags(S.current)}saveState()}
 
 // ─── AUTOCOMPLETE ───
 function setupAC(inputId,acId,onPick){
@@ -251,26 +252,38 @@ function setupAC(inputId,acId,onPick){
 }
 
 // ─── SEARCH TRIGGER ───
-async function search(ticker){
-  if(S.loading)return;S.loading=true;
+async function search(ticker,restoreTickers=null){
+  const requestId=++S.searchRequest;S.loading=true;
   const completeLoading=showLoadingWithSteps(ticker);
-  try{const d=await loadCo(ticker);S.current=d;completeLoading();setTimeout(()=>{renderDash(d);window.history.replaceState(null,'','#'+ticker);document.getElementById('fab').style.display='flex';saveState()},400)}
+  try{
+    const d=await loadCo(ticker);
+    if(requestId!==S.searchRequest)return;
+    if(Array.isArray(restoreTickers)){
+      const unique=restoreTickers.filter((t,i,a)=>t!==ticker&&a.indexOf(t)===i).slice(0,3);
+      const restored=await Promise.all(unique.map(t=>loadCo(t)));
+      if(requestId!==S.searchRequest)return;
+      S.compare=restored;
+    }else S.compare=S.compare.filter(c=>c.ticker!==ticker);
+    S.current=d;completeLoading();
+    setTimeout(()=>{if(requestId!==S.searchRequest)return;renderDash(d);window.history.replaceState(null,'',sessionURL(false));document.getElementById('fab').style.display='flex';saveState()},400);
+  }
   catch(e){console.error(e);document.getElementById('errMsg').textContent=e.message;showView('error')}
-  finally{S.loading=false}
+  finally{if(requestId===S.searchRequest)S.loading=false}
 }
 
 // ─── LENS ───
 function setLens(l){S.lens=l;document.querySelectorAll('.lens-b').forEach(b=>b.classList.toggle('active',b.dataset.l===l));if(S.current)renderGauges(S.current);saveState()}
 
 // ─── COMPARE ───
-function addCmp(d){if(S.compare.length>=3){toast('Max 3 companies','err');return}if(S.compare.some(c=>c.ticker===d.ticker)){toast('Already added','info');return}S.compare.push(d);toast((d.profile.companyName||d.ticker)+' added','ok');if(S.tab==='compare'){renderRadar([S.current,...S.compare]);renderCmpTable()}}
-window.rmCmp=function(i){const removed=S.compare.splice(i,1)[0];if(S.tab==='compare'){renderRadar([S.current,...S.compare]);renderCmpTable()}toastUndo('Removed '+(removed?.profile?.companyName||removed?.ticker||''),()=>{if(removed){S.compare.splice(i,0,removed);if(S.tab==='compare'){renderRadar([S.current,...S.compare]);renderCmpTable()}}})};
+function addCmp(d){if(S.compare.length>=3){toast('Max 3 companies','err');return}if(d.ticker===S.current?.ticker||S.compare.some(c=>c.ticker===d.ticker)){toast('Already added','info');return}S.compare.push(d);saveState();toast((d.profile.companyName||d.ticker)+' added','ok');if(S.tab==='compare'){renderRadar([S.current,...S.compare]);renderCmpTable()}}
+window.rmCmp=function(i){const removed=S.compare.splice(i,1)[0];saveState();if(S.tab==='compare'){renderRadar([S.current,...S.compare]);renderCmpTable()}toastUndo('Removed '+(removed?.profile?.companyName||removed?.ticker||''),()=>{if(removed){S.compare.splice(i,0,removed);saveState();if(S.tab==='compare'){renderRadar([S.current,...S.compare]);renderCmpTable()}}})};
 window.toastUndo=function(msg,undoFn){const c=document.getElementById('toastContainer'),e=document.createElement('div');e.className='toast toast-undo';e.innerHTML='<span>'+msg+'</span><button class="toast-undo-btn">Undo</button>';e.querySelector('.toast-undo-btn').addEventListener('click',()=>{undoFn();e.remove();});c.appendChild(e);setTimeout(()=>{e.classList.add('fading');setTimeout(()=>e.remove(),300)},5000)};
 
 // ─── EXPORT ───
 function copyR(){if(!S.current)return;const d=S.current;let t='ESGLENS — '+d.profile.companyName+'\nE:'+d.scores.e+' S:'+d.scores.s+' G:'+d.scores.g+' Overall:'+d.scores.overall+' ('+sg(d.scores.overall)+')';navigator.clipboard.writeText(t).then(()=>toast('Copied','ok'))}
 function csvD(){if(!S.current)return;const d=S.current;let c='Company,Ticker,Sector,E,S,G,Overall,Grade\n';[d,...S.compare].forEach(x=>{c+='"'+x.profile.companyName+'","'+x.ticker+'","'+x.sector+'",'+x.scores.e+','+x.scores.s+','+x.scores.g+','+x.scores.overall+',"'+sg(x.scores.overall)+'"\n'});const b=new Blob([c],{type:'text/csv'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='esglens-'+d.ticker+'.csv';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(u);toast('CSV downloaded','ok')}
-function shareU(){if(!S.current)return;const u=new URL(window.location.href);u.hash=S.current.ticker;navigator.clipboard.writeText(u.toString()).then(()=>toast('URL copied','ok'))}
+function sessionURL(absolute=true){const u=new URL(window.location.href);u.hash='';u.search='';if(S.current)u.searchParams.set('company',S.current.ticker);if(S.compare.length)u.searchParams.set('compare',S.compare.map(c=>c.ticker).join(','));u.searchParams.set('lens',S.lens);u.searchParams.set('tab',S.tab);return absolute?u.toString():u.pathname+u.search}
+function shareU(){if(!S.current)return;navigator.clipboard.writeText(sessionURL()).then(()=>toast('URL copied','ok'))}
 
 // ─── LOCALSTORAGE PERSISTENCE ───
 function saveState(){
@@ -366,9 +379,9 @@ function init(){
       if(!S.current)return;
       const p=w.closest('.gcol').dataset.p;
       const nm={e:'Environmental',s:'Social',g:'Governance'}[p];
-      const score=S.current.scores[p],bench=S.current.bench[p];
+      const score=S.current.scores[p],bench=S.current.bench[{e:'environmental',s:'social',g:'governance'}[p]];
       const subs=LENS[S.lens][p];
-      const subScores=subs.map((n,i)=>({name:n,score:cl(Math.round(score+(i-1)*7.5+(Math.random()-.5)*15),10,95)}));
+      const subScores=subs.map((n,i)=>({name:n,score:cl(Math.round(score+(i-1)*7.5+(hashValue(S.current.ticker+':'+S.lens+':'+p+':'+i)-.5)*15),10,95)}));
       document.getElementById('detailTitle').textContent=nm+' — Detail';
       const diff=score-bench;const pctl=cl(Math.round(50+diff*1.5),10,90);
       document.getElementById('detailBody').innerHTML=`<div style="text-align:center;margin-bottom:16px"><span style="font-family:var(--fm);font-size:2.4rem;font-weight:700;color:${sc(score)}">${score}</span><span style="font-family:var(--fh);font-size:1rem;margin-left:6px;color:var(--text2)">${sg(score)}</span><div style="font-size:.8rem;color:var(--text3);margin-top:2px">Industry avg: ${bench} (${sg(bench)})</div></div>${subScores.map(sub=>`<div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--bg3);border-radius:6px;margin-bottom:4px;border:1px solid var(--border)"><span style="font-size:.8rem;color:var(--text2)">${sub.name}</span><span style="font-family:var(--fm);font-size:.8rem;font-weight:500;color:${sc(sub.score)}">${sub.score}</span></div>`).join('')}<div style="margin-top:14px;padding:12px;background:var(--bg3);border-radius:8px;border:1px solid var(--border);font-size:.8rem;color:var(--text3);line-height:1.6"><strong style="color:var(--text)">Insight:</strong> Better than ~${pctl}% of ${S.current.sector} peers. ${diff>=0?'Above':'Below'} sector average by ${Math.abs(diff)} points.</div>`;
@@ -379,15 +392,17 @@ function init(){
     });
   });
 
-  // Restore persisted state
-  const saved=loadState();
-  if(saved.lens){S.lens=saved.lens;document.querySelectorAll('.lens-b').forEach(b=>b.classList.toggle('active',b.dataset.l===saved.lens))}
-  if(saved.lastTab){S.tab=saved.lastTab;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.t===saved.lastTab));document.querySelectorAll('.tp').forEach(p=>p.classList.remove('active'));document.getElementById({breakdown:'pBreakdown',controversies:'pControversies',compare:'pCompare',redflags:'pRedflags'}[saved.lastTab])?.classList.add('active')}
-
-  // Hash or saved ticker
+  // A share URL overrides local state; otherwise restore the last complete session.
+  const saved=loadState(),params=new URLSearchParams(window.location.search);
+  const sharedTicker=(params.get('company')||'').toUpperCase();
+  const lens=params.get('lens')||saved.lens;
+  const tab=params.get('tab')||saved.lastTab;
+  if(['investor','jobseeker','consumer'].includes(lens)){S.lens=lens;document.querySelectorAll('.lens-b').forEach(b=>b.classList.toggle('active',b.dataset.l===lens))}
+  if(['breakdown','controversies','compare','redflags'].includes(tab)){S.tab=tab;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.t===tab));document.querySelectorAll('.tp').forEach(p=>p.classList.remove('active'));document.getElementById({breakdown:'pBreakdown',controversies:'pControversies',compare:'pCompare',redflags:'pRedflags'}[tab])?.classList.add('active')}
   const h=window.location.hash.replace('#','').toUpperCase();
-  const ticker=h||saved.ticker;
-  if(ticker){document.getElementById('searchInput').value=ticker;search(ticker)}
+  const ticker=sharedTicker||h||saved.ticker;
+  const compareTickers=(params.has('compare')?params.get('compare').split(','):saved.compareTickers||[]).map(t=>t.toUpperCase());
+  if(ticker){document.getElementById('searchInput').value=ticker;search(ticker,compareTickers)}
 }
 
 // Save state on unload
