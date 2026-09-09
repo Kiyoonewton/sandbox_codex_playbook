@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reality Check — Your Salary's True Worth</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Space+Grotesk:wght@300..700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Subtle dot pattern overlay -->
+  <div class="grain-overlay" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-mark">RC</span>
+        <span class="logo-text">Reality Check</span>
+      </div>
+      <p class="tagline">Your salary's true purchasing power, exposed.</p>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- Input Panel -->
+    <section class="input-panel" aria-label="Salary calculator inputs">
+      <div class="panel-header">
+        <h1 class="panel-title">Are you actually getting richer?</h1>
+        <p class="panel-subtitle">Enter your salary history and find out what inflation really did to your paycheck.</p>
+      </div>
+
+      <form id="salaryForm" class="salary-form" novalidate>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="startYear" class="form-label">Starting Year</label>
+            <select id="startYear" class="form-input" required>
+              <option value="" disabled selected>Select year</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="startSalary" class="form-label">Starting Salary</label>
+            <div class="input-wrapper">
+              <span class="input-prefix">$</span>
+              <input type="text" id="startSalary" class="form-input salary-input" placeholder="50,000" required inputmode="numeric" autocomplete="off">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="endYear" class="form-label">Current Year</label>
+            <select id="endYear" class="form-input" required>
+              <option value="" disabled selected>Select year</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="endSalary" class="form-label">Current Salary</label>
+            <div class="input-wrapper">
+              <span class="input-prefix">$</span>
+              <input type="text" id="endSalary" class="form-input salary-input" placeholder="75,000" required inputmode="numeric" autocomplete="off">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" id="submitBtn">
+            <span class="btn-text">Run the Numbers</span>
+            <span class="btn-arrow">→</span>
+          </button>
+          <button type="button" class="btn-secondary" id="clearBtn">Clear</button>
+        </div>
+
+        <div id="formError" class="form-error" role="alert" aria-live="polite"></div>
+      </form>
+    </section>
+
+    <!-- Results Panel -->
+    <section id="resultsPanel" class="results-panel" aria-label="Calculation results" hidden>
+      <!-- Verdict Banner -->
+      <div id="verdictBanner" class="verdict-banner">
+        <div class="verdict-icon" id="verdictIcon"></div>
+        <div class="verdict-content">
+          <h2 class="verdict-title" id="verdictTitle"></h2>
+          <p class="verdict-subtitle" id="verdictSubtitle"></p>
+        </div>
+      </div>
+
+      <!-- Key Metrics -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <span class="metric-label">Total Inflation</span>
+          <span class="metric-value" id="totalInflation">—</span>
+          <span class="metric-detail" id="inflationDetail"></span>
+        </div>
+        <div class="metric-card accent">
+          <span class="metric-label">Your Real Value</span>
+          <span class="metric-value" id="realValue">—</span>
+          <span class="metric-detail" id="realDetail"></span>
+        </div>
+        <div class="metric-card danger" id="deficitCard">
+          <span class="metric-label">The Gap</span>
+          <span class="metric-value" id="gapValue">—</span>
+          <span class="metric-detail" id="gapDetail"></span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">What You Need</span>
+          <span class="metric-value" id="neededSalary">—</span>
+          <span class="metric-detail">To match starting purchasing power</span>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div class="chart-container">
+        <div class="chart-header">
+          <h3 class="chart-title">Salary Trajectory</h3>
+          <div class="chart-legend">
+            <span class="legend-item legend-nominal">
+              <span class="legend-dot"></span>
+              Nominal (your paycheck)
+            </span>
+            <span class="legend-item legend-real">
+              <span class="legend-dot"></span>
+              Real (purchasing power)
+            </span>
+          </div>
+        </div>
+        <div class="chart-wrapper">
+          <canvas id="salaryChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Negotiation Ammo -->
+      <div class="negotiation-panel" id="negotiationPanel">
+        <div class="negotiation-header">
+          <h3 class="negotiation-title">Your Negotiation Brief</h3>
+        </div>
+        <div class="negotiation-body" id="negotiationBody"></div>
+        <button class="btn-copy" id="copyBrief" title="Copy negotiation brief to clipboard">
+          <span class="copy-icon">📋</span> Copy to Clipboard
+        </button>
+      </div>
+
+      <!-- Saved Scenarios -->
+      <div class="scenarios-section">
+        <div class="scenarios-header">
+          <h3 class="scenarios-title">Saved Scenarios</h3>
+          <button class="btn-save" id="saveBtn" title="Save current scenario">
+            <span>💾</span> Save This
+          </button>
+        </div>
+        <div id="savedScenarios" class="scenarios-list">
+          <p class="empty-state">No saved scenarios yet. Run a calculation and save it to compare later.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>CPI data sourced from the U.S. Bureau of Labor Statistics. For illustrative purposes — not financial advice.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
