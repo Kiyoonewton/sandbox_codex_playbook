@@ -78,6 +78,7 @@ fi
 PW_BIN=""
 for candidate in \
   "$TESTS_DIR/node_modules/.bin/playwright" \
+  "$(pwd)/node_modules/.bin/playwright" \
   "/opt/playwright-runner/node_modules/.bin/playwright" \
   "/workspace/node_modules/.bin/playwright" \
   "/node_modules/.bin/playwright"
