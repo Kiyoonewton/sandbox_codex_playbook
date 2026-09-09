@@ -1,12 +1,10 @@
-# My ESG comparison changes when I return to it
+# My ESG comparison session does not stay coherent
 
-Fallback ESG scores and company facts change after a refresh, which makes saved comparisons impossible to trust. The same company should keep the same estimated scores, trend, sub-metrics and profile facts whenever it is loaded again.
+I use the dashboard to compare one main company with a few alternatives, then return to that session later. The comparison list can lose its companies or rearrange them after a refresh. Removing a company is also not reliably saved, and using Undo can appear to restore it only until I reload the page.
 
-Comparison sessions also need to be restorable. Save comparison additions, removals and their order immediately, and make the removal Undo survive a refresh. A company must not appear as both the main company and a comparison entry.
+Please keep the comparison session coherent. Additions, removals, their order, the selected lens, and the active Comparison tab should be restored when I return. If I share a comparison, opening the link in a clean browser should recover that same main company and ordered list. When I change the main company to one that is already in the comparison, it should no longer appear twice, but the other comparison companies should remain.
 
-“Share URL” should copy a link that opens the same main company, ordered comparison list, lens and active tab even in a clean browser. If searches finish out of order, only the newest search should become the main company.
-
-Finally, the benchmark number and above/below calculation shown in every pillar insight and detail dialog must use that pillar’s actual sector benchmark—never `undefined` or `NaN`.
+The score detail that supports a comparison must also make sense. Opening a pillar should show its actual sector average and a real above-or-below result, not missing values or an invalid calculation.
 
 The broken app currently looks like this:
 

@@ -60,28 +60,6 @@ test('[P2P] dashboard fits the viewport', async ({ page }) => {
   expect(overflow).toBeLessThanOrEqual(2);
 });
 
-test('[F2P] estimated company data remains identical after refresh', async ({ page }) => {
-  await boot(page);
-  await searchCompany(page, 'AAPL', 'Apple Inc.');
-  await page.waitForTimeout(1300);
-  const before = await page.locator('#ringS, #gvsE, #gvsS, #gvsG, #chM, #subsE .sub-v, #subsS .sub-v, #subsG .sub-v').allTextContents();
-  await page.reload({ waitUntil: 'domcontentloaded' });
-  await expect(page.locator('#chN')).toHaveText('Apple Inc.', { timeout: 15000 });
-  await page.waitForTimeout(1300);
-  const after = await page.locator('#ringS, #gvsE, #gvsS, #gvsG, #chM, #subsE .sub-v, #subsS .sub-v, #subsG .sub-v').allTextContents();
-  expect(after).toEqual(before);
-});
-
-test('[F2P] every pillar insight uses its real sector benchmark', async ({ page }) => {
-  await boot(page);
-  await searchCompany(page, 'AAPL', 'Apple Inc.');
-  await expect(page.locator('#ginsE')).toContainText('Technology avg (62)');
-  await expect(page.locator('#ginsS')).toContainText('avg 71');
-  await expect(page.locator('#ginsG')).toContainText('avg 68');
-  const insights = await page.locator('#ginsE, #ginsS, #ginsG').allTextContents();
-  expect(insights.join(' ')).not.toMatch(/undefined|NaN/);
-});
-
 test('[F2P] pillar detail uses the matching benchmark and finite comparison', async ({ page }) => {
   await boot(page);
   await searchCompany(page, 'AAPL', 'Apple Inc.');
@@ -152,25 +130,12 @@ test('[F2P] Share URL restores the complete ordered session in clean storage', a
   await expect.poll(() => comparisonNames(page)).toEqual(['Apple Inc.', 'Microsoft Corporation', 'Tesla Inc.']);
 });
 
-test('[F2P] the newest search wins when requests finish out of order', async ({ page }) => {
-  await boot(page, { slowAAPL: true });
-  const input = page.locator('#searchInput');
-  await input.fill('AAPL');
-  await input.press('Enter');
-  await page.waitForTimeout(75);
-  await input.fill('MSFT');
-  await input.press('Enter');
-  await expect(page.locator('#chN')).toHaveText('Microsoft Corporation', { timeout: 15000 });
-  await page.waitForTimeout(1300);
-  await expect(page.locator('#chN')).toHaveText('Microsoft Corporation');
-  await expect(page).toHaveURL(/company=MSFT/);
-});
-
-test('[F2P] the main company cannot also be added as a comparison', async ({ page }) => {
+test('[F2P] changing the main company removes only its duplicate comparison', async ({ page }) => {
   await boot(page);
   await searchCompany(page, 'AAPL', 'Apple Inc.');
-  await addComparison(page, 'AAPL');
+  await addComparison(page, 'MSFT');
+  await addComparison(page, 'TSLA');
+  await searchCompany(page, 'MSFT', 'Microsoft Corporation');
   await openCompare(page);
-  await expect.poll(() => comparisonNames(page)).toEqual([]);
-  await expect(page.locator('#toastContainer .toast').last()).toContainText('Already added');
+  await expect.poll(() => comparisonNames(page)).toEqual(['Microsoft Corporation', 'Tesla Inc.']);
 });
