@@ -109,7 +109,7 @@ test('[F2P] reset participates in complete history', async ({ page }) => {
   await expectCompared(page, ['MIT', 'Kiyoo', 'Stanford']);
   await page.locator('#btn-reset').click();
   await expect(page.locator('#comparison-count')).toHaveText('0');
-  await expect(page.locator('#toast-container .toast').last()).toHaveText('Comparison reset');
+  await expect(page.locator('#toast-container .toast').last()).toHaveText('Comparison reset.');
   await page.locator('#btn-undo').click();
   await expectCompared(page, ['MIT', 'Kiyoo', 'Stanford']);
   await expectComparisonOrder(page, ['MIT', 'Kiyoo', 'Stanford']);
