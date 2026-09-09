@@ -1,9 +1,17 @@
-# Calculations and saved comparisons become unreliable during real use
+# My salary result changes after I submit it
 
-The calculator produces the right-looking screen only in the simplest path. CPI readings are formatted like money, and the negotiation brief does not consistently convert the current salary into starting-year dollars. Its annual recommendation must use compounded inflation, including when purchasing power increased.
+When I run the inflation comparison, the result is not always based on the values I submitted. If I edit the form while the calculation is processing, the displayed answer can use those newer field values instead. Rapid submissions can also finish out of order and replace the newest result with an older one. Clearing the calculator during processing must cancel that work completely, without allowing a delayed result or validation message to reappear.
 
-A submitted calculation should be a snapshot: editing the form afterward must not change it, a newer submission must win, and Clear must cancel pending work. Salary values containing cents must keep their numeric meaning.
+The figures themselves must be trustworthy. Display CPI readings as plain index values rather than currency. Preserve cents in salary inputs, convert the current salary into starting-year dollars in the negotiation brief, and calculate the annualized change using compounding. The same calculation must also handle cases where purchasing power increased rather than decreased.
 
-Saved scenarios also need to be dependable. Saving identical inputs again should update one entry rather than create duplicates. Ignore malformed records and recompute derived figures from valid saved inputs instead of trusting stale totals. Changes to the saved list, including deletions, should appear in another open tab without a refresh.
+Saved comparisons should remain reliable after the page has been used for a while. Saving identical inputs again should update the existing scenario instead of adding a duplicate. Ignore malformed saved records, discard stale derived totals, and recalculate each valid scenario from its saved inputs. When a scenario is saved or deleted in one open tab, the saved-scenario list in another tab should update without a refresh.
 
-Keep the existing design and calculator workflow.
+Keep the existing layout and interaction flow.
+
+The broken app currently looks like this:
+
+<img src="/app/problem_assets/broken.png" alt="current broken purchasing-power result" width="900" />
+
+The expected app should look like this:
+
+<img src="/app/problem_assets/target.png" alt="correct purchasing-power result" width="900" />
