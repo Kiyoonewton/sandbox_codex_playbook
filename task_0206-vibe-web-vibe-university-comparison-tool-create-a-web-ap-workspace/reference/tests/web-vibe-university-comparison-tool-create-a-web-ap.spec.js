@@ -141,3 +141,35 @@ test('[F2P] keyboard history matches button history', async ({ page }) => {
   await expect(page.locator('#comparison-count')).toHaveText('0');
   await expect(page.locator('.uni-item').filter({ hasText: 'Kiyoo' })).toHaveCount(0);
 });
+
+test('[F2P] refresh preserves the next redo with custom-school data', async ({ page }) => {
+  await boot(page);
+  const custom = await createCustom(page);
+  await custom.click();
+  await custom.locator('[data-delete-custom]').click();
+  await page.locator('#delete-confirm').click();
+  await page.locator('#btn-undo').click();
+  await expectCompared(page, ['Kiyoo']);
+
+  await page.reload({ waitUntil: 'networkidle' });
+  await expect(page.locator('#btn-redo')).toBeEnabled();
+  await page.locator('#btn-redo').click();
+  await expect(page.locator('#comparison-count')).toHaveText('0');
+  await expect(page.locator('.uni-item').filter({ hasText: 'Kiyoo' })).toHaveCount(0);
+});
+
+test('[F2P] a post-refresh edit abandons the persisted redo branch', async ({ page }) => {
+  await boot(page);
+  await addPreset(page, 'mit');
+  const custom = await createCustom(page);
+  await custom.click();
+  await page.locator('#btn-reset').click();
+  await page.locator('#btn-undo').click();
+  await expectCompared(page, ['MIT', 'Kiyoo']);
+
+  await page.reload({ waitUntil: 'networkidle' });
+  await expect(page.locator('#btn-redo')).toBeEnabled();
+  await addPreset(page, 'stanford');
+  await expect(page.locator('#btn-redo')).toBeDisabled();
+  await expectCompared(page, ['MIT', 'Kiyoo', 'Stanford']);
+});
