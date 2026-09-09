@@ -3,7 +3,7 @@
 // =============================================
 
 import { $, $$ } from './utils.js';
-import { getState, setState, pushUndo, undo, redo, canUndo, canRedo, getUni, getComparisonUnis, saveState, addCustomSchool, removeCustomSchool, clearCustomSchools } from './state.js';
+import { getState, setState, pushUndo, undo, redo, canUndo, canRedo, getUni, getComparisonUnis, saveState, addCustomSchool, removeCustomSchool, clearCustomSchools, syncFromStorage } from './state.js';
 import { renderComparisonGrid, renderComparisonTable, updateViewToggle } from './ui/comparison.js';
 import { renderSummary } from './ui/summary.js';
 import { renderResults, updateComparisonCount } from './ui/browser.js';
@@ -240,6 +240,7 @@ function initAddSchoolForm() {
     const gradrate = Number($('#school-gradrate').value) || 0;
     const salary = Number($('#school-salary').value) || 0;
 
+    pushUndo();
     const newSchool = addCustomSchool({
       name, short, state, type, color,
       tuition, enrollment,
@@ -338,6 +339,13 @@ function render() {
 // ---- Event Wiring ----
 function init() {
   render();
+
+  // localStorage is shared by same-origin tabs. Adopt the complete persisted
+  // transaction whenever another tab changes state, custom data, or history.
+  window.addEventListener('storage', () => {
+    syncFromStorage();
+    render();
+  });
 
   // Add School Form & Delete Confirm
   initAddSchoolForm();
