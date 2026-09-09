@@ -18,9 +18,21 @@ TESTS_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 APP_DIR="${APP_DIR:-}"
 if [ -z "$APP_DIR" ]; then
-  for d in "/app/vibe-web-vibe-purchasing-power-reality-check-the-user-inputs" "/app" "$(pwd)/vibe-web-vibe-purchasing-power-reality-check-the-user-inputs" "$(pwd)"; do
-    if [ -d "$d" ]; then APP_DIR="$d"; break; fi
+  for d in "/app/vibe-web-vibe-purchasing-power-reality-check-the-user-inputs"            "/app/vibe-web-vibe-purchasing-power-reality-check-the-user-in"            "$(pwd)/vibe-web-vibe-purchasing-power-reality-check-the-user-inputs"            "$(pwd)/vibe-web-vibe-purchasing-power-reality-check-the-user-in"; do
+    if [ -f "$d/index.html" ]; then APP_DIR="$d"; break; fi
   done
+fi
+if [ -z "$APP_DIR" ] && [ -f "/app/index.html" ]; then
+  APP_DIR="/app"
+fi
+if [ -z "$APP_DIR" ] && [ -d "/app" ]; then
+  APP_INDEX="$(find /app -mindepth 2 -maxdepth 2 -type f -name index.html -print -quit)"
+  if [ -n "$APP_INDEX" ]; then APP_DIR="$(dirname "$APP_INDEX")"; fi
+fi
+if [ -z "$APP_DIR" ]; then
+  log "ERROR: app directory containing index.html was not found"
+  echo "PLAYWRIGHT_EXIT=90" >> "$OUT"
+  exit 1
 fi
 export APP_DIR
 log "app:   $APP_DIR"
