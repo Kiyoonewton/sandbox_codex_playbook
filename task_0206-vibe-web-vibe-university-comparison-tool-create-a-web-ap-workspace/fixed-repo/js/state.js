@@ -120,6 +120,17 @@ export function redo() {
 export function canUndo() { return undoStack.length > 0; }
 export function canRedo() { return redoStack.length > 0; }
 
+// Re-read all persisted state after another tab changes it. Keeping this in the
+// state module ensures the UI never combines a new comparison with stale custom
+// school definitions or history stacks.
+export function syncFromStorage() {
+  _customSchools = loadCustomSchools();
+  _state = loadState();
+  const nextHistory = loadHistory();
+  undoStack = nextHistory.undo;
+  redoStack = nextHistory.redo;
+}
+
 export function getUni(id) { return getAllUniversities().find(u => u.id === id); }
 export function getComparisonUnis() { return _state.comparisonIds.map(getUni).filter(Boolean); }
 export function calculateValueScore(uni) {
