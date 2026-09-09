@@ -173,3 +173,54 @@ test('[F2P] a post-refresh edit abandons the persisted redo branch', async ({ pa
   await expect(page.locator('#btn-redo')).toBeDisabled();
   await expectCompared(page, ['MIT', 'Kiyoo', 'Stanford']);
 });
+
+test('[F2P] custom-school creation is independently undoable after refresh', async ({ page }) => {
+  await boot(page);
+  await createCustom(page, 'History College', 'History');
+  await page.reload({ waitUntil: 'networkidle' });
+  await expect(page.locator('.uni-item').filter({ hasText: 'History' })).toBeVisible();
+
+  await page.locator('#btn-undo').click();
+  await expect(page.locator('.uni-item').filter({ hasText: 'History' })).toHaveCount(0);
+  await page.reload({ waitUntil: 'networkidle' });
+  await expect(page.locator('#btn-redo')).toBeEnabled();
+  await page.locator('#btn-redo').click();
+
+  const restored = page.locator('.uni-item').filter({ hasText: 'History' });
+  await expect(restored).toBeVisible();
+  await restored.click();
+  await expect(page.locator('#comparison-grid .comp-card')).toContainText('$24,000');
+  await expect(page.locator('#comparison-grid .comp-card')).toContainText('8,000');
+  await expect(page.locator('#comparison-grid .comp-card')).toContainText('42.0%');
+});
+
+test('[F2P] two tabs share one comparison and history timeline', async ({ page, context }) => {
+  await boot(page);
+  const second = await context.newPage();
+  await second.goto(APP_URL, { waitUntil: 'networkidle' });
+  await second.locator('.uni-item[data-uni-id="mit"]').waitFor();
+
+  await addPreset(page, 'mit');
+  await expectCompared(second, ['MIT']);
+  await addPreset(second, 'stanford');
+  await expectComparisonOrder(page, ['MIT', 'Stanford']);
+
+  await page.locator('#btn-undo').click();
+  await expectCompared(second, ['MIT']);
+  await second.locator('#btn-redo').click();
+  await expectComparisonOrder(page, ['MIT', 'Stanford']);
+});
+
+test('[F2P] damaged saved history does not erase the current comparison', async ({ page }) => {
+  await boot(page);
+  await addPreset(page, 'mit');
+  await page.evaluate(() => localStorage.setItem('uni-compare-history', '{broken-json'));
+  await page.reload({ waitUntil: 'networkidle' });
+
+  await expectCompared(page, ['MIT']);
+  await expect(page.locator('#btn-undo')).toBeDisabled();
+  await expect(page.locator('#btn-redo')).toBeDisabled();
+  await addPreset(page, 'stanford');
+  await page.locator('#btn-undo').click();
+  await expectCompared(page, ['MIT']);
+});
