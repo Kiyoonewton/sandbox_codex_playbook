@@ -3,7 +3,7 @@
 // =============================================
 
 import { $, $$ } from './utils.js';
-import { getState, setState, pushUndo, undo, redo, canUndo, canRedo, getUni, getComparisonUnis, saveState, addCustomSchool, removeCustomSchool, clearCustomSchools, syncFromStorage } from './state.js';
+import { getState, setState, pushUndo, undo, redo, canUndo, canRedo, getUni, getComparisonUnis, saveState, addCustomSchool, removeCustomSchool, clearCustomSchools, syncFromStorage, SYNC_STORAGE_KEY } from './state.js';
 import { renderComparisonGrid, renderComparisonTable, updateViewToggle } from './ui/comparison.js';
 import { renderSummary } from './ui/summary.js';
 import { renderResults, updateComparisonCount } from './ui/browser.js';
@@ -325,7 +325,7 @@ function initDeleteConfirm() {
 }
 
 // ---- Render All ----
-function render() {
+function render(persist = true) {
   renderComparisonGrid();
   renderComparisonTable();
   renderSummary();
@@ -333,7 +333,7 @@ function render() {
   updateComparisonCount();
   updateViewToggle();
   updateUndoRedoButtons();
-  saveState();
+  if (persist) saveState();
 }
 
 // ---- Event Wiring ----
@@ -342,9 +342,10 @@ function init() {
 
   // localStorage is shared by same-origin tabs. Adopt the complete persisted
   // transaction whenever another tab changes state, custom data, or history.
-  window.addEventListener('storage', () => {
+  window.addEventListener('storage', (event) => {
+    if (event.key !== SYNC_STORAGE_KEY) return;
     syncFromStorage();
-    render();
+    render(false);
   });
 
   // Add School Form & Delete Confirm
