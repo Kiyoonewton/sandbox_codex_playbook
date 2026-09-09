@@ -65,6 +65,7 @@ test('[F2P] history skips refused changes', async ({ page }) => {
   await boot(page);
   for (const id of ['mit', 'stanford', 'harvard', 'yale']) await addPreset(page, id);
   await addPreset(page, 'columbia');
+  await expect(page.locator('#btn-undo')).toBeEnabled();
   await page.locator('#btn-undo').click();
   await expectCompared(page, ['MIT', 'Stanford', 'Harvard']);
   await expect(page.locator('.uni-item[data-uni-id="yale"]')).toHaveAttribute('aria-pressed', 'false');
@@ -180,6 +181,7 @@ test('[F2P] custom-school creation is independently undoable after refresh', asy
   await page.reload({ waitUntil: 'networkidle' });
   await expect(page.locator('.uni-item').filter({ hasText: 'History' })).toBeVisible();
 
+  await expect(page.locator('#btn-undo')).toBeEnabled();
   await page.locator('#btn-undo').click();
   await expect(page.locator('.uni-item').filter({ hasText: 'History' })).toHaveCount(0);
   await page.reload({ waitUntil: 'networkidle' });
@@ -211,7 +213,7 @@ test('[F2P] two tabs share one comparison and history timeline', async ({ page, 
   await expectComparisonOrder(page, ['MIT', 'Stanford']);
 });
 
-test('[F2P] damaged saved history does not erase the current comparison', async ({ page }) => {
+test('[P2P] damaged saved history does not erase the current comparison', async ({ page }) => {
   await boot(page);
   await addPreset(page, 'mit');
   await page.evaluate(() => localStorage.setItem('uni-compare-history', '{broken-json'));
