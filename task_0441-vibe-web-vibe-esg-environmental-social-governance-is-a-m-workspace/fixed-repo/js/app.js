@@ -212,7 +212,7 @@ function renderFlags(d){
 function renderCmpTable(){
   const w=document.getElementById('cmpTbl');if(!S.compare.length){w.innerHTML='';return}
   const all=[S.current,...S.compare].filter(Boolean);
-  w.innerHTML=`<table class="ctbl"><thead><tr><th>Company</th><th>Sector</th><th>E</th><th>S</th><th>G</th><th>Overall</th><th>Grade</th><th>vs Sector</th><th></th></tr></thead><tbody>${all.map((d,i)=>{const vs=d.scores.overall-d.bench.overall;return`<tr><td style="color:var(--tx);font-weight:500">${d.profile.companyName||d.ticker}</td><td>${d.sector}</td><td class="td-s" style="color:${sc(d.scores.e)}">${d.scores.e}</td><td class="td-s" style="color:${sc(d.scores.s)}">${d.scores.s}</td><td class="td-s" style="color:${sc(d.scores.g)}">${d.scores.g}</td><td class="td-s" style="color:${sc(d.scores.overall)}">${d.scores.overall}</td><td style="font-family:var(--fh);font-weight:700;color:${sc(d.scores.overall)}">${sg(d.scores.overall)}</td><td class="td-s" style="color:${vs>=0?SEC.mint:SEC.red}">${vs>=0?'+':''}${vs}</td><td>${i>0?'<button class="btn-x" onclick="rmCmp('+i+')">✕</button>':''}</td></tr>`}).join('')}</tbody></table>`;
+  w.innerHTML=`<table class="ctbl"><thead><tr><th>Company</th><th>Sector</th><th>E</th><th>S</th><th>G</th><th>Overall</th><th>Grade</th><th>vs Sector</th><th></th></tr></thead><tbody>${all.map((d,i)=>{const vs=d.scores.overall-d.bench.overall;return`<tr><td style="color:var(--tx);font-weight:500">${d.profile.companyName||d.ticker}</td><td>${d.sector}</td><td class="td-s" style="color:${sc(d.scores.e)}">${d.scores.e}</td><td class="td-s" style="color:${sc(d.scores.s)}">${d.scores.s}</td><td class="td-s" style="color:${sc(d.scores.g)}">${d.scores.g}</td><td class="td-s" style="color:${sc(d.scores.overall)}">${d.scores.overall}</td><td style="font-family:var(--fh);font-weight:700;color:${sc(d.scores.overall)}">${sg(d.scores.overall)}</td><td class="td-s" style="color:${vs>=0?SEC.mint:SEC.red}">${vs>=0?'+':''}${vs}</td><td>${i>0?'<button class="btn-x" onclick="rmCmp('+(i-1)+')">✕</button>':''}</td></tr>`}).join('')}</tbody></table>`;
 }
 
 // ─── MAIN RENDER ───
@@ -290,6 +290,7 @@ function saveState(){
   try{
     const d={ticker:S.current?.ticker||null,lens:S.lens,compareTickers:S.compare.map(c=>c.ticker),lastTab:S.tab};
     localStorage.setItem('esglens_state',JSON.stringify(d));
+    if(S.current)window.history.replaceState(null,'',sessionURL(false));
   }catch{}
 }
 function loadState(){
