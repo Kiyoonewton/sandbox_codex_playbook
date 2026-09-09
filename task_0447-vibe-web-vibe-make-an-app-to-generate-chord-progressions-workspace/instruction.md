@@ -1,14 +1,10 @@
-# The chord picker doesn't respond the way it should
+# Saved progressions become unreliable after I reopen or import them
 
-## What you see
+I saved a custom progression, reopened it, and removed a chord while experimenting. When I loaded the saved item again, it had also lost that chord even though I never saved the edit. A saved progression should remain an independent copy: reopening it must restore its original key, scale, chord order, and first selected chord, including after a page refresh.
 
-There's a checkbox labelled "Use flats (Bb instead of A#)" that promises to change how the notes are named, but ticking it does nothing at all. The row of root-note buttons keeps showing the same sharp spellings as before, so there's no way to work with flat names even though the option is right there and appears to be switched on.
+Importing progressions can also leave my library half-updated, and the Import control disappears when the library is empty. Import should always be available. If one entry in a file has an unknown root, scale or preset, an unsupported progression type, an invalid date, or an out-of-range custom chord, the whole import should be refused without adding anything. A valid file should import every new entry with a unique ID, remain available after refresh, and each imported progression should load correctly. Importing the same progressions again should not create duplicates.
 
-Picking chords from the diatonic set is also unreliable. Tapping the second chord in the key of C Major doesn't update the large chord name at the top the way the other tiles do — it either stays put or shows the wrong chord entirely, so what's highlighted below and what's displayed above disagree with each other.
-
-## What correct looks like
-
-Turning the flats option on should immediately re-label the root notes with their flat spellings, and turning it back off should return them to sharps. Every diatonic chord tile, including the second one in C Major, should update the big chord name at the top to match exactly what was tapped.
+Finally, Save sometimes announces “Progression saved” when no preset or custom progression is selected. It should add nothing and tell me to select a progression first.
 
 The broken app currently looks like this:
 
