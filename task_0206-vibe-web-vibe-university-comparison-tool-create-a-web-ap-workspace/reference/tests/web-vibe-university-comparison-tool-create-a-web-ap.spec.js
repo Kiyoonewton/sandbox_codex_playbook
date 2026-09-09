@@ -82,7 +82,7 @@ test('[F2P] history restores deleted custom entries', async ({ page }) => {
   await expect(page.locator('.uni-item').filter({ hasText: 'Kiyoo' })).toBeVisible();
   await expect(page.locator('#comparison-grid .comp-card')).toContainText(['$24,000']);
   await expect(page.locator('#comparison-grid .comp-card')).toContainText(['8,000']);
-  await expect(page.locator('#comparison-grid .comp-card')).toContainText(['42%']);
+  await expect(page.locator('#comparison-grid .comp-card')).toContainText(['42.0%']);
 });
 
 test('[F2P] redo follows restored custom entries', async ({ page }) => {
