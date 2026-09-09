@@ -1,19 +1,17 @@
-# The salary comparison results don't add up
+# My salary result changes after I submit it
 
-## What you see
+When I run the inflation comparison, the result is not always based on the values I submitted. If I edit the form while the calculation is processing, the displayed answer can use those newer field values instead. Rapid submissions can also finish out of order and replace the newest result with an older one. Clearing the calculator during processing must cancel that work completely, without allowing a delayed result or validation message to reappear.
 
-After running a comparison, the summary under **Total Inflation** shows the index reading with a dollar sign in front of it, as if the price index were an amount of money. It reads like a before-and-after cash figure rather than the index values it's actually labelled as.
+The figures themselves must be trustworthy. Display CPI readings as plain index values rather than currency. Preserve cents in salary inputs, convert the current salary into starting-year dollars in the negotiation brief, and calculate the annualized change using compounding. The same calculation must also handle cases where purchasing power increased rather than decreased.
 
-Further down, the negotiation brief is supposed to translate today's salary back into what it would have been worth in the earlier year, but the number it quotes is simply the original starting salary repeated back at me. No matter what figures I enter, that line just echoes what I already typed in, so the whole "purchasing power" statement tells me nothing and clearly doesn't reflect any inflation adjustment.
+Saved comparisons should remain reliable after the page has been used for a while. Saving identical inputs again should update the existing scenario instead of adding a duplicate. Ignore malformed saved records, discard stale derived totals, and recalculate each valid scenario from its saved inputs. When a scenario is saved or deleted in one open tab, the saved-scenario list in another tab should update without a refresh.
 
-## What correct looks like
-
-The index line should read as an index — plain numbers, no currency formatting — while the money figures elsewhere stay formatted as money. And the negotiation brief should give a genuinely calculated equivalent value in the earlier year's dollars, one that actually changes with the numbers I enter and makes the loss (or gain) in purchasing power obvious at a glance.
+Keep the existing layout and interaction flow.
 
 The broken app currently looks like this:
 
-<img src="/app/problem_assets/broken.png" alt="current (broken) app" width="900" />
+<img src="/app/problem_assets/broken.png" alt="current broken purchasing-power result" width="900" />
 
 The expected app should look like this:
 
-<img src="/app/problem_assets/target.png" alt="expected app" width="900" />
+<img src="/app/problem_assets/target.png" alt="correct purchasing-power result" width="900" />
