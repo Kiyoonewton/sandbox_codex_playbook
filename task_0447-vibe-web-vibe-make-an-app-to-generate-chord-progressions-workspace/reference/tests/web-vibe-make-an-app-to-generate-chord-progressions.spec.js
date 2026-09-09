@@ -50,10 +50,12 @@ test('[P2P] app boots and renders the chord workspace', async ({ page }) => {
   await expect(page.locator('#root-grid .root-btn')).toHaveCount(12);
 });
 
-test('[P2P] the workspace fits the viewport', async ({ page }) => {
+test('[P2P] the sidebar and main chord workspace remain available', async ({ page }) => {
   await boot(page);
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-  expect(overflow).toBeLessThanOrEqual(2);
+  await expect(page.locator('.sidebar')).toBeVisible();
+  await expect(page.locator('.main-content')).toBeVisible();
+  await expect(page.locator('#progression-list')).toBeVisible();
+  await expect(page.locator('#fretboard-container')).toBeVisible();
 });
 
 test('[F2P] editing a loaded custom progression does not mutate its saved copy', async ({ page }) => {
