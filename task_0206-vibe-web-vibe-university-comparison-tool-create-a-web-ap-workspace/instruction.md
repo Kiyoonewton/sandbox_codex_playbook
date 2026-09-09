@@ -1,14 +1,10 @@
-# The comparison tools don't work as expected
+# Undo and redo lose parts of my comparison
 
-## What you see
+When my comparison is full, trying a fifth university is correctly refused. But Undo then claims to work without removing the last university I successfully added.
 
-When the comparison is already full and I try to add one more university, the app refuses it — fine. But then when I press Undo, a little "Undo" message pops up as if something happened, yet the comparison still shows exactly the same schools as before. Nothing is actually removed, so the button feels completely dead.
+History also becomes unreliable when custom schools are deleted or everything is reset. Undo and Redo must restore the complete comparison I previously saw, including custom schools and their selected order. If I make a new change after using Undo, Redo must not bring back the abandoned comparison.
 
-Reset behaves oddly too. Even when I've only picked from the ready-made list and haven't added any of my own schools, hitting Reset shows a message telling me my custom schools were all removed. I never had any, so the message is just wrong and makes me worry the app deleted something I didn't intend.
-
-## What correct looks like
-
-Undo should genuinely take back the most recent university I added, so I can see the comparison shrink right away. And Reset should simply tell me the comparison was cleared, without claiming it did something to schools I never created.
+The buttons and keyboard shortcuts must behave consistently. Reset must be reversible and display "Comparison reset."
 
 The broken app currently looks like this:
 
