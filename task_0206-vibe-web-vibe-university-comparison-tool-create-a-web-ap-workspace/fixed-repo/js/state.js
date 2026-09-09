@@ -6,6 +6,7 @@ import { UNIVERSITIES } from './data.js';
 
 const STORAGE_KEY = 'uni-compare-v2';
 const CUSTOM_STORAGE_KEY = 'uni-compare-custom';
+const HISTORY_STORAGE_KEY = 'uni-compare-history';
 
 let _customSchools = loadCustomSchools();
 
@@ -59,8 +60,30 @@ function saveState() {
 }
 export { saveState };
 
-let undoStack = [];
-let redoStack = [];
+function validSnapshot(value) {
+  return value && Array.isArray(value.comparisonIds) && Array.isArray(value.customSchools);
+}
+function loadHistory() {
+  try {
+    const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        undo: Array.isArray(parsed.undo) ? parsed.undo.filter(validSnapshot) : [],
+        redo: Array.isArray(parsed.redo) ? parsed.redo.filter(validSnapshot) : [],
+      };
+    }
+  } catch (e) { /* ignore */ }
+  return { undo: [], redo: [] };
+}
+function saveHistory() {
+  try { localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify({ undo: undoStack, redo: redoStack })); }
+  catch (e) { /* ignore */ }
+}
+
+const history = loadHistory();
+let undoStack = history.undo;
+let redoStack = history.redo;
 
 function snapshot() {
   return {
@@ -78,17 +101,20 @@ export function pushUndo() {
   undoStack.push(snapshot());
   redoStack = [];
   if (undoStack.length > 30) undoStack.shift();
+  saveHistory();
 }
 export function undo() {
   if (!undoStack.length) return false;
   redoStack.push(snapshot());
   restore(undoStack.pop());
+  saveHistory();
   return true;
 }
 export function redo() {
   if (!redoStack.length) return false;
   undoStack.push(snapshot());
   restore(redoStack.pop());
+  saveHistory();
   return true;
 }
 export function canUndo() { return undoStack.length > 0; }
