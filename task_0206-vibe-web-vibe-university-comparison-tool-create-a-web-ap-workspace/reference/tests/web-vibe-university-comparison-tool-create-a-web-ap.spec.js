@@ -27,6 +27,7 @@ async function createCustom(page, name = 'Kiyoo University', short = 'Kiyoo') {
 
 async function expectCompared(page, names) {
   await expect(page.locator('#comparison-count')).toHaveText(String(names.length));
+  await page.evaluate(() => window.scrollTo(0, 0));
   for (const name of names) await expect(page.locator('#comparison-grid').getByText(name, { exact: true })).toBeVisible();
 }
 
@@ -83,6 +84,7 @@ test('[F2P] history restores deleted custom entries', async ({ page }) => {
   await expect(page.locator('#comparison-grid .comp-card')).toContainText(['$24,000']);
   await expect(page.locator('#comparison-grid .comp-card')).toContainText(['8,000']);
   await expect(page.locator('#comparison-grid .comp-card')).toContainText(['42.0%']);
+  await page.evaluate(() => window.scrollTo(0, 0));
 });
 
 test('[F2P] redo follows restored custom entries', async ({ page }) => {
