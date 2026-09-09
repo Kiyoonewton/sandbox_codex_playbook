@@ -1,0 +1,75 @@
+[
+  {
+    "name": "Design system & layout",
+    "status": "done",
+    "notes": "Complete: warm analog aesthetic with cream/amber palette, Playfair Display + DM Sans + IBM Plex Mono typography"
+  },
+  {
+    "name": "Visual polish & refinements",
+    "status": "done",
+    "notes": "Added hover effects, transitions, fretboard gradient, playing pulse animation, responsive mobile layout"
+  },
+  {
+    "name": "Remove Scale Degrees section",
+    "status": "done",
+    "notes": "Remove from HTML sidebar and JS rendering"
+  },
+  {
+    "name": "Artistic Visual Redesign",
+    "status": "done",
+    "notes": "Complete: gradient background, italic Playfair Display hero, ornamental dividers, decorative section lines, gradient logo, pill badges, enhanced cards, better hover/transition states, warm depth throughout"
+  },
+  {
+    "name": "Import/Export Progressions",
+    "status": "done",
+    "notes": "Add ability to export saved progressions as JSON and import them back"
+  },
+  {
+    "name": "Keyboard shortcuts help",
+    "status": "done",
+    "notes": "Add a keyboard shortcut help overlay or tooltip section"
+  },
+  {
+    "name": "Better empty states",
+    "status": "done",
+    "notes": "Enhance empty states for saved progressions and no progression selected"
+  },
+  {
+    "name": "Remove nut from fretboard SVG",
+    "status": "done"
+  },
+  {
+    "name": "Change color scheme to red and navy",
+    "status": "done"
+  },
+  {
+    "name": "Fix fretboard open-string visual artifact",
+    "status": "done",
+    "notes": "Skip fret-0 note elements when startFret=0 (added continue guard at line 164 of js/fretboard.js). Verified: 90 note groups (15\u00d76) instead of 96, zero circles with cx<50, no nut-line artifacts. Fret>0 mode unaffected."
+  },
+  {
+    "name": "Fix CSS theme - switch to warm cream",
+    "status": "done",
+    "notes": "Fixed base.css tokens and header background. Now need to update components.css hardcoded dark-theme rgba values."
+  },
+  {
+    "name": "Fix fretboard hardcoded colors",
+    "status": "done",
+    "notes": "Fretboard SVG uses hardcoded #152238 instead of CSS variables"
+  },
+  {
+    "name": "Polish mobile responsiveness",
+    "status": "done",
+    "notes": "Added mobile sidebar toggle with overlay, slide-in animation, Escape to close. Mobile layout at 900px and 600px breakpoints."
+  },
+  {
+    "name": "Improve keyboard accessibility",
+    "status": "done",
+    "notes": "Added R (random), S (save), M (stop), Esc (close sidebar) shortcuts. Added ARIA live region for screen reader announcements. Fixed defensive e.target.matches check."
+  },
+  {
+    "name": "Update components.css theme colors",
+    "status": "done",
+    "notes": "Replace hardcoded #DC3545/rgba(220,53,69) in components.css with warm amber equivalents"
+  }
+]

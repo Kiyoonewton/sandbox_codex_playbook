@@ -1,0 +1,207 @@
+/*
+ * Chord Forge — Base Styles
+ * Resets, typography, theme tokens, and global layout
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600;1,700;1,800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+
+/* ─── Tokens ─── */
+:root {
+  /* Warm cream palette — editorial print aesthetic */
+  --bg:            #FAF6F0;
+  --bg-gradient:   linear-gradient(168deg, #FAF6F0 0%, #F5F0E8 40%, #F0EBE2 100%);
+  --surface:       #FFFFFF;
+  --surface-alt:   #F3EDE4;
+  --surface-raised:#FFFFFF;
+  --ink:           #2D2118;
+  --ink-muted:     #8B7E72;
+  --ink-faint:     #B5A898;
+  --primary:       #D4763C;
+  --primary-hover: #C06530;
+  --primary-light: #F5E6D8;
+  --primary-glow:  rgba(212, 118, 60, 0.18);
+  --secondary:     #8B3A4A;
+  --secondary-light:#E8D4D8;
+  --tertiary:      #C5A882;
+  --tertiary-light:#F0E8D8;
+  --success:       #5B7A4A;
+  --danger:        #B5403A;
+
+  --scale-tone:        #E8DDD0;
+  --scale-tone-stroke: #C4B8A8;
+  --scale-tone-text:   #5B4A3A;
+  --chord-tone:        #C5A882;
+  --chord-tone-stroke: #A08860;
+  --chord-tone-text:   #FFFFFF;
+  --chord-root:        #D4763C;
+  --chord-root-stroke: #B85E28;
+  --chord-root-text:   #FFFFFF;
+
+  --fretboard-bg:      #EDE5D8;
+  --fretboard-stroke:  rgba(139, 126, 114, 0.2);
+  --fret-wire:    #C4B8A8;
+  --dot-color:    #D4C8B8;
+  --string-color-1: #C8B8A0;
+  --string-color-2: #B0A088;
+  --string-color-3: #988870;
+  --string-color-4: #806850;
+  --string-color-5: #685840;
+  --string-color-6: #584830;
+
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body:    'DM Sans', -apple-system, sans-serif;
+  --font-mono:    'IBM Plex Mono', 'Courier New', monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  --shadow-sm:  0 1px 3px rgba(45,33,24,0.06), 0 1px 2px rgba(45,33,24,0.04);
+  --shadow-md:  0 4px 12px rgba(45,33,24,0.08), 0 2px 4px rgba(45,33,24,0.04);
+  --shadow-lg:  0 8px 24px rgba(45,33,24,0.10), 0 4px 8px rgba(45,33,24,0.05);
+  --shadow-xl:  0 16px 48px rgba(45,33,24,0.12), 0 8px 16px rgba(45,33,24,0.06);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ─── Reset ─── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--bg);
+  background-image: var(--bg-gradient);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* Subtle texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Focus styles for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ─── Layout ─── */
+.app-header {
+  background: rgba(250, 246, 240, 0.88);
+  border-bottom: 1px solid var(--surface-alt);
+  padding: 18px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.app-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 0;
+  min-height: calc(100vh - 71px);
+}
+
+/* ─── Responsive ─── */
+.mobile-menu-toggle { display: none; }
+
+@media (max-width: 900px) {
+  .mobile-menu-toggle { display: inline-flex; }
+
+  .app-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 300px;
+    height: 100vh;
+    max-height: 100vh;
+    z-index: 200;
+    border-right: 1px solid var(--surface-alt);
+    border-bottom: none;
+    backdrop-filter: blur(16px);
+    transform: translateX(-100%);
+    transition: transform 0.35s var(--ease-out), opacity 0.25s var(--ease-out);
+    opacity: 0;
+    pointer-events: none;
+    display: block;
+    overflow-y: auto;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(45, 33, 24, 0.3);
+    z-index: 199;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s var(--ease-out);
+  }
+  .sidebar-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  #root-grid { grid-template-columns: repeat(6, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .app-header { padding: 12px 16px; }
+  .logo h1 { font-size: 20px; }
+  .logo-tagline { display: none; }
+  .main-content { padding: 12px; gap: 14px; }
+
+  .sidebar {
+    width: 100%;
+    max-width: 300px;
+    padding: 14px;
+  }
+
+  #root-grid { grid-template-columns: repeat(4, 1fr); }
+
+  #chord-display .chord-name { font-size: 44px; }
+
+  .chord-hero { padding: 28px 16px 22px; }
+
+  #diatonic-chords { grid-template-columns: repeat(auto-fill, minmax(85px, 1fr)); }
+  .seq-chord { min-width: 64px; padding: 10px 14px; }
+  .seq-numeral { font-size: 16px; }
+
+  .chord-palette { grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)); }
+}
