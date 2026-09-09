@@ -191,7 +191,7 @@ test('[F2P] custom-school creation is independently undoable after refresh', asy
   const restored = page.locator('.uni-item').filter({ hasText: 'History' });
   await expect(restored).toBeVisible();
   await restored.click();
-  const restoredCard = page.locator('#comparison-grid .comp-card').filter({ hasText: 'Shared History' });
+  const restoredCard = page.locator('#comparison-grid .comp-card').filter({ hasText: 'History' });
   await expect(restoredCard).toContainText('$24,000');
   await expect(restoredCard).toContainText('8,000');
   await expect(restoredCard).toContainText('42.0%');
@@ -226,9 +226,10 @@ test('[F2P] two tabs share one comparison and history timeline', async ({ page, 
   const restored = page.locator('.uni-item').filter({ hasText: 'Shared History' });
   await expect(restored).toBeVisible();
   await restored.click();
-  await expect(page.locator('#comparison-grid .comp-card')).toContainText('$24,000');
-  await expect(page.locator('#comparison-grid .comp-card')).toContainText('8,000');
-  await expect(page.locator('#comparison-grid .comp-card')).toContainText('42.0%');
+  const sharedCard = page.locator('#comparison-grid .comp-card').filter({ hasText: 'Shared History' });
+  await expect(sharedCard).toContainText('$24,000');
+  await expect(sharedCard).toContainText('8,000');
+  await expect(sharedCard).toContainText('42.0%');
 });
 
 test('[P2P] damaged saved history does not erase the current comparison', async ({ page }) => {
