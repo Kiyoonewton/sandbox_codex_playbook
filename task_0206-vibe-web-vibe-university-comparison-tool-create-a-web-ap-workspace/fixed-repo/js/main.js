@@ -70,7 +70,7 @@ function resetComparison() {
   clearCustomSchools();
   render();
   updateUndoRedoButtons();
-  showToast('Comparison reset', 'info');
+  showToast('Comparison reset.', 'info');
 }
 
 function exportComparison() {
