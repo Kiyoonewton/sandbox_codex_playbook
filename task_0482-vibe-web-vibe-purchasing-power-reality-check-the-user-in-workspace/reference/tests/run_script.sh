@@ -75,13 +75,29 @@ else
 fi
 
 # --- Playwright behavioral spec ----------------------------------------------
-if [ ! -e "$TESTS_DIR/node_modules" ] && [ -d /opt/playwright-runner/node_modules ]; then
-  ln -sfn /opt/playwright-runner/node_modules "$TESTS_DIR/node_modules"
+PW_BIN=""
+for candidate in \
+  "$TESTS_DIR/node_modules/.bin/playwright" \
+  "/opt/playwright-runner/node_modules/.bin/playwright" \
+  "/workspace/node_modules/.bin/playwright" \
+  "/node_modules/.bin/playwright"
+do
+  if [ -x "$candidate" ]; then
+    PW_BIN="$candidate"
+    break
+  fi
+done
+if [ -z "$PW_BIN" ]; then
+  PW_BIN="$(command -v playwright 2>/dev/null || true)"
 fi
-PW_BIN="$TESTS_DIR/node_modules/.bin/playwright"
-if [ ! -x "$PW_BIN" ]; then
-  log "ERROR: Playwright binary not found at $PW_BIN"; echo "PLAYWRIGHT_EXIT=94" >> "$OUT"; exit 1
+if [ -z "$PW_BIN" ] || [ ! -x "$PW_BIN" ]; then
+  log "ERROR: Playwright binary not found in tests, /opt/playwright-runner, /workspace, /node_modules, or PATH"
+  echo "PLAYWRIGHT_EXIT=94" >> "$OUT"
+  exit 1
 fi
+PW_NODE_MODULES="$(cd "$(dirname "$PW_BIN")/.." && pwd)"
+export NODE_PATH="$PW_NODE_MODULES${NODE_PATH:+:$NODE_PATH}"
+log "playwright: $PW_BIN"
 PW_JSON="$LOG_DIR/playwright_results.json"; rm -f "$PW_JSON"
 echo "===PLAYWRIGHT_BEGIN===" >> "$OUT"
 ( cd "$TESTS_DIR" \
