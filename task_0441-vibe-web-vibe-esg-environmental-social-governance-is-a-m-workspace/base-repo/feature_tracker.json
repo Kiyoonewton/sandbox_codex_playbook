@@ -1,0 +1,47 @@
+[
+  {
+    "name": "ESG Lens - Architecture & Visual Design",
+    "status": "done",
+    "notes": "Complete: dark intelligence dashboard with #060a0f bg, Syne/Inter/JetBrains Mono fonts, dot-grid background, glassmorphism topbar, animated arc gauges, chart.js radar/bar/line, autocomplete search, 4-tab dashboard (Breakdown/Controversies/Compare/Red Flags), FAB export menu, localStorage persistence, keyboard shortcuts (Ctrl+K, 1-4 tabs, Escape), ARIA roles, skip link, responsive from 375px to desktop."
+  },
+  {
+    "name": "HTML Structure & Layout",
+    "status": "done",
+    "notes": "Fixed all ID mismatches between HTML and app.js. Pillars: pill, ac, chN, chM, chD, ringArc, ringS, ringG, garcE/S/G, gvsE/S/G, gvgE/S/G, subsE/S/G, ginsE/S/G, cTrend, cBench, cRadar, findings, cstats, tl, cmpTbl, flags, risk, cmpOv, cmpInput, cmpAc, cmpX, detailOv, detailTitle, detailBody, detailX, fab, fabMenu, fabBtn, exCopy, exCSV, exShare, toastContainer, errMsg, errRetry, pills. Tab class: .tab, .tp. Lens class: .lens-b. Gauge click: .gcol, .gwrap, .ov overlays. Toast function uses toastContainer."
+  },
+  {
+    "name": "ESGLENS Rebuild - Full Implementation",
+    "status": "done",
+    "notes": "Complete rebuild per new spec: FMP APIs, Syne/Inter/JetBrains Mono fonts, dot-grid dark background, three-pillar gauge layout, autocomplete search, lens toggles, tabbed content (Breakdown/Controversies/Compare/Red Flags), export FAB"
+  },
+  {
+    "name": "Futuristic Minimalist Redesign",
+    "status": "done",
+    "notes": "All fixes applied: (1) HTML IDs aligned to app.js (pills, ac, chN/chM/chD, ringArc/ringS/ringG, garcE/S/G, gvsE/S/G, gvgE/S/G, subsE/S/G, ginsE/S/G, cTrend/cBench/cRadar, findings, cstats/tl, cmpTbl, flags/risk, cmpOv/cmpAc/cmpInput, detailOv/detailTitle/detailBody, fab/fabMenu/fabBtn/exCopy/exCSV/exShare, toastContainer, errMsg/errRetry). (2) Removed nonexistent controls.js script tag. (3) Input fields now clearly visible with high-contrast borders (2px var(--border2)) on dark bg, white text, focused state with glow. (4) Toast container ID fixed. (5) Modal overlays have .ov class for click-outside-to-close. (6) Full responsive: 3-col gauges \u2192 1-col, grids \u2192 single col, font scaling, padding adjustments at 900px and 640px breakpoints. (7) Removed unused files (scoring.js, state.js, views.js, ui.js, styles.css). App runs error-free."
+  },
+  {
+    "name": "Keyboard Accessibility & ARIA",
+    "status": "done",
+    "notes": "Skip link, ARIA roles on search, tabs (tablist/tab/tabpanel), modals (dialog), FAB (menu/menuitem), gauges, hero cards. Keyboard: Ctrl+K to focus search, 1-4 number keys for tabs, Escape closes modals/FAB, focus-visible styles."
+  },
+  {
+    "name": "LocalStorage Persistence",
+    "status": "done",
+    "notes": "Persists ticker, lens preference, comparison tickers, and lastTab to localStorage. Restores on page load. Saved before page unload."
+  },
+  {
+    "name": "Enhanced Loading Steps & Empty States",
+    "status": "done",
+    "notes": "Animated loading with live steps (Resolving, Fetching, Scanning, Computing). Enhanced empty state CSS for panels. Error view with retry button working."
+  },
+  {
+    "name": "Mobile Interaction & Touch Polish",
+    "status": "done",
+    "notes": "Touch targets 44px+ for lens buttons and tabs, 46px FAB, 40px pills. Responsive grid stacks gauges to 1-col, header to column, breakdown grid single col. All elements visible at 375px."
+  },
+  {
+    "name": "Compare Undo/Redo",
+    "status": "done",
+    "notes": "toastUndo function shows toast with Undo button for 5 seconds after removing a comparison company. Removes toast after 3s if not used."
+  }
+]

@@ -1,0 +1,52 @@
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#060a0f;
+  --bg2:#0b1120;
+  --bg3:#101a2e;
+  --bg4:#152040;
+  --border:#1e3455;
+  --border2:#2e5080;
+  --text:#e8eef8;
+  --text2:#8899bb;
+  --text3:#556677;
+  --env:#00c875;
+  --envbg:rgba(0,200,117,.08);
+  --soc:#4d9fff;
+  --socbg:rgba(77,159,255,.08);
+  --gov:#a855f7;
+  --govbg:rgba(168,85,247,.08);
+  --alert:#f5a623;
+  --crit:#ff4444;
+  --pos:#00c875;
+  --red:#ff5c5c;
+  --fh:'Syne',sans-serif;
+  --fb:'Inter',sans-serif;
+  --fm:'JetBrains Mono',monospace;
+  --r:8px;
+  --ease:cubic-bezier(.4,0,.2,1);
+}
+html{font-size:15px;scroll-behavior:smooth}
+body{font-family:var(--fb);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle at 1px 1px,rgba(26,46,72,.4) 1px,transparent 0);background-size:32px 32px;pointer-events:none;z-index:0}
+h1,h2,h3,h4{font-family:var(--fh);font-weight:700;line-height:1.15;letter-spacing:-.02em}
+a{color:var(--soc);text-decoration:none}
+button{font-family:inherit;cursor:pointer}
+input{font-family:inherit;color:var(--text);background:var(--bg3);border:1.5px solid var(--border2);outline:none;transition:all .2s var(--ease)}
+input::placeholder{color:var(--text3);opacity:1}
+input:focus{border-color:var(--soc);box-shadow:0 0 0 3px rgba(77,159,255,.15);background:var(--bg4)}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* Skip link */
+.skip-link{position:absolute;top:-100%;left:16px;z-index:9999;padding:10px 20px;background:var(--soc);color:#fff;font-weight:600;border-radius:0 0 var(--r) var(--r);transition:top .2s ease}
+.skip-link:focus{top:0}
+
+/* Screen reader only */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* Focus visible for keyboard users */
+:focus-visible{outline:2px solid var(--soc);outline-offset:2px}
+button:focus-visible{outline:2px solid var(--soc);outline-offset:2px}
+input:focus-visible{outline:none}

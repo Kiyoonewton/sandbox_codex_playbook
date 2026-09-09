@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="ESGLENS — Transparent ESG intelligence dashboard. Search public companies, compare Environmental, Social, and Governance scores with full data citations.">
+<title>ESGLENS — Transparent ESG Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+<!-- ═══ SKIP LINK ═══ -->
+<a href="#searchInput" class="skip-link" id="skipLink">Skip to search</a>
+
+<!-- ═══ TOP BAR ═══ -->
+<header class="topbar" role="banner">
+  <div class="topbar-logo" aria-label="ESGLENS"><span class="dot" aria-hidden="true"></span>ESGLENS</div>
+  <div class="topbar-search ac-wrap" role="search">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" id="searchInput" placeholder="Search company or ticker..." autocomplete="off" spellcheck="false" aria-label="Search for a company by name or ticker symbol" aria-autocomplete="list" aria-controls="ac" aria-expanded="false" role="combobox">
+    <div class="ac-list" id="ac" role="listbox" aria-label="Search suggestions"></div>
+  </div>
+  <div class="topbar-compare"><button class="btn" id="compareBtn" aria-label="Compare companies side by side">+ Compare</button></div>
+</header>
+
+<!-- ═══ HERO / LANDING ═══ -->
+<section class="hero" id="hero" aria-labelledby="heroTitle">
+  <div class="hero-inner">
+    <h1 id="heroTitle">Decode Any Company's ESG Profile</h1>
+    <p>Search 1000+ public companies. Environmental impact. Social responsibility. Corporate governance. All in one place.</p>
+    <div class="hero-cards" role="list">
+      <div class="hero-card" role="listitem"><div class="ico" aria-hidden="true">🌍</div><h3>Environmental</h3><p>Carbon emissions, energy policy, waste management, climate risk.</p></div>
+      <div class="hero-card" role="listitem"><div class="ico" aria-hidden="true">👥</div><h3>Social</h3><p>Workforce diversity, employee wellbeing, community impact.</p></div>
+      <div class="hero-card" role="listitem"><div class="ico" aria-hidden="true">⚖️</div><h3>Governance</h3><p>Board independence, executive pay, shareholder rights.</p></div>
+    </div>
+    <div class="pill-label" id="popularLabel">Popular searches</div>
+    <div class="pills-row" id="pills" role="group" aria-labelledby="popularLabel"></div>
+  </div>
+</section>
+
+<!-- ═══ LOADING STATE ═══ -->
+<section class="loading" id="loadingView" role="status" aria-live="polite" aria-label="Loading company data">
+  <div class="skeleton sk-bar" style="width:220px"></div>
+  <div class="skeleton sk-bar" style="width:340px"></div>
+  <div class="sk-row"><div class="skeleton sk-col"></div><div class="skeleton sk-col"></div><div class="skeleton sk-col"></div></div>
+  <p class="sr-only">Loading company data from public sources...</p>
+</section>
+
+<!-- ═══ ERROR STATE ═══ -->
+<section class="error-view" id="errorView">
+  <div class="error-box">
+    <div class="ico">⚠️</div>
+    <h2>Something went wrong</h2>
+    <p id="errMsg">Failed to load company data.</p>
+    <button class="btn" id="errRetry">Try Again</button>
+  </div>
+</section>
+
+<!-- ═══ MAIN DASHBOARD ═══ -->
+<main class="dashboard" id="dash">
+
+  <!-- Company Header -->
+  <section class="comp-header">
+    <div class="comp-info">
+      <h1 id="chN">—</h1>
+      <div class="comp-meta" id="chM"></div>
+      <p class="comp-desc" id="chD"></p>
+    </div>
+    <div class="comp-right">
+      <div class="overall-ring">
+        <svg viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="var(--border)" stroke-width="8"/>
+          <circle cx="60" cy="60" r="52" fill="none" stroke-width="8" stroke-linecap="round" id="ringArc" stroke="var(--env)" transform="rotate(-90 60 60)" stroke-dasharray="326.7" stroke-dashoffset="326.7" style="transition:stroke-dashoffset 1.5s var(--ease)"/>
+        </svg>
+        <div class="score-text">
+          <span class="score-num" id="ringS">—</span>
+          <span class="score-grade" id="ringG">—</span>
+        </div>
+      </div>
+      <div class="lens-row">
+        <button class="lens-b active" data-l="investor">INVESTOR</button>
+        <button class="lens-b" data-l="jobseeker">JOB SEEKER</button>
+        <button class="lens-b" data-l="consumer">CONSUMER</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Three Pillar Gauges -->
+  <section class="gauges">
+    <!-- Environmental -->
+    <div class="gcol e" data-p="e">
+      <div class="gwrap">
+        <svg viewBox="0 0 180 180">
+          <circle cx="90" cy="90" r="78" fill="none" stroke="var(--border)" stroke-width="10"/>
+          <circle cx="90" cy="90" r="78" fill="none" stroke-width="10" stroke-linecap="round" stroke="var(--env)" id="garcE" transform="rotate(-90 90 90)" stroke-dasharray="490" stroke-dashoffset="490" style="transition:stroke-dashoffset 1.5s var(--ease)"/>
+        </svg>
+        <div class="gauge-inner">
+          <span class="gauge-num" id="gvsE" style="color:var(--env)">—</span>
+          <span class="gauge-grade" id="gvgE">—</span>
+        </div>
+      </div>
+      <div class="gauge-label">Environmental</div>
+      <div class="sub-metrics" id="subsE"></div>
+      <div class="gauge-insight" id="ginsE"></div>
+    </div>
+    <!-- Social -->
+    <div class="gcol s" data-p="s">
+      <div class="gwrap">
+        <svg viewBox="0 0 180 180">
+          <circle cx="90" cy="90" r="78" fill="none" stroke="var(--border)" stroke-width="10"/>
+          <circle cx="90" cy="90" r="78" fill="none" stroke-width="10" stroke-linecap="round" stroke="var(--soc)" id="garcS" transform="rotate(-90 90 90)" stroke-dasharray="490" stroke-dashoffset="490" style="transition:stroke-dashoffset 1.5s var(--ease)"/>
+        </svg>
+        <div class="gauge-inner">
+          <span class="gauge-num" id="gvsS" style="color:var(--soc)">—</span>
+          <span class="gauge-grade" id="gvgS">—</span>
+        </div>
+      </div>
+      <div class="gauge-label">Social</div>
+      <div class="sub-metrics" id="subsS"></div>
+      <div class="gauge-insight" id="ginsS"></div>
+    </div>
+    <!-- Governance -->
+    <div class="gcol g" data-p="g">
+      <div class="gwrap">
+        <svg viewBox="0 0 180 180">
+          <circle cx="90" cy="90" r="78" fill="none" stroke="var(--border)" stroke-width="10"/>
+          <circle cx="90" cy="90" r="78" fill="none" stroke-width="10" stroke-linecap="round" stroke="var(--gov)" id="garcG" transform="rotate(-90 90 90)" stroke-dasharray="490" stroke-dashoffset="490" style="transition:stroke-dashoffset 1.5s var(--ease)"/>
+        </svg>
+        <div class="gauge-inner">
+          <span class="gauge-num" id="gvsG" style="color:var(--gov)">—</span>
+          <span class="gauge-grade" id="gvgG">—</span>
+        </div>
+      </div>
+      <div class="gauge-label">Governance</div>
+      <div class="sub-metrics" id="subsG"></div>
+      <div class="gauge-insight" id="ginsG"></div>
+    </div>
+  </section>
+
+  <!-- Tabs -->
+  <nav class="tabs-bar" role="tablist" aria-label="Dashboard sections">
+    <button class="tab active" data-t="breakdown" role="tab" aria-selected="true" aria-controls="pBreakdown" id="tabBreakdown">Breakdown</button>
+    <button class="tab" data-t="controversies" role="tab" aria-selected="false" aria-controls="pControversies" id="tabControversies">Controversies</button>
+    <button class="tab" data-t="compare" role="tab" aria-selected="false" aria-controls="pCompare" id="tabCompare">Compare</button>
+    <button class="tab" data-t="redflags" role="tab" aria-selected="false" aria-controls="pRedflags" id="tabRedflags">Red Flags</button>
+  </nav>
+
+  <!-- Tab: Breakdown -->
+  <div id="pBreakdown" class="tp active" role="tabpanel" aria-labelledby="tabBreakdown">
+    <div class="breakdown-grid">
+      <div class="panel">
+        <div class="panel-head"><h3>ESG Score Trend</h3></div>
+        <div class="panel-body"><div class="chart-wrap"><canvas id="cTrend"></canvas></div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3 id="benchH">vs Industry Average</h3></div>
+        <div class="panel-body"><div class="chart-wrap"><canvas id="cBench"></canvas></div></div>
+      </div>
+    </div>
+    <div class="findings" id="findings"></div>
+  </div>
+
+  <!-- Tab: Controversies -->
+  <div id="pControversies" class="tp" role="tabpanel" aria-labelledby="tabControversies">
+    <div class="stats-row" id="cstats"></div>
+    <div class="timeline" id="tl"></div>
+  </div>
+
+  <!-- Tab: Compare -->
+  <div id="pCompare" class="tp" role="tabpanel" aria-labelledby="tabCompare">
+    <div class="panel" style="margin-bottom:16px">
+      <div class="panel-head"><h3>Radar Comparison</h3></div>
+      <div class="panel-body"><div class="chart-wrap tall"><canvas id="cRadar"></canvas></div></div>
+    </div>
+    <div id="cmpTbl"></div>
+    <div style="margin-top:16px"><button class="btn" id="addCmpBtn">+ Add Company</button></div>
+  </div>
+
+  <!-- Tab: Red Flags -->
+  <div id="pRedflags" class="tp" role="tabpanel" aria-labelledby="tabRedflags">
+    <div class="rf-header">
+      <h3>Risk Assessment</h3>
+      <div class="rf-badge">✓ Scan Complete</div>
+    </div>
+    <div id="flags"></div>
+    <div id="risk"></div>
+  </div>
+
+</main>
+
+<!-- ═══ COMPARE MODAL ═══ -->
+<div class="modal-overlay ov" id="cmpOv" role="dialog" aria-modal="true" aria-labelledby="cmpModalTitle" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="cmpModalTitle">Add Company to Compare</h3>
+      <button class="modal-close" id="cmpX" aria-label="Close compare dialog">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="ac-wrap">
+        <input type="text" id="cmpInput" placeholder="Type company name or ticker..." autocomplete="off" aria-label="Search for a company to compare" aria-autocomplete="list" aria-controls="cmpAc" aria-expanded="false" role="combobox">
+        <div class="ac-list" id="cmpAc" role="listbox" aria-label="Comparison search suggestions"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DETAIL MODAL (gauge click) ═══ -->
+<div class="modal-overlay ov" id="detailOv" role="dialog" aria-modal="true" aria-labelledby="detailTitle" aria-hidden="true">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="detailTitle">—</h3>
+      <button class="modal-close" id="detailX" aria-label="Close detail dialog">✕</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+  </div>
+</div>
+
+<!-- ═══ FAB (Export) ═══ -->
+<div class="fab" id="fab" style="display:none" role="region" aria-label="Export options">
+  <div class="fab-menu" id="fabMenu" role="menu" aria-label="Export actions">
+    <button id="exCopy" role="menuitem" aria-label="Copy report to clipboard">📋 Copy Report</button>
+    <button id="exCSV" role="menuitem" aria-label="Download data as CSV file">📊 Download CSV</button>
+    <button id="exShare" role="menuitem" aria-label="Copy shareable link to clipboard">🔗 Share URL</button>
+  </div>
+  <button class="fab-btn" id="fabBtn" aria-label="Open export menu" aria-haspopup="menu" aria-expanded="false">↗</button>
+</div>
+
+<!-- ═══ TOAST CONTAINER ═══ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ═══ FOOTER ═══ -->
+<footer class="app-footer" role="contentinfo">
+  <div class="footer-inner">
+    <div class="footer-sources">
+      <span class="footer-label">Data Sources</span>
+      <span class="footer-dot" aria-hidden="true">·</span>
+      <span>SEC EDGAR</span>
+      <span class="footer-dot" aria-hidden="true">·</span>
+      <span>World Bank Climate</span>
+      <span class="footer-dot" aria-hidden="true">·</span>
+      <span>GLEIF</span>
+      <span class="footer-dot" aria-hidden="true">·</span>
+      <span>OpenSanctions</span>
+      <span class="footer-dot" aria-hidden="true">·</span>
+      <span>USPTO Patents</span>
+    </div>
+    <p class="footer-disclaimer">ESG scores are computed from publicly available data and should not be considered investment advice.</p>
+  </div>
+</footer>
+
+<!-- ═══ SCRIPTS ═══ -->
+<script src="js/utils.js"></script>
+<script src="js/data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
