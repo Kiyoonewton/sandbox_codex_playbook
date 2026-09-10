@@ -532,29 +532,15 @@ input[type="range"]::-moz-range-thumb {
 /* ── RIGHT SIDE: Telemetry Grid ── */
 .telemetry-grid {
   display: grid;
-  grid-template-rows: auto auto 1fr;
+  grid-template-rows: auto auto 1fr auto;
   gap: 0;
   padding: 0;
 }
 
-/* The shot plan is the decision surface. Keep its context and three targets
-   together, so a bowler does not have to scan a vertical column before finding
-   the matching adjustment row. */
-.shot-plan {
-  border-bottom: 1px solid var(--grid-line);
-  background: linear-gradient(100deg, rgba(212, 168, 67, 0.08), transparent 68%);
-}
-
-.plan-context {
-  display: grid;
-  grid-template-columns: minmax(110px, 0.8fr) minmax(0, 1.2fr);
-  border-bottom: 1px solid var(--grid-line);
-}
-
 /* Key Pin Display */
 .keypin-display {
-  padding: 28px 20px 12px;
-  border-right: 1px solid var(--grid-line);
+  padding: 22px 20px 8px;
+  border-bottom: 1px solid var(--grid-line);
 }
 
 .keypin-label {
@@ -570,7 +556,7 @@ input[type="range"]::-moz-range-thumb {
 .keypin-value {
   font-family: 'Teko', sans-serif;
   font-weight: 600;
-  font-size: 28px;
+  font-size: 24px;
   color: var(--primary);
   line-height: 1;
 }
@@ -584,7 +570,8 @@ input[type="range"]::-moz-range-thumb {
 
 /* Scenario Display */
 .scenario-display {
-  padding: 12px 20px;
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--grid-line);
 }
 
 .scenario-label {
@@ -632,14 +619,13 @@ input[type="range"]::-moz-range-thumb {
 /* ── THREE MASSIVE DATA POINTS ── */
 .data-points {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: 1fr 1fr 1fr;
   gap: 0;
 }
 
 .data-point {
-  min-width: 0;
-  padding: 12px 14px 14px;
-  border-right: 1px solid var(--grid-line);
+  padding: 5px 20px;
+  border-bottom: 1px solid var(--grid-line);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -650,15 +636,11 @@ input[type="range"]::-moz-range-thumb {
   background: rgba(212, 168, 67, 0.04);
 }
 
-.data-point:last-child {
-  border-right: none;
-}
-
 .data-point-label {
   font-family: 'Barlow Condensed', sans-serif;
   font-weight: 500;
   font-size: 11px;
-  letter-spacing: 1.4px;
+  letter-spacing: 2.5px;
   text-transform: uppercase;
   color: var(--ink-faint);
   margin-bottom: 2px;
@@ -667,7 +649,7 @@ input[type="range"]::-moz-range-thumb {
 .data-point-value {
   font-family: 'Teko', sans-serif;
   font-weight: 700;
-  font-size: 36px;
+  font-size: 34px;
   line-height: 1;
   color: var(--ink);
   display: flex;
@@ -677,7 +659,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .data-point-value .unit {
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 400;
   color: var(--ink-dim);
   letter-spacing: 1px;
@@ -689,15 +671,14 @@ input[type="range"]::-moz-range-thumb {
 
 .data-point-sub {
   font-family: 'Fira Code', monospace;
-  font-size: 10px;
-  line-height: 1.3;
+  font-size: 11px;
   color: var(--ink-faint);
   margin-top: 2px;
 }
 
 /* ── ADJUSTMENT TABLE ── */
 .adj-table-section {
-  padding: 12px 20px 20px;
+  padding: 12px 20px;
 }
 
 .adj-table-header {
@@ -738,14 +719,8 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .adj-table tr.active td {
-  background: rgba(212, 168, 67, 0.14);
   color: var(--primary);
   font-weight: 600;
-}
-
-.adj-table tr.active td:first-child {
-  box-shadow: inset 3px 0 0 var(--primary);
-  padding-left: 7px;
 }
 
 .adj-table .pin-col {
@@ -1079,10 +1054,6 @@ input[type="range"]::-moz-range-thumb {
     padding: 6px 12px;
   }
 
-  .plan-context {
-    grid-template-columns: minmax(120px, 0.8fr) minmax(0, 1.2fr);
-  }
-
   .pin {
     width: 50px;
     height: 80px;
@@ -1139,19 +1110,6 @@ input[type="range"]::-moz-range-thumb {
     position: relative !important;
     bottom: auto !important;
     padding: 8px 0;
-  }
-}
-
-@media (max-width: 520px) {
-  .plan-context,
-  .data-points {
-    grid-template-columns: 1fr;
-  }
-
-  .keypin-display,
-  .data-point {
-    border-right: none;
-    border-bottom: 1px solid var(--grid-line);
   }
 }
 
@@ -1305,38 +1263,37 @@ input[type="range"]::-moz-range-thumb {
     <button class="reset-btn" id="resetBtn" onclick="resetAll()">↺ RESET</button>
 
     <div class="telemetry-grid">
-      <section class="shot-plan" aria-label="Active spare plan">
-        <div class="plan-context">
-          <div class="keypin-display">
-            <div class="keypin-label">Key Pin</div>
-            <div class="keypin-value" id="keypinValue">— <span>select pins</span></div>
-          </div>
+      <!-- Key Pin Display -->
+      <div class="keypin-display">
+        <div class="keypin-label">Key Pin</div>
+        <div class="keypin-value" id="keypinValue">— <span>select pins</span></div>
+      </div>
 
-          <div class="scenario-display">
-            <div class="scenario-label">Standing Pins</div>
-            <div class="standing-pins" id="standingPins"></div>
-            <div class="scenario-name" id="scenarioName"></div>
-          </div>
-        </div>
+      <!-- Scenario -->
+      <div class="scenario-display">
+        <div class="scenario-label">Standing Pins</div>
+        <div class="standing-pins" id="standingPins"></div>
+        <div class="scenario-name" id="scenarioName"></div>
+      </div>
 
-        <div class="data-points">
-          <div class="data-point">
-            <div class="data-point-label">Stand On Board</div>
-            <div class="data-point-value highlight" id="dpBoard">—</div>
-            <div class="data-point-sub" id="dpBoardSub">from strike position</div>
-          </div>
-          <div class="data-point">
-            <div class="data-point-label">Aim At Arrow</div>
-            <div class="data-point-value" id="dpArrow">—</div>
-            <div class="data-point-sub" id="dpArrowSub">lane targeting</div>
-          </div>
-          <div class="data-point">
-            <div class="data-point-label">Ball Trajectory Angle</div>
-            <div class="data-point-value" id="dpAngle">—</div>
-            <div class="data-point-sub" id="dpAngleSub">cross-lane angle</div>
-          </div>
+      <!-- Three massive data points -->
+      <div class="data-points">
+        <div class="data-point">
+          <div class="data-point-label">Stand On Board</div>
+          <div class="data-point-value highlight" id="dpBoard">—</div>
+          <div class="data-point-sub" id="dpBoardSub">from strike position</div>
         </div>
-      </section>
+        <div class="data-point">
+          <div class="data-point-label">Aim At Arrow</div>
+          <div class="data-point-value" id="dpArrow">—</div>
+          <div class="data-point-sub" id="dpArrowSub">lane targeting</div>
+        </div>
+        <div class="data-point">
+          <div class="data-point-label">Ball Trajectory Angle</div>
+          <div class="data-point-value" id="dpAngle">—</div>
+          <div class="data-point-sub" id="dpAngleSub">cross-lane angle</div>
+        </div>
+      </div>
 
       <!-- Adjustment Reference Table -->
       <div class="adj-table-section">
@@ -1363,7 +1320,7 @@ input[type="range"]::-moz-range-thumb {
       <div class="oil-endpoints">
         <span class="oil-endpoint">Dry</span>
         <div class="slider-track">
-          <input type="range" id="oilSlider" min="0" max="100" value="50" oninput="previewOil(this.value)" onchange="commitOil(this.value)">
+          <input type="range" id="oilSlider" min="0" max="100" value="50" oninput="updateOil(this.value)">
         </div>
         <span class="oil-endpoint">Heavy</span>
       </div>
@@ -1403,30 +1360,8 @@ const history = {
   maxHistory: 50,
 };
 
-function clonePins(pins) {
-  return JSON.parse(JSON.stringify(pins));
-}
-
-function snapshotSetup() {
-  return {
-    pins: clonePins(state.pins),
-    hand: state.hand,
-    oilValue: state.oilValue,
-  };
-}
-
-function sameSetup(a, b) {
-  return JSON.stringify(a) === JSON.stringify(b);
-}
-
-function applySetup(snapshot) {
-  state.pins = clonePins(snapshot.pins);
-  state.hand = snapshot.hand;
-  state.oilValue = snapshot.oilValue;
-}
-
-function pushHistory(snapshot = snapshotSetup()) {
-  history.undoStack.push(snapshot);
+function pushHistory() {
+  history.undoStack.push(JSON.parse(JSON.stringify(state.pins)));
   if (history.undoStack.length > history.maxHistory) history.undoStack.shift();
   history.redoStack = [];
   updateUndoRedoButtons();
@@ -1434,18 +1369,18 @@ function pushHistory(snapshot = snapshotSetup()) {
 
 function undo() {
   if (history.undoStack.length === 0) return;
-  history.redoStack.push(snapshotSetup());
-  applySetup(history.undoStack.pop());
-  renderSetup();
+  history.redoStack.push(JSON.parse(JSON.stringify(state.pins)));
+  state.pins = history.undoStack.pop();
+  updateUI();
   updateUndoRedoButtons();
   saveState();
 }
 
 function redo() {
   if (history.redoStack.length === 0) return;
-  history.undoStack.push(snapshotSetup());
-  applySetup(history.redoStack.pop());
-  renderSetup();
+  history.undoStack.push(JSON.parse(JSON.stringify(state.pins)));
+  state.pins = history.redoStack.pop();
+  updateUI();
   updateUndoRedoButtons();
   saveState();
 }
@@ -1466,12 +1401,9 @@ let saveTimer = null;
 function saveState() {
   try {
     const data = {
-      version: 2,
-      setup: snapshotSetup(),
-      history: {
-        undoStack: history.undoStack,
-        redoStack: history.redoStack,
-      },
+      pins: state.pins,
+      hand: state.hand,
+      oilValue: state.oilValue,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     // Flash save indicator
@@ -1484,35 +1416,18 @@ function saveState() {
   } catch (e) { /* ignore */ }
 }
 
-function validSetup(candidate) {
-  if (!candidate || typeof candidate !== 'object' || !candidate.pins) return null;
-  const pins = {};
-  for (let pin = 1; pin <= 10; pin++) {
-    const status = candidate.pins[pin];
-    if (status !== 'standing' && status !== 'down') return null;
-    pins[pin] = status;
-  }
-  if (candidate.hand !== 'right' && candidate.hand !== 'left') return null;
-  const oilValue = Number(candidate.oilValue);
-  if (!Number.isFinite(oilValue) || oilValue < 0 || oilValue > 100) return null;
-  return { pins, hand: candidate.hand, oilValue };
-}
-
-function readHistory(items) {
-  if (!Array.isArray(items)) return [];
-  return items.map(validSetup).filter(Boolean).slice(-history.maxHistory);
-}
-
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return false;
     const data = JSON.parse(raw);
-    const setup = validSetup(data.setup || data);
-    if (!setup) return false;
-    applySetup(setup);
-    history.undoStack = readHistory(data.history?.undoStack);
-    history.redoStack = readHistory(data.history?.redoStack);
+    if (data.pins) {
+      for (let k of Object.keys(data.pins)) {
+        state.pins[parseInt(k)] = data.pins[k];
+      }
+    }
+    if (data.hand) state.hand = data.hand;
+    if (data.oilValue !== undefined) state.oilValue = data.oilValue;
     return true;
   } catch (e) { return false; }
 }
@@ -1529,7 +1444,7 @@ const PRESETS = {
   babySplit:{ 1:'down',2:'down',3:'down',4:'standing',5:'down',6:'down',7:'down',8:'down',9:'standing',10:'down' },
   bigFour:  { 1:'down',2:'down',3:'down',4:'standing',5:'down',6:'standing',7:'standing',8:'down',9:'down',10:'standing' },
   washout:  { 1:'standing',2:'standing',3:'standing',4:'standing',5:'down',6:'standing',7:'down',8:'down',9:'down',10:'standing' },
-  GreekChurch:{ 1:'standing',2:'standing',3:'standing',4:'standing',5:'down',6:'standing',7:'down',8:'down',9:'down',10:'standing' },
+  GreekChurch:{ 1:'down',2:'down',3:'down',4:'standing',5:'down',6:'standing',7:'standing',8:'down',9:'standing',10:'standing' },
 };
 
 function loadPreset(name) {
@@ -1549,13 +1464,6 @@ function highlightPreset(name) {
     const btnPreset = btn.getAttribute('data-preset');
     btn.classList.toggle('active', btnPreset === name);
   });
-}
-
-function highlightMatchingPreset() {
-  const match = Object.entries(PRESETS).find(([, preset]) =>
-    Object.keys(preset).every(pin => preset[pin] === state.pins[pin])
-  );
-  highlightPreset(match ? match[0] : null);
 }
 
 // Pin layout: row by row, left to right
@@ -1884,8 +1792,10 @@ function updateUI() {
       standBoard += oilOffset;
     } else if (adj.dir === 'left') {
       standBoard -= oilOffset;
+    } else if (state.hand === 'right') {
+      standBoard += oilOffset;
     } else {
-      standBoard += oilOffset; // center: default shift right for dry
+      standBoard -= oilOffset;
     }
 
     standBoard = Math.max(1, Math.min(39, Math.round(standBoard * 10) / 10));
@@ -1915,7 +1825,7 @@ function updateUI() {
       `targeting board ${arrowBoard}`;
 
     document.getElementById('dpAngle').innerHTML =
-      `${Math.abs(angleDeg).toFixed(1)}° <span class="unit">°</span>`;
+      `${Math.abs(angleDeg).toFixed(1)}°`;
     document.getElementById('dpAngleSub').textContent =
       `${angleDeg > 0 ? 'left-to-right' : angleDeg < 0 ? 'right-to-left' : 'straight'} cross-lane trajectory`;
   } else {
@@ -1947,69 +1857,30 @@ function togglePin(pinNum) {
   }
 
   updateUI();
-  highlightMatchingPreset();
   saveState();
 }
 
 function setHand(hand) {
-  if (state.hand === hand) return;
-  pushHistory();
   state.hand = hand;
-  renderSetup();
+  document.getElementById('btnRight').classList.toggle('active', hand === 'right');
+  document.getElementById('btnLeft').classList.toggle('active', hand === 'left');
+  buildAdjTable();
+  updateUI();
   saveState();
 }
 
-function updateOilReadout() {
-  document.getElementById('oilSlider').value = state.oilValue;
+function updateOil(value) {
+  state.oilValue = parseInt(value);
   document.getElementById('oilIndicator').textContent = getOilLabel();
   const offset = getOilOffset();
   document.getElementById('oilOffset').textContent =
     `Offset: ${offset > 0 ? '+' : ''}${offset.toFixed(1)} boards`;
-}
-
-function previewOil(value) {
-  state.oilValue = parseInt(value);
-  updateUI();
-}
-
-function commitOil(value) {
-  const slider = document.getElementById('oilSlider');
-  const previous = Number(slider.dataset.committedValue ?? state.oilValue);
-  state.oilValue = parseInt(value);
-  if (previous === state.oilValue) return;
-  const before = snapshotSetup();
-  before.oilValue = previous;
-  pushHistory(before);
-  slider.dataset.committedValue = String(state.oilValue);
-  updateOilReadout();
   updateUI();
   saveState();
 }
 
 function resetAll() {
-  const defaults = {
-    pins: Object.fromEntries(Array.from({ length: 10 }, (_, index) => [index + 1, 'standing'])),
-    hand: 'right',
-    oilValue: 50,
-  };
-  if (sameSetup(snapshotSetup(), defaults)) return;
   pushHistory();
-  applySetup(defaults);
-  renderSetup();
-  saveState();
-}
-
-function renderSetup() {
-  document.getElementById('btnRight').classList.toggle('active', state.hand === 'right');
-  document.getElementById('btnLeft').classList.toggle('active', state.hand === 'left');
-  updateOilReadout();
-  document.getElementById('oilSlider').dataset.committedValue = String(state.oilValue);
-  buildAdjTable();
-  updateUI();
-}
-
-/* Legacy version kept the pin loop below; setup rendering now owns reset. */
-function resetPinsOnlyLegacy() {
   for (let pin = 1; pin <= 10; pin++) {
     state.pins[pin] = 'standing';
   }
@@ -2023,10 +1894,20 @@ function resetPinsOnlyLegacy() {
 
 // Load saved state if available
 const loaded = loadState();
+if (loaded) {
+  document.getElementById('btnRight').classList.toggle('active', state.hand === 'right');
+  document.getElementById('btnLeft').classList.toggle('active', state.hand === 'left');
+  document.getElementById('oilSlider').value = state.oilValue;
+  document.getElementById('oilIndicator').textContent = getOilLabel();
+  const offset = getOilOffset();
+  document.getElementById('oilOffset').textContent =
+    'Offset: ' + (offset > 0 ? '+' : '') + offset.toFixed(1) + ' boards';
+}
 
 buildPinDeck();
 buildBoardNumbers();
-renderSetup();
+buildAdjTable();
+updateUI();
 updateUndoRedoButtons();
 </script>
 </body>

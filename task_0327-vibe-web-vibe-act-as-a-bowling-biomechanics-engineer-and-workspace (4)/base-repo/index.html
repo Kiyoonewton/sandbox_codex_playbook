@@ -1451,13 +1451,6 @@ function loadPreset(name) {
   const preset = PRESETS[name];
   if (!preset) return;
   pushHistory();
-  // A preset currently replaces the entire lane setup instead of just its pin deck.
-  state.hand = 'right';
-  state.oilValue = 50;
-  document.getElementById('btnRight').classList.add('active');
-  document.getElementById('btnLeft').classList.remove('active');
-  document.getElementById('oilSlider').value = state.oilValue;
-  document.getElementById('oilIndicator').textContent = getOilLabel();
   for (let k of Object.keys(preset)) {
     state.pins[parseInt(k)] = preset[k];
   }
@@ -1546,7 +1539,7 @@ function getOilOffset() {
   const normalized = (state.oilValue - 50) / 50; // -1 to +1
   // Dry (-1): +2 boards offset (stand further)
   // Heavy (+1): -2 boards offset (stand closer)
-  return Math.round(-normalized * 1.25 * 10) / 10;
+  return Math.round(-normalized * 2.5 * 10) / 10;
 }
 
 function getOilLabel() {
@@ -1569,7 +1562,7 @@ function findKeyPin() {
   for (let pin = 1; pin <= 10; pin++) {
     if (state.pins[pin] === 'standing') {
       const dist = PIN_DISTANCE[pin];
-      if (dist <= minDist) {
+      if (dist < minDist) {
         minDist = dist;
         closest = pin;
       }
@@ -1834,7 +1827,7 @@ function updateUI() {
       `${Math.abs(angleDeg).toFixed(1)}° <span class="unit">°</span>`;
     document.getElementById('dpAngleSub').textContent =
       `${angleDeg > 0 ? 'left-to-right' : angleDeg < 0 ? 'right-to-left' : 'straight'} cross-lane trajectory`;
-  } else if (noneDown) {
+  } else {
     document.getElementById('dpBoard').textContent = '—';
     document.getElementById('dpBoardSub').textContent = 'from strike position';
     document.getElementById('dpArrow').textContent = '—';
@@ -1870,6 +1863,7 @@ function setHand(hand) {
   state.hand = hand;
   document.getElementById('btnRight').classList.toggle('active', hand === 'right');
   document.getElementById('btnLeft').classList.toggle('active', hand === 'left');
+  buildAdjTable();
   updateUI();
   saveState();
 }
