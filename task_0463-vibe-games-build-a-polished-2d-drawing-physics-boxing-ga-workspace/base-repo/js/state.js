@@ -16,13 +16,9 @@ const GameState = {
   rawPath: [], smoothPath: [], isDrawing: false,
   punchT: 0,
   currentHint: '',
-  runLen: 0,
-  resumeLvl: 0,
 
   loadLevel(n) {
     this.lvl = n;
-    this.runLen++;
-    this.resumeLvl = Math.max(this.resumeLvl, n);
     const data = LevelGen.generate(n);
     this.planks = data.planks.map(p => ({ ...p, baseX: p.x, baseY: p.y }));
     this.blueB = { ...data.blue };
@@ -34,29 +30,6 @@ const GameState = {
     this.isDrawing = false;
     Particles.clear();
     this.state = ST.DRAW;
-    this.syncHud();
-  },
-
-  badgeReserve() {
-    const digits = String(Math.max(this.lvl, this.maxLvl)).length;
-    return 84 + digits * 18 + (this.runLen > 1 ? 26 : 0);
-  },
-
-  syncHud() {
-    const hb = document.getElementById('hudButtons');
-    if (!hb) return;
-    const reserve = this.badgeReserve();
-    hb.style.right = (12 - reserve) + 'px';
-    hb.style.top = (12 + (this.runLen > 1 ? 8 : 0)) + 'px';
-  },
-
-  commitBest() {
-    const reached = this.runLen > 1 ? this.lvl - 1 : this.lvl;
-    if (reached > this.maxLvl) {
-      this.maxLvl = reached;
-      localStorage.setItem('dpMax', this.maxLvl);
-    }
-    this.syncHud();
   },
 
   hideOvs() {
@@ -67,9 +40,9 @@ const GameState = {
   start() {
     Audio.init();
     this.lvl = +(localStorage.getItem('dpMax') || '1');
-    this.resumeLvl = 0;
     document.getElementById('titleScreen').classList.add('hidden');
     document.getElementById('hudButtons').classList.remove('hidden');
+    window.RouteFeedback?.show();
     this.loadLevel(this.lvl);
   },
 
@@ -77,13 +50,15 @@ const GameState = {
     Audio.init();
     this.hideOvs();
     document.getElementById('hudButtons').classList.remove('hidden');
-    this.loadLevel(Math.max(this.resumeLvl, this.lvl));
+    window.RouteFeedback?.show();
+    this.loadLevel(this.lvl);
   },
 
   goToLevel1() {
     Audio.init();
     this.hideOvs();
     document.getElementById('hudButtons').classList.remove('hidden');
+    window.RouteFeedback?.show();
     this.lvl = 1;
     this.loadLevel(1);
   },
@@ -91,14 +66,19 @@ const GameState = {
   next() {
     Audio.init();
     this.hideOvs();
-    const from = Math.max(this.resumeLvl, this.lvl);
-    this.loadLevel(from + 1);
-    this.commitBest();
+    window.RouteFeedback?.show();
+    this.lvl++;
+    if (this.lvl > this.maxLvl) {
+      this.maxLvl = this.lvl;
+      localStorage.setItem('dpMax', this.maxLvl);
+    }
+    this.loadLevel(this.lvl);
   },
 
   home() {
     this.hideOvs();
     document.getElementById('hudButtons').classList.add('hidden');
+    window.RouteFeedback?.hide();
     document.getElementById('titleScreen').classList.remove('hidden');
     this.state = ST.TITLE;
     this.planks = [];
@@ -122,36 +102,29 @@ const GameState = {
     }
   },
 
-  blocked(x, y, kind) {
-    this.state = ST.LOSE;
-    Audio.play('block');
-    this.shakeT = 0.3;
-    this.shakeI = 8;
-    Particles.spawn(x, y, kind === 'miss' ? K.red : K.wood, 12, 3);
-    const ft = document.getElementById('failText');
-    ft.textContent = kind === 'miss' ? 'MISS!' : 'BLOCKED!';
-    ft.style.color = kind === 'miss' ? K.red : K.wood;
-    document.getElementById('failSub').textContent = kind === 'miss'
-      ? 'Almost — try a different path!'
-      : 'Back to Level 1 — one clean run!';
-    this.resumeLvl = Math.max(this.resumeLvl, this.lvl);
-    this.punchT = 1;
-    this.syncHud();
-    setTimeout(() => {
-      if (this.state === ST.LOSE) {
-        document.getElementById('failOverlay').classList.remove('hidden');
-      }
-    }, 520);
-  },
-
   launch() {
     if (this.rawPath.length < 2) return;
     this.smoothPath = PathSys.smooth(this.rawPath);
     // STRICT: check entire drawn path vs current plank positions
     const pre = Collide.pathHitsAnyPlank(this.smoothPath, this.planks, this.t, W, H);
     if (pre.hit) {
-      const last = this.rawPath[this.rawPath.length - 1];
-      this.blocked(last.x, last.y, 'plank');
+      this.state = ST.LOSE;
+      Audio.play('block');
+      this.shakeT = 0.3;
+      this.shakeI = 8;
+      Particles.spawn(
+        this.rawPath[this.rawPath.length - 1].x,
+        this.rawPath[this.rawPath.length - 1].y,
+        K.wood, 12, 3
+      );
+      document.getElementById('failText').textContent = 'BLOCKED!';
+      document.getElementById('failText').style.color = K.wood;
+      document.getElementById('failSub').textContent = 'Back to Level 1 — one clean run!';
+      setTimeout(() => {
+        if (this.state === ST.LOSE) {
+          document.getElementById('failOverlay').classList.remove('hidden');
+        }
+      }, 550);
       return;
     }
     this.state = ST.PUNCH;
@@ -165,7 +138,10 @@ const GameState = {
     if (Collide.gloveHitsRed(end.x, end.y, this.redB, SC)) {
       // WIN this level!
       this.state = ST.WIN;
-      this.commitBest();
+      if (this.lvl >= this.maxLvl) {
+        this.maxLvl = this.lvl;
+        localStorage.setItem('dpMax', this.maxLvl);
+      }
       Audio.play('hit');
       Audio.play('ding');
       this.shakeT = 0.4;
@@ -174,14 +150,25 @@ const GameState = {
       Particles.spawn(this.redB.x * W, this.redB.y * H, K.blue, 16, 4);
       setTimeout(() => {
         if (this.state !== ST.WIN) return;
-        document.getElementById('lcText').textContent = 'LEVEL ' + Math.max(this.resumeLvl, this.lvl) + ' CLEAR!';
+        document.getElementById('lcText').textContent = 'LEVEL ' + this.lvl + ' CLEAR!';
         document.getElementById('levelCompleteOverlay').classList.remove('hidden');
         const btn = document.getElementById('btnNext');
         btn.textContent = 'NEXT LEVEL →';
         btn.onclick = () => this.next();
       }, 650);
     } else {
-      this.blocked(end.x, end.y, 'miss');
+      this.state = ST.LOSE;
+      Audio.play('block');
+      this.shakeT = 0.3;
+      this.shakeI = 8;
+      document.getElementById('failText').textContent = 'MISS!';
+      document.getElementById('failText').style.color = K.red;
+      document.getElementById('failSub').textContent = 'Almost — try a different path!';
+      setTimeout(() => {
+        if (this.state === ST.LOSE) {
+          document.getElementById('failOverlay').classList.remove('hidden');
+        }
+      }, 550);
     }
   }
 };
