@@ -1361,8 +1361,8 @@ const history = {
 };
 
 function pushHistory() {
-  history.undoStack.push(JSON.parse(JSON.stringify(state.pins)));
   if (history.undoStack.length > history.maxHistory) history.undoStack.shift();
+  history.undoStack.push(JSON.parse(JSON.stringify(state.pins)));
   history.redoStack = [];
   updateUndoRedoButtons();
 }

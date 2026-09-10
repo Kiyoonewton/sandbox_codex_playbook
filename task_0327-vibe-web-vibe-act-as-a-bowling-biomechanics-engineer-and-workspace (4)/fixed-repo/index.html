@@ -1456,7 +1456,6 @@ function loadPreset(name) {
   }
   updateUI();
   saveState();
-  highlightPreset(name);
 }
 
 function highlightPreset(name) {
@@ -1464,6 +1463,20 @@ function highlightPreset(name) {
     const btnPreset = btn.getAttribute('data-preset');
     btn.classList.toggle('active', btnPreset === name);
   });
+}
+
+// Re-derive which preset (if any) the current pin layout actually matches,
+// so the highlighted button always reflects reality after a manual toggle,
+// undo, redo, or reset — not just immediately after loadPreset() ran.
+function syncPresetHighlight() {
+  const matchName = Object.keys(PRESETS).find(name => {
+    const preset = PRESETS[name];
+    for (let pin = 1; pin <= 10; pin++) {
+      if (state.pins[pin] !== preset[pin]) return false;
+    }
+    return true;
+  });
+  highlightPreset(matchName || null);
 }
 
 // Pin layout: row by row, left to right
@@ -1485,6 +1498,13 @@ const PIN_BOARDS = {
 // Pin row order (closest to farthest from bowler)
 const PIN_ROW_ORDER = [1, 2, 3, 4]; // row indices
 const PIN_DISTANCE = { 1: 1, 2: 2, 3: 2, 4: 3, 5: 3, 6: 3, 7: 4, 8: 4, 9: 4, 10: 4 };
+
+// Pins whose wood physically touches/neighbors another pin's position
+const PIN_ADJACENCY = {
+  1: [2, 3], 2: [1, 3, 4, 5], 3: [1, 2, 5, 6], 4: [2, 5, 7, 8],
+  5: [2, 3, 4, 6, 8, 9], 6: [3, 5, 9, 10], 7: [4, 8], 8: [4, 5, 7, 9],
+  9: [5, 6, 8, 10], 10: [6, 9]
+};
 
 // ══════════════════════════════════════════════════════════════
 // 3:6:9 ADJUSTMENT ENGINE
@@ -1554,7 +1574,8 @@ function getOilLabel() {
 // ══════════════════════════════════════════════════════════════
 
 function findKeyPin() {
-  // Key pin = closest standing pin to the bowler
+  // Key pin = closest standing pin to the bowler. On a genuine distance tie,
+  // favor the pin on the side the bowler's hook naturally carries into.
   let closest = null;
   let minDist = Infinity;
 
@@ -1564,6 +1585,12 @@ function findKeyPin() {
       if (dist < minDist) {
         minDist = dist;
         closest = pin;
+      } else if (dist === minDist && closest !== null) {
+        const favorsRight = state.hand === 'right' && PIN_BOARDS[pin] > PIN_BOARDS[closest];
+        const favorsLeft = state.hand === 'left' && PIN_BOARDS[pin] < PIN_BOARDS[closest];
+        if (favorsRight || favorsLeft) {
+          closest = pin;
+        }
       }
     }
   }
@@ -1589,11 +1616,6 @@ function getScenarioName(standingPins) {
     return names[pin] || 'Single Pin';
   }
 
-  // Check for splits
-  const leftPins = standingPins.filter(p => PIN_BOARDS[p] < 0);
-  const rightPins = standingPins.filter(p => PIN_BOARDS[p] > 0);
-  const centerPins = standingPins.filter(p => PIN_BOARDS[p] === 0);
-
   // 7-10 split
   if (standingPins.includes(7) && standingPins.includes(10) && n === 2) return '7-10 Split (Bedford)';
   // 4-6 split
@@ -1601,12 +1623,36 @@ function getScenarioName(standingPins) {
   // Big Four
   if (standingPins.includes(4) && standingPins.includes(6) && standingPins.includes(7) && standingPins.includes(10)) return 'Big Four (4-6-7-10)';
 
-  if (leftPins.length > 0 && rightPins.length > 0) {
+  // A split requires the head pin down and the remaining pins to form more
+  // than one physically separated cluster (a gap the ball can't clear at once).
+  const isSplit = !standingPins.includes(1) && !isSingleCluster(standingPins);
+  if (isSplit) {
     return `Split — ${n} Pins Remaining`;
   }
-  if (leftPins.length > 0) return `${n}-Count (Left Side)`;
-  if (rightPins.length > 0) return `${n}-Count (Right Side)`;
+  const leftPins = standingPins.filter(p => PIN_BOARDS[p] < 0);
+  const rightPins = standingPins.filter(p => PIN_BOARDS[p] > 0);
+  if (leftPins.length > 0 && rightPins.length === 0) return `${n}-Count (Left Side)`;
+  if (rightPins.length > 0 && leftPins.length === 0) return `${n}-Count (Right Side)`;
   return `${n}-Count Remaining`;
+}
+
+// Are all standing pins reachable from one another through neighboring
+// standing pins? If not, they form separated clusters (a split).
+function isSingleCluster(standingPins) {
+  const set = new Set(standingPins);
+  const visited = new Set();
+  const queue = [standingPins[0]];
+  visited.add(standingPins[0]);
+  while (queue.length) {
+    const current = queue.shift();
+    for (const neighbor of PIN_ADJACENCY[current]) {
+      if (set.has(neighbor) && !visited.has(neighbor)) {
+        visited.add(neighbor);
+        queue.push(neighbor);
+      }
+    }
+  }
+  return visited.size === standingPins.length;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -1721,6 +1767,8 @@ function updateUI() {
   } else {
     overlay.classList.remove('visible');
   }
+
+  syncPresetHighlight();
 
   // Update pin visual states
   for (let pin = 1; pin <= 10; pin++) {

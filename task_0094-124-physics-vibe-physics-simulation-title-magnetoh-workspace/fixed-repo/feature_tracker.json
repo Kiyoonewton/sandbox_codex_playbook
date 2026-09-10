@@ -1,0 +1,31 @@
+[
+  {
+    "name": "Project scaffolding and HTML structure",
+    "status": "done"
+  },
+  {
+    "name": "Fix physics issues (Troyon limit, growth rates, display timing)",
+    "status": "done"
+  },
+  {
+    "name": "Final polish: responsive breakpoints, rename function, visual improvements",
+    "status": "done"
+  },
+  {
+    "name": "Polish: persistence, undo/redo, better visuals, enhanced tooltips",
+    "status": "done"
+  },
+  {
+    "name": "FIX 1: 4-state status logic (confined/warning/degrading/disrupted)",
+    "status": "done",
+    "notes": "updateStatus() in main.js, setStatusBadge() and updateReadouts() in readouts.js"
+  },
+  {
+    "name": "FIX 2: q surface display N/A when outside plasma",
+    "status": "done"
+  },
+  {
+    "name": "Additional verification: disruption status, mobile, keyboard shortcuts, visual polish",
+    "status": "done"
+  }
+]

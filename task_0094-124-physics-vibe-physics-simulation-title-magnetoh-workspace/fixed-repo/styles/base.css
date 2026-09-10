@@ -1,0 +1,74 @@
+/* ═══════════════════════════════════════════════════════════
+   BASE STYLES — FUSION REACTOR CORE
+   Background: #040201 (near-black warm ember)
+   Palette: #FFFDE7 → #FFD700 → #FF8C00 → #FF4500 → #CC2200 → #661100
+   Accent: #FF8C00 amber | Ink: #D4A870 warm tan
+   Panel: #080402 bg, #3A1A00 borders
+   Typography: Rajdhani headings, Share Tech Mono data
+   ═══════════════════════════════════════════════════════════ */
+:root {
+  --bg: #040201;
+  --panel-bg: #080402;
+  --panel-border: #3A1A00;
+  --accent: #FF8C00;
+  --accent-dim: #995400;
+  --ink: #D4A870;
+  --ink-dim: #8A6A40;
+  --core-white: #FFFDE7;
+  --gold: #FFD700;
+  --red-hot: #FF4500;
+  --deep-red: #CC2200;
+  --ember: #661100;
+  --kink-color: #FF0066;
+  --sausage-color: #FF3300;
+  --balloon-color: #FFAA00;
+  --confined: #39FF14;
+  --unstable: #FFD700;
+  --disrupted: #FF2020;
+  --font-data: 'Share Tech Mono', monospace;
+  --font-heading: 'Rajdhani', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-data);
+  font-size: 13px;
+  overflow: hidden;
+}
+
+/* Loading Spinner */
+#loading {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 16px;
+  transition: opacity 0.5s;
+}
+#loading.hidden { opacity: 0; pointer-events: none; }
+.spinner {
+  width: 48px; height: 48px;
+  border: 3px solid var(--panel-border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#loading p {
+  color: var(--accent);
+  font-family: var(--font-data);
+  font-size: 14px;
+  letter-spacing: 2px;
+}
+
+/* Error banner */
+#error-banner {
+  display: none; position: fixed; top: 0; left: 0; right: 0;
+  background: #2A0800; border-bottom: 2px solid var(--deep-red);
+  color: var(--disrupted); padding: 10px 20px; z-index: 9998;
+  font-family: var(--font-data); text-align: center;
+}

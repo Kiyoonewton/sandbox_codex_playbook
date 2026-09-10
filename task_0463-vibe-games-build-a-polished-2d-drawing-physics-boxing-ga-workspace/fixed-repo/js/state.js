@@ -30,7 +30,6 @@ const GameState = {
     this.isDrawing = false;
     Particles.clear();
     this.state = ST.DRAW;
-    window.RouteFeedback?.reset();
   },
 
   hideOvs() {
@@ -93,10 +92,18 @@ const GameState = {
   pause() {
     Audio.init();
     if (this.state === ST.PAUSE) {
-      this.state = ST.DRAW;
       this.hideOvs();
       document.getElementById('hudButtons').classList.remove('hidden');
+      if (this.pausedFrom === ST.PUNCH) {
+        // A punch was interrupted mid-flight — resume into a clean draw state
+        // for this level rather than leaving stale path/punch progress behind.
+        this.loadLevel(this.lvl);
+      } else {
+        this.state = ST.DRAW;
+      }
+      this.pausedFrom = null;
     } else if (this.state === ST.DRAW || this.state === ST.PUNCH) {
+      this.pausedFrom = this.state;
       this.state = ST.PAUSE;
       this.hideOvs();
       document.getElementById('pauseOverlay').classList.remove('hidden');

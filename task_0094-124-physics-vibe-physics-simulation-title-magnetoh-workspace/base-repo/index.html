@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MHD Plasma Torus — Fusion Confinement Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/base.css">
+<link rel="stylesheet" href="styles/components.css">
+</head>
+<body>
+<!-- Loading -->
+<div id="loading"><div class="spinner"></div><p>INITIALIZING PLASMA CONFINEMENT...</p></div>
+
+<!-- Tutorial -->
+<div id="tutorial-overlay"><div id="tutorial-box"><h2>MHD PLASMA TORUS</h2>
+<p>Explore magnetized plasma confinement in a tokamak. Adjust magnetic parameters, trigger MHD instabilities, and observe confinement in real time.</p>
+<div class="tut-list"><div>&#127918; <span>Left panel</span> — q-profile, &beta;, pressure</div><div>&#9889; <span>Trigger modes</span> — Kink, Sausage, Ballooning</div><div>&#128202; <span>Right panel</span> — Live readouts &amp; q-chart</div><div>&#128433; <span>Drag</span> — Orbit 3D view</div><div>&#9000; <span>Keyboard</span> — K/S/B modes, R reset, P screenshot</div></div>
+<button id="tutorial-dismiss">BEGIN SIMULATION</button></div></div>
+
+<!-- Keyboard Help -->
+<div id="keyboard-help"><div id="kbhelp-box"><h3>KEYBOARD SHORTCUTS</h3>
+<div class="kb-grid"><span class="kbd">K</span><span>Trigger kink mode</span><span class="kbd">S</span><span>Trigger sausage mode</span><span class="kbd">B</span><span>Trigger ballooning</span><span class="kbd">Space</span><span>Pause / Resume</span><span class="kbd">R</span><span>Reset parameters</span><span class="kbd">P</span><span>Screenshot</span><span class="kbd">F</span><span>Toggle field lines</span><span class="kbd">C</span><span>Toggle auto-rotate</span><span class="kbd">?</span><span>Show this help</span></div>
+<button onclick="document.getElementById('keyboard-help').style.display='none'" style="display:block;margin:16px auto 0;background:transparent;border:1px solid #3A1A00;color:#8A6A40;padding:6px 24px;font-family:var(--font-data);font-size:11px;cursor:pointer">CLOSE</button></div></div>
+
+<!-- Error Banner -->
+<div id="error-banner"></div>
+
+<!-- Main App -->
+<div id="app">
+  <!-- Left Panel: Controls -->
+  <div id="controls-panel" class="panel">
+    <div class="panel-header">CONTROLS <span id="btn-help" style="cursor:pointer;font-size:11px;color:#8A6A40;font-family:var(--font-data)" title="Keyboard shortcuts (?)">[?]</span></div>
+    <div class="section"><div class="section-label">PRESETS</div><div class="preset-grid"><button class="preset-btn active" data-preset="iter">ITER Baseline</button><button class="preset-btn" data-preset="kink">Kink Unstable</button><button class="preset-btn" data-preset="highbeta">High Beta</button><button class="preset-btn" data-preset="peaked">Peaked Pressure</button></div></div>
+    <div class="section"><div class="section-label">PLASMA PARAMETERS</div>
+      <div class="slider-group"><div class="slider-header"><span>On-axis q&#8320;</span><span class="slider-value" id="val-q0">0.90</span></div><input type="range" id="sl-q0" min="0.5" max="2.0" step="0.01" value="0.9"><div class="slider-tooltip">On-axis safety factor. q&#8320; &lt; 1 &rarr; kink instability.</div></div>
+      <div class="slider-group"><div class="slider-header"><span>Edge q<sub>edge</sub></span><span class="slider-value" id="val-qedge">3.50</span></div><input type="range" id="sl-qedge" min="2.0" max="6.0" step="0.01" value="3.5"><div class="slider-tooltip">Edge safety factor. ITER targets &asymp; 3.</div></div>
+      <div class="slider-group"><div class="slider-header"><span>Plasma Beta &beta;</span><span class="slider-value" id="val-beta">0.015</span></div><input type="range" id="sl-beta" min="0.001" max="0.05" step="0.001" value="0.015"><div class="slider-tooltip">Pressure/magnetic pressure ratio. Higher &beta; approaches stability limit.</div></div>
+      <div class="slider-group"><div class="slider-header"><span>Pressure Peaking &alpha;</span><span class="slider-value" id="val-alpha">2.00</span></div><input type="range" id="sl-alpha" min="1.0" max="4.0" step="0.05" value="2.0"><div class="slider-tooltip">Profile shape. Higher = more concentrated core.</div></div>
+      <div class="slider-group"><div class="slider-header"><span>Lines / Surface</span><span class="slider-value" id="val-lines">4</span></div><input type="range" id="sl-lines" min="1" max="8" step="1" value="4"><div class="slider-tooltip">Field lines per flux surface.</div></div>
+      <div class="slider-group"><div class="slider-header"><span>Toroidal Circuits</span><span class="slider-value" id="val-circuits">3</span></div><input type="range" id="sl-circuits" min="1" max="6" step="1" value="3"><div class="slider-tooltip">Helical turns per field line.</div></div>
+    </div>
+    <div class="section"><div class="section-label">INSTABILITY MODES</div>
+      <button class="action-btn kink" id="btn-kink">&#9889; TRIGGER KINK (m=1) <span class="kbd">K</span></button>
+      <button class="action-btn sausage" id="btn-sausage">&#126; TRIGGER SAUSAGE (m=0) <span class="kbd">S</span></button>
+      <button class="action-btn balloon" id="btn-balloon">&#127880; TRIGGER BALLOONING <span class="kbd">B</span></button>
+    </div>
+    <div class="section">
+      <div class="control-row" style="margin-bottom:4px"><button class="control-btn" id="btn-pause">&#9654; PAUSE <span class="kbd">Space</span></button><button class="control-btn" id="btn-reset">&#128260; RESET <span class="kbd">R</span></button></div>
+      <div class="control-row"><button class="control-btn" id="btn-undo">&#8617; UNDO</button><button class="control-btn" id="btn-redo">&#8618; REDO</button></div>
+      <div class="control-row"><button class="control-btn" id="btn-screenshot">&#128247; SCREENSHOT <span class="kbd">P</span></button></div>
+    </div>
+    <div class="section"><div class="section-label">DISPLAY</div>
+      <div class="toggle-row on" data-key="showFluxSurfaces"><div class="toggle-check"></div><span>Flux Surfaces</span></div>
+      <div class="toggle-row on" data-key="showFieldLines"><div class="toggle-check"></div><span>Field Lines</span></div>
+      <div class="toggle-row on" data-key="showQProfile"><div class="toggle-check"></div><span>q-Profile Curve</span></div>
+      <div class="toggle-row on" data-key="showRationalSurfaces"><div class="toggle-check"></div><span>Rational Surfaces</span></div>
+      <div class="toggle-row on" data-key="autoRotate"><div class="toggle-check"></div><span>Auto-Rotate Camera</span></div>
+    </div>
+  </div>
+
+  <!-- Canvas -->
+  <div id="canvas-container"><div id="status-badge" class="confined">&#9673; CONFINED</div><div id="fps-counter">-- FPS</div></div>
+
+  <!-- Right Panel: Data -->
+  <div id="data-panel" class="panel">
+    <div class="panel-header">LIVE DATA</div>
+    <div class="section"><div class="section-label">PLASMA PARAMETERS</div>
+      <div class="data-row"><span class="data-label">q ON-AXIS</span><span class="data-val">q&#8320; = <span id="d-q0">0.90</span></span></div>
+      <div class="data-row"><span class="data-label">q EDGE</span><span class="data-val">q_a = <span id="d-qedge">3.50</span></span></div>
+      <div class="data-row"><span class="data-label">q=1 SURFACE</span><span class="data-val">r = <span id="d-q1">0.53</span><span id="d-q1-suf">a</span></span></div>
+      <div class="data-row"><span class="data-label">q=2 SURFACE</span><span class="data-val">r = <span id="d-q2">0.85</span><span id="d-q2-suf">a</span></span></div>
+      <div class="data-row"><span class="data-label">q=3 SURFACE</span><span class="data-val">r = <span id="d-q3">0.97</span><span id="d-q3-suf">a</span></span></div>
+    </div><hr class="data-divider">
+    <div class="section"><div class="section-label">STABILITY</div>
+      <div class="data-row"><span class="data-label">BETA</span><span class="data-val">&beta; = <span id="d-beta">1.50</span>%</span></div>
+      <div class="data-row"><span class="data-label">TROYON LIMIT</span><span class="data-val">&beta;<sub>N</sub> = <span id="d-troyon">3.10</span>%</span></div>
+      <div class="data-row"><span class="data-label">&beta; / &beta;<sub>crit</sub></span><span class="data-val highlight" id="d-ratio">0.48&times;</span></div>
+      <div id="beta-meter"><div id="beta-fill"></div></div>
+      <div class="data-row"><span class="data-label">KINK</span><span class="data-val" id="d-kink">&#9673; STABLE</span></div>
+      <div class="data-row"><span class="data-label">BALLOONING</span><span class="data-val" id="d-balloon">&#9673; STABLE</span></div>
+    </div><hr class="data-divider">
+    <div class="section"><div class="section-label">INSTABILITY</div>
+      <div class="data-row"><span class="data-label">ACTIVE MODE</span><span class="data-val" id="d-mode">NONE</span></div>
+      <div class="data-row"><span class="data-label">GROWTH RATE</span><span class="data-val">&gamma; = <span id="d-gamma">0.000</span></span></div>
+      <div class="data-row"><span class="data-label">PERTURBATION</span><span class="data-val">&xi; = <span id="d-xi">0.000</span></span></div>
+      <div class="data-row"><span class="data-label">STATUS</span><span class="data-val" id="d-status">&#9673; CONFINED</span></div>
+    </div><hr class="data-divider">
+    <div class="section"><div class="section-label">q-PROFILE</div><canvas id="q-chart" width="240" height="140"></canvas></div><hr class="data-divider">
+    <div class="section"><div class="section-label">RENDER</div>
+      <div class="data-row"><span class="data-label">FLUX SURFACES</span><span class="data-val" id="d-surfaces">8</span></div>
+      <div class="data-row"><span class="data-label">FIELD LINES</span><span class="data-val" id="d-fieldlines">32</span></div>
+      <div class="data-row"><span class="data-label">TRIANGLES</span><span class="data-val" id="d-triangles">--</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Bar -->
+<div id="bottom-bar"><p id="explanation-text">Plasma confined on nested toroidal flux surfaces. Field lines wind helically &mdash; <em>q(r)</em> measures turns per circuit. Stable: q &gt; 1 everywhere, &beta; below Troyon limit.</p></div>
+<div id="footer">Physics: Grad-Shafranov (1958) &middot; Troyon (1984) &middot; Wesson (1978) &middot; ITER Organization</div>
+
+<!-- Three.js CDN -->
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

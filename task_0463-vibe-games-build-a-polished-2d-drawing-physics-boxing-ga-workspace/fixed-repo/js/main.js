@@ -38,20 +38,16 @@ const RouteFeedback = {
 
   show() {
     document.getElementById('routeCheck')?.classList.remove('hidden');
-    this.reset();
   },
 
   hide() {
     document.getElementById('routeCheck')?.classList.add('hidden');
   },
 
-  reset() {
-    this.set('DRAW A ROUTE', 'idle');
-  },
-
   preview(path) {
-    const route = PathSys.smooth(path);
-    const hit = Collide.pathHitsAnyPlank(route, GameState.planks, GameState.t, W, H).hit;
+    const tail = path.slice(-2);
+    const hit = tail.length === 2
+      && Collide.pathHitsAnyPlank(tail, GameState.planks, GameState.t, W, H).hit;
     this.set(hit ? 'BLOCKED ROUTE' : 'CLEAR ROUTE', hit ? 'blocked' : 'clear');
     return !hit;
   },
@@ -60,9 +56,9 @@ window.RouteFeedback = RouteFeedback;
 
 // Pointer input
 function pPos(e) { const r = cv.getBoundingClientRect(); const ev = e.touches ? e.touches[0] : e; return { x: ev.clientX - r.left, y: ev.clientY - r.top }; }
-function onD(e) { e.preventDefault(); Audio.init(); if (GameState.state !== ST.DRAW) return; RouteFeedback.set('DRAWING ROUTE', 'drawing'); GameState.isDrawing = true; GameState.rawPath = [pPos(e)]; }
-function onM(e) { e.preventDefault(); if (!GameState.isDrawing || GameState.state !== ST.DRAW) return; const p = pPos(e), l = GameState.rawPath[GameState.rawPath.length - 1]; if (Math.hypot(p.x - l.x, p.y - l.y) > 5) { GameState.rawPath.push(p); RouteFeedback.preview(GameState.rawPath); Audio.play('draw'); } }
-function onU(e) { e.preventDefault(); if (!GameState.isDrawing || GameState.state !== ST.DRAW) return; GameState.isDrawing = false; if (GameState.rawPath.length >= 3) { if (RouteFeedback.preview(GameState.rawPath)) GameState.launch(); } else { GameState.rawPath = []; RouteFeedback.reset(); } }
+function onD(e) { e.preventDefault(); Audio.init(); if (GameState.state !== ST.DRAW) return; GameState.isDrawing = true; GameState.rawPath = [pPos(e)]; }
+function onM(e) { e.preventDefault(); if (!GameState.isDrawing || GameState.state !== ST.DRAW) return; const p = pPos(e), l = GameState.rawPath[GameState.rawPath.length - 1]; if (Math.hypot(p.x - l.x, p.y - l.y) > 5) { GameState.rawPath.push(p); Audio.play('draw'); } }
+function onU(e) { e.preventDefault(); if (!GameState.isDrawing || GameState.state !== ST.DRAW) return; GameState.isDrawing = false; if (GameState.rawPath.length >= 3) { RouteFeedback.preview(GameState.rawPath); GameState.launch(); } else GameState.rawPath = []; }
 cv.addEventListener('mousedown', onD); cv.addEventListener('mousemove', onM); cv.addEventListener('mouseup', onU); cv.addEventListener('mouseleave', onU);
 cv.addEventListener('touchstart', onD, { passive: false }); cv.addEventListener('touchmove', onM, { passive: false }); cv.addEventListener('touchend', onU, { passive: false });
 
