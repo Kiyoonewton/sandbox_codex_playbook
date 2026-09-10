@@ -28,11 +28,37 @@ document.addEventListener('keydown', e => {
     GameState.retry();
 });
 
+const RouteFeedback = {
+  set(message, state = 'idle') {
+    const card = document.getElementById('routeCheck');
+    if (!card) return;
+    card.dataset.state = state;
+    document.getElementById('routeMessage').textContent = message;
+  },
+
+  show() {
+    document.getElementById('routeCheck')?.classList.remove('hidden');
+  },
+
+  hide() {
+    document.getElementById('routeCheck')?.classList.add('hidden');
+  },
+
+  preview(path) {
+    const tail = path.slice(-2);
+    const hit = tail.length === 2
+      && Collide.pathHitsAnyPlank(tail, GameState.planks, GameState.t, W, H).hit;
+    this.set(hit ? 'BLOCKED ROUTE' : 'CLEAR ROUTE', hit ? 'blocked' : 'clear');
+    return !hit;
+  },
+};
+window.RouteFeedback = RouteFeedback;
+
 // Pointer input
 function pPos(e) { const r = cv.getBoundingClientRect(); const ev = e.touches ? e.touches[0] : e; return { x: ev.clientX - r.left, y: ev.clientY - r.top }; }
 function onD(e) { e.preventDefault(); Audio.init(); if (GameState.state !== ST.DRAW) return; GameState.isDrawing = true; GameState.rawPath = [pPos(e)]; }
 function onM(e) { e.preventDefault(); if (!GameState.isDrawing || GameState.state !== ST.DRAW) return; const p = pPos(e), l = GameState.rawPath[GameState.rawPath.length - 1]; if (Math.hypot(p.x - l.x, p.y - l.y) > 5) { GameState.rawPath.push(p); Audio.play('draw'); } }
-function onU(e) { e.preventDefault(); if (!GameState.isDrawing || GameState.state !== ST.DRAW) return; GameState.isDrawing = false; if (GameState.rawPath.length >= 3) GameState.launch(); else GameState.rawPath = []; }
+function onU(e) { e.preventDefault(); if (!GameState.isDrawing || GameState.state !== ST.DRAW) return; GameState.isDrawing = false; if (GameState.rawPath.length >= 3) { RouteFeedback.preview(GameState.rawPath); GameState.launch(); } else GameState.rawPath = []; }
 cv.addEventListener('mousedown', onD); cv.addEventListener('mousemove', onM); cv.addEventListener('mouseup', onU); cv.addEventListener('mouseleave', onU);
 cv.addEventListener('touchstart', onD, { passive: false }); cv.addEventListener('touchmove', onM, { passive: false }); cv.addEventListener('touchend', onU, { passive: false });
 
@@ -229,14 +255,27 @@ function loop(ts) {
     const cur = PathSys.point(GameState.smoothPath, GameState.punchT);
     const pk = Collide.gloveHitsAnyPlank(cur.x, cur.y, 14 * SC, GameState.planks, GameState.t, W, H);
     if (pk.hit) {
-      GameState.blocked(cur.x, cur.y, 'plank');
+      GameState.state = ST.LOSE;
+      Audio.play('block');
+      GameState.shakeT = 0.3;
+      GameState.shakeI = 8;
+      Particles.spawn(cur.x, cur.y, K.wood, 12, 3);
+      document.getElementById('failText').textContent = 'BLOCKED!';
+      document.getElementById('failText').style.color = K.wood;
+      document.getElementById('failSub').textContent = 'Back to Level 1 — one clean run!';
+      setTimeout(() => { if (GameState.state === ST.LOSE) document.getElementById('failOverlay').classList.remove('hidden'); }, 500);
+      GameState.punchT = 1;
     }
     if (GameState.punchT >= 0.92) {
       const end = PathSys.point(GameState.smoothPath, 1);
       if (Collide.gloveHitsRed(end.x, end.y, GameState.redB, SC)) {
         GameState.punchDone();
       } else if (GameState.punchT >= 1) {
-        GameState.blocked(end.x, end.y, 'miss');
+        GameState.state = ST.LOSE;
+        document.getElementById('failText').textContent = 'MISS!';
+        document.getElementById('failText').style.color = K.red;
+        document.getElementById('failSub').textContent = 'Almost — try a different path!';
+        setTimeout(() => { if (GameState.state === ST.LOSE) document.getElementById('failOverlay').classList.remove('hidden'); }, 500);
       }
     }
     if (GameState.state === ST.PUNCH) drawGlove();
