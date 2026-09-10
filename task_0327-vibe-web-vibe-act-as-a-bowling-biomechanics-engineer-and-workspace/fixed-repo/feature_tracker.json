@@ -1,0 +1,27 @@
+[
+  {
+    "name": "Layout & Grid Structure",
+    "status": "in_progress",
+    "notes": "Building 50/50 zero-gap CSS Grid with center axis toggle and bottom oil slider. Deep burgundy + gold palette with Teko/Barlow/Fira Code typography."
+  },
+  {
+    "name": "Widen left panel",
+    "status": "done",
+    "notes": "Changed grid from 1fr 1fr to 1.8fr 1fr \u2014 left panel now 65% of viewport"
+  },
+  {
+    "name": "Realistic CSS bowling pin shapes",
+    "status": "done",
+    "notes": "Added head circle, tapered neck, dual red stripes, belly ellipse, and base. Updated down-state and key-pin glow animations."
+  },
+  {
+    "name": "localStorage persistence",
+    "status": "in_progress",
+    "notes": "Save/restore pin state, handedness, oil level across sessions"
+  },
+  {
+    "name": "Undo/Redo system",
+    "status": "todo",
+    "notes": "Track pin toggle history, allow undo/redo with buttons"
+  }
+]

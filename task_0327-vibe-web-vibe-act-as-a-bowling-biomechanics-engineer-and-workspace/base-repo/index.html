@@ -1,0 +1,1913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3:6:9 Spare Conversion Matrix</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Barlow+Condensed:wght@300;400;500;600;700&family=Teko:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════════
+   DESIGN TOKENS — Precision Sports Instrument
+   Background: Deep midnight navy (#0A1628)
+   Surface: Muted slate-blue panels (#15233A)
+   Ink: Warm alabaster (#EDE4D4)
+   Primary: Athletic gold (#D4A843)
+   Secondary: Warm copper (#A67C52)
+   Pin-White: Pure #FFFFFF
+   Pin-Down: Dark slate (#2C3E50)
+   Danger: Deep crimson (#B5403A)
+   Success: Forest green (#5A8F6A)
+   ══════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0A1628;
+  --surface: #15233A;
+  --surface-alt: #1A2B45;
+  --surface-raised: #1E3250;
+  --ink: #EDE4D4;
+  --ink-dim: #8A9BB5;
+  --ink-faint: #556880;
+  --primary: #D4A843;
+  --primary-dim: #A68332;
+  --primary-glow: rgba(212, 168, 67, 0.25);
+  --secondary: #A67C52;
+  --danger: #B5403A;
+  --success: #5A8F6A;
+  --pin-stand: #FFFFFF;
+  --pin-down: #2C3E50;
+  --pin-glow: rgba(255, 255, 255, 0.4);
+  --grid-line: rgba(212, 168, 67, 0.08);
+  --transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Barlow Condensed', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── MAIN GRID: Asymmetric split — wide pin deck + telemetry ── */
+.app {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr;
+  grid-template-rows: 1fr auto;
+  height: 100vh;
+  width: 100vw;
+  gap: 0;
+}
+
+/* ── LEFT PANEL: Pin Deck ── */
+.panel-left {
+  grid-row: 1;
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  border-right: 1px solid var(--grid-line);
+  position: relative;
+  overflow: hidden;
+}
+
+.panel-left::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 39px,
+    var(--grid-line) 39px,
+    var(--grid-line) 40px
+  );
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.panel-left::after {
+  content: 'PIN DECK';
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+}
+
+/* ── CENTER DIVIDER ── */
+.center-divider {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 1px;
+  height: calc(100% - 52px);
+  background: linear-gradient(to bottom, transparent, var(--primary) 30%, var(--primary) 70%, transparent);
+  z-index: 5;
+}
+
+/* ── RIGHT PANEL: Telemetry ── */
+.panel-right {
+  grid-row: 1;
+  grid-column: 2;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: var(--bg);
+  position: relative;
+}
+
+.panel-right::after {
+  content: 'ADJUSTMENT MATRIX';
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+  z-index: 2;
+}
+
+/* ── BOTTOM BAR: Oil Slider ── */
+.panel-bottom {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  background: var(--surface);
+  border-top: 1px solid var(--grid-line);
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 52px;
+}
+
+.oil-section {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 16px;
+}
+
+.oil-section.left-oil {
+  justify-content: flex-end;
+  border-right: 1px solid var(--grid-line);
+}
+
+.oil-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  white-space: nowrap;
+}
+
+.oil-endpoints {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+  margin: 0 12px;
+}
+
+.oil-endpoint {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 36px;
+}
+
+.oil-endpoint:last-child {
+  text-align: right;
+}
+
+/* ── RANGE SLIDER ── */
+.slider-track {
+  flex: 1;
+  position: relative;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  margin: 0 8px;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(to right, var(--danger), var(--primary), var(--success));
+  outline: none;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 28px;
+  background: var(--ink);
+  border: 2px solid var(--primary);
+  border-radius: 0;
+  cursor: pointer;
+  transition: background var(--transition), box-shadow var(--transition);
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  background: var(--primary);
+  box-shadow: 0 0 12px var(--primary-glow);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 28px;
+  background: var(--ink);
+  border: 2px solid var(--primary);
+  border-radius: 0;
+  cursor: pointer;
+}
+
+/* ── HANDEDNESS TOGGLE ── */
+.handedness-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  height: 36px;
+  margin-bottom: 8px;
+}
+
+.hand-btn {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  background: var(--surface-alt);
+  color: var(--ink-faint);
+  border: 1px solid var(--grid-line);
+  padding: 0 20px;
+  height: 100%;
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hand-btn:first-child {
+  border-right: none;
+}
+
+.hand-btn.active {
+  background: var(--primary);
+  color: var(--bg);
+  border-color: var(--primary);
+}
+
+.hand-btn:hover:not(.active) {
+  background: var(--surface-raised);
+  color: var(--ink);
+}
+
+.hand-arrow {
+  display: inline-block;
+  font-size: 14px;
+  transition: transform var(--transition);
+}
+
+.hand-btn.active .hand-arrow {
+  transform: scale(1.2);
+}
+
+/* ── PIN DECK TRIANGLE ── */
+.pin-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding-top: 20px;
+  z-index: 5;
+}
+
+.pin-row {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  position: relative;
+}
+
+/* ── INDIVIDUAL PIN ── */
+.pin {
+  width: 70px;
+  height: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  cursor: pointer;
+  position: relative;
+  transition: all var(--transition);
+}
+
+/* ── Bowling Pin Shape ── */
+.pin-body {
+  position: relative;
+  width: 70px;
+  height: 110px;
+  transition: all 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.3));
+}
+
+/* Head (top round) */
+.pin-body::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--pin-stand);
+  z-index: 3;
+}
+
+/* Neck + Body (tapered column) */
+.pin-body::after {
+  content: '';
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 52px;
+  background: var(--pin-stand);
+  z-index: 2;
+  clip-path: polygon(
+    15% 0%,
+    85% 0%,
+    100% 50%,
+    100% 100%,
+    0% 100%,
+    0% 50%
+  );
+}
+
+/* Red stripes on neck — two thin bands like a real pin */
+.pin-stripe {
+  position: absolute;
+  top: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 22px;
+  height: 10px;
+  z-index: 4;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.pin-stripe::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #C0392B;
+  border-radius: 2px;
+}
+.pin-stripe::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #C0392B;
+  border-radius: 2px;
+}
+
+/* Wider belly base */
+.pin-belly {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 40px;
+  background: var(--pin-stand);
+  border-radius: 50%;
+  z-index: 1;
+  box-shadow: inset 0 -4px 8px rgba(0,0,0,0.06);
+}
+
+/* Base */
+.pin-base {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 12px;
+  background: var(--pin-stand);
+  border-radius: 0 0 6px 6px;
+  z-index: 1;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+/* Pin number label */
+.pin::after {
+  content: attr(data-pin);
+  position: absolute;
+  bottom: -4px;
+  font-family: 'Fira Code', monospace;
+  font-weight: 700;
+  font-size: 10px;
+  color: var(--ink-faint);
+  transition: color var(--transition);
+  z-index: 10;
+}
+
+.pin:hover .pin-body {
+  transform: scale(1.08);
+  filter: drop-shadow(0 6px 16px rgba(255,255,255,0.2));
+}
+
+.pin:hover::after {
+  color: var(--primary);
+}
+
+/* ── Standing pin: white pin body ── */
+.pin.standing .pin-body::before,
+.pin.standing .pin-body::after,
+.pin.standing .pin-belly,
+.pin.standing .pin-base {
+  background: var(--pin-stand);
+}
+.pin.standing .pin-body {
+  filter: drop-shadow(0 3px 6px rgba(0,0,0,0.3));
+}
+
+/* ── Down pin: knocked-over, dark, rotated ── */
+.pin.down .pin-body {
+  transform: rotate(90deg) scale(0.65);
+  opacity: 0.45;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.2));
+}
+.pin.down .pin-body::before,
+.pin.down .pin-body::after,
+.pin.down .pin-belly,
+.pin.down .pin-base {
+  background: var(--pin-down);
+}
+.pin.down .pin-stripe::before,
+.pin.down .pin-stripe::after {
+  background: #5A3A3A;
+  opacity: 0.5;
+}
+
+/* ── Key Pin highlight ── */
+.pin.key-pin .pin-body {
+  filter: drop-shadow(0 0 12px var(--primary-glow)) drop-shadow(0 3px 6px rgba(0,0,0,0.3));
+}
+.pin.key-pin .pin-body::before {
+  box-shadow: 0 0 8px var(--primary-glow);
+}
+.pin.key-pin .pin-body::after {
+  background: #FFF9E6;
+}
+.pin.key-pin::after {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+/* Pin row spacing */
+.pin-row[data-row="0"] { margin-bottom: 0; }
+.pin-row[data-row="1"] { margin-bottom: 0; }
+.pin-row[data-row="2"] { margin-bottom: 0; }
+.pin-row {
+  gap: 4px;
+}
+
+/* ── BOARD NUMBERS (left side of pin deck) ── */
+.board-numbers {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.board-num {
+  font-family: 'Fira Code', monospace;
+  font-size: 8px;
+  color: var(--ink-faint);
+  width: 14px;
+  text-align: right;
+  height: 11px;
+  line-height: 11px;
+}
+
+/* ── RIGHT SIDE: Telemetry Grid ── */
+.telemetry-grid {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 0;
+  padding: 0;
+}
+
+/* Key Pin Display */
+.keypin-display {
+  padding: 28px 20px 12px;
+  border-bottom: 1px solid var(--grid-line);
+}
+
+.keypin-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 4px;
+}
+
+.keypin-value {
+  font-family: 'Teko', sans-serif;
+  font-weight: 600;
+  font-size: 28px;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.keypin-value span {
+  font-size: 16px;
+  color: var(--ink-dim);
+  font-weight: 400;
+  margin-left: 8px;
+}
+
+/* Scenario Display */
+.scenario-display {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--grid-line);
+}
+
+.scenario-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 6px;
+}
+
+.standing-pins {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.standing-chip {
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 2px 6px;
+  border: 1px solid var(--grid-line);
+}
+
+.standing-chip.key {
+  background: var(--primary);
+  color: var(--bg);
+  border-color: var(--primary);
+}
+
+.scenario-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin-top: 6px;
+}
+
+/* ── THREE MASSIVE DATA POINTS ── */
+.data-points {
+  display: grid;
+  grid-template-rows: 1fr 1fr 1fr;
+  gap: 0;
+}
+
+.data-point {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--grid-line);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: background var(--transition);
+}
+
+.data-point:hover {
+  background: rgba(212, 168, 67, 0.04);
+}
+
+.data-point-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 2px;
+}
+
+.data-point-value {
+  font-family: 'Teko', sans-serif;
+  font-weight: 700;
+  font-size: 42px;
+  line-height: 1;
+  color: var(--ink);
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  transition: color var(--transition);
+}
+
+.data-point-value .unit {
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--ink-dim);
+  letter-spacing: 1px;
+}
+
+.data-point-value.highlight {
+  color: var(--primary);
+}
+
+.data-point-sub {
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  color: var(--ink-faint);
+  margin-top: 2px;
+}
+
+/* ── ADJUSTMENT TABLE ── */
+.adj-table-section {
+  padding: 12px 20px;
+}
+
+.adj-table-header {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--grid-line);
+}
+
+.adj-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.adj-table th {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  text-align: left;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--grid-line);
+}
+
+.adj-table td {
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  color: var(--ink-dim);
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(212,168,67,0.04);
+}
+
+.adj-table tr.active td {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.adj-table .pin-col {
+  font-weight: 700;
+  color: var(--ink);
+  width: 30px;
+}
+
+/* ── NO SPARE / ALL CLEAR STATES ── */
+.state-overlay {
+  display: none;
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--bg);
+  z-index: 10;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.state-overlay.visible {
+  display: flex;
+}
+
+.state-icon {
+  font-size: 40px;
+  margin-bottom: 4px;
+}
+
+.state-title {
+  font-family: 'Teko', sans-serif;
+  font-weight: 600;
+  font-size: 32px;
+  color: var(--ink);
+  letter-spacing: 2px;
+}
+
+.state-sub {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--ink-faint);
+  letter-spacing: 1px;
+}
+
+/* ── RESET BUTTON ── */
+.reset-btn {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  background: transparent;
+  color: var(--ink-faint);
+  border: 1px solid var(--grid-line);
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: all var(--transition);
+  z-index: 20;
+}
+
+.reset-btn:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: rgba(212,168,67,0.08);
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--surface-raised); }
+
+/* ── ANIMATIONS ── */
+@keyframes pinDown {
+  0% { transform: rotate(0deg) scale(1); opacity: 1; }
+  30% { transform: rotate(20deg) scale(1.05); }
+  60% { transform: rotate(60deg) scale(0.85); }
+  100% { transform: rotate(90deg) scale(0.65); opacity: 0.45; }
+}
+
+@keyframes pinUp {
+  0% { transform: rotate(90deg) scale(0.65); opacity: 0.45; }
+  40% { transform: rotate(-8deg) scale(1.04); }
+  70% { transform: rotate(3deg) scale(1.01); }
+  100% { transform: rotate(0deg) scale(1); opacity: 1; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { filter: drop-shadow(0 0 12px var(--primary-glow)) drop-shadow(0 3px 6px rgba(0,0,0,0.3)); }
+  50% { filter: drop-shadow(0 0 20px rgba(212, 168, 67, 0.5)) drop-shadow(0 3px 6px rgba(0,0,0,0.3)); }
+}
+
+.pin.key-pin .pin-body {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+.pin.animating-down .pin-body {
+  animation: pinDown 300ms ease-out forwards;
+}
+
+.pin.animating-up .pin-body {
+  animation: pinUp 300ms ease-out forwards;
+}
+
+/* ── OIL INDICATOR ── */
+.oil-indicator {
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--primary);
+  min-width: 40px;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+/* ── UNDO / REDO BUTTONS ── */
+.undo-redo-bar {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0;
+  z-index: 20;
+}
+
+.ur-btn {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  background: var(--surface-alt);
+  color: var(--ink-faint);
+  border: 1px solid var(--grid-line);
+  padding: 4px 14px;
+  cursor: pointer;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ur-btn:first-child { border-right: none; }
+
+.ur-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.ur-btn:not(:disabled):hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: rgba(212,168,67,0.08);
+}
+
+.ur-btn svg {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+
+/* ── SAVED STATE INDICATOR ── */
+.save-indicator {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 500;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--success);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.save-indicator.visible {
+  opacity: 1;
+}
+
+/* ── PRESET SCENARIO BUTTONS ── */
+.presets-section {
+  position: absolute;
+  bottom: 52px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: linear-gradient(to top, var(--surface) 60%, transparent);
+  z-index: 15;
+  flex-wrap: wrap;
+}
+
+.preset-btn {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  background: var(--surface-alt);
+  color: var(--ink-faint);
+  border: 1px solid var(--grid-line);
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+
+.preset-btn:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: rgba(212,168,67,0.08);
+}
+
+.preset-btn.active {
+  color: var(--bg);
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+/* ── LANE VISUALIZATION (bottom of pin deck) ── */
+.lane-visual {
+  position: absolute;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2px;
+  z-index: 10;
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+.lane-board {
+  width: 3px;
+  height: 30px;
+  background: var(--ink-faint);
+  border-radius: 1px;
+}
+
+.lane-board.target {
+  background: var(--primary);
+  opacity: 0.6;
+}
+
+/* ── TOOLTIP ── */
+.pin-tooltip {
+  position: fixed;
+  background: var(--surface-raised);
+  color: var(--ink);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  padding: 4px 8px;
+  border: 1px solid var(--primary);
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 150ms ease;
+  white-space: nowrap;
+}
+
+.pin-tooltip.visible {
+  opacity: 1;
+}
+
+/* ── RIGHT PANEL SCROLL ── */
+.panel-right {
+  overflow-y: auto;
+}
+
+/* ── MOBILE: STACKED LAYOUT ── */
+@media (max-width: 768px) {
+  html, body {
+    overflow: auto;
+  }
+
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    overflow-y: visible;
+    min-height: 100vh;
+    height: auto;
+  }
+
+  .panel-left {
+    grid-row: 1;
+    grid-column: 1;
+    min-height: auto;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--grid-line);
+    overflow: visible;
+    padding-bottom: 100px;
+  }
+
+  .panel-left .center-divider {
+    display: none;
+  }
+
+  .panel-right {
+    grid-row: 2;
+    grid-column: 1;
+    min-height: 50vh;
+  }
+
+  .panel-bottom {
+    grid-row: 3;
+    grid-column: 1;
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .oil-section.left-oil {
+    border-right: none;
+    justify-content: center;
+  }
+
+  .oil-section {
+    justify-content: center;
+    padding: 6px 12px;
+  }
+
+  .pin {
+    width: 50px;
+    height: 80px;
+  }
+
+  .pin-body {
+    width: 50px;
+    height: 80px;
+  }
+
+  .pin-body::before {
+    width: 18px;
+    height: 18px;
+  }
+
+  .pin-body::after {
+    top: 12px;
+    width: 12px;
+    height: 38px;
+  }
+
+  .pin-belly {
+    width: 26px;
+    height: 30px;
+    bottom: 6px;
+  }
+
+  .pin-base {
+    width: 24px;
+    height: 8px;
+  }
+
+  .pin-stripe {
+    top: 20px;
+    width: 16px;
+    height: 8px;
+  }
+
+  .pin-row {
+    gap: 3px;
+  }
+
+  .data-point-value {
+    font-size: 32px;
+  }
+
+  .presets-section {
+    position: relative;
+    bottom: auto;
+    background: var(--surface);
+  }
+
+  .hand-toggle-area {
+    position: relative !important;
+    bottom: auto !important;
+    padding: 8px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .pin {
+    width: 40px;
+    height: 64px;
+  }
+  .pin-body {
+    width: 40px;
+    height: 64px;
+  }
+  .pin-body::before {
+    width: 14px;
+    height: 14px;
+  }
+  .pin-body::after {
+    top: 10px;
+    width: 10px;
+    height: 30px;
+  }
+  .pin-belly {
+    width: 20px;
+    height: 24px;
+    bottom: 4px;
+  }
+  .pin-base {
+    width: 18px;
+    height: 6px;
+  }
+  .pin-stripe {
+    top: 16px;
+    width: 12px;
+    height: 6px;
+  }
+}
+
+/* ── FOCUS STATES for accessibility ── */
+.pin:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.hand-btn:focus-visible,
+.ur-btn:focus-visible,
+.preset-btn:focus-visible,
+.reset-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ── MICRO-INTERACTIONS ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.data-point {
+  animation: fadeIn 0.3s ease both;
+}
+
+.data-point:nth-child(2) { animation-delay: 0.05s; }
+.data-point:nth-child(3) { animation-delay: 0.1s; }
+
+/* ── LANE NUMBER MARKERS on left panel ── */
+.lane-markers {
+  position: absolute;
+  bottom: 95px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.lane-marker {
+  font-family: 'Fira Code', monospace;
+  font-size: 7px;
+  color: var(--ink-faint);
+  opacity: 0.3;
+  width: 7px;
+  text-align: center;
+}
+
+.lane-marker:nth-child(5n+1) {
+  opacity: 0.5;
+  color: var(--ink-dim);
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- LEFT PANEL: Pin Deck -->
+  <div class="panel-left" id="pinPanel">
+    <div class="center-divider"></div>
+
+    <div class="board-numbers" id="boardNums"></div>
+
+    <!-- Undo/Redo bar -->
+    <div class="undo-redo-bar">
+      <button class="ur-btn" id="undoBtn" onclick="undo()" disabled title="Undo last toggle">
+        <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05 1.04-6.83 2.73L3 8v8h8l-2.81-2.81C9.68 11.82 11.01 11 12.5 11c2.33 0 4.28 1.45 5.07 3.5l2.23-.84C18.78 10.39 15.91 8 12.5 8z"/></svg>
+        UNDO
+      </button>
+      <button class="ur-btn" id="redoBtn" onclick="redo()" disabled title="Redo last toggle">
+        REDO
+        <svg viewBox="0 0 24 24"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-3.41 0-6.28 2.39-7.26 5.66l2.23.84c.79-2.05 2.74-3.5 5.07-3.5 1.49 0 2.82.82 3.31 2.19L12 16h8V8l-1.6 2.6z"/></svg>
+      </button>
+    </div>
+
+    <!-- Save indicator -->
+    <div class="save-indicator" id="saveIndicator">✓ Saved</div>
+
+    <div class="hand-toggle-area" style="position:absolute;bottom:8px;left:0;right:0;display:flex;justify-content:center;z-index:20;">
+      <div class="handedness-bar">
+        <button class="hand-btn active" id="btnRight" onclick="setHand('right')">
+          <span class="hand-arrow">→</span> RIGHT
+        </button>
+        <button class="hand-btn" id="btnLeft" onclick="setHand('left')">
+          LEFT <span class="hand-arrow">←</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="pin-container" id="pinContainer"></div>
+
+    <!-- Preset Scenarios -->
+    <div class="presets-section" id="presetsBar">
+      <button class="preset-btn" data-preset="fullDeck" onclick="loadPreset('fullDeck')">Full Deck</button>
+      <button class="preset-btn" data-preset="single10" onclick="loadPreset('single10')">10-Pin</button>
+      <button class="preset-btn" data-preset="single7" onclick="loadPreset('single7')">7-Pin</button>
+      <button class="preset-btn" data-preset="split710" onclick="loadPreset('split710')">7-10 Split</button>
+      <button class="preset-btn" data-preset="babySplit" onclick="loadPreset('babySplit')">Baby Split</button>
+      <button class="preset-btn" data-preset="bigFour" onclick="loadPreset('bigFour')">Big Four</button>
+      <button class="preset-btn" data-preset="washout" onclick="loadPreset('washout')">Washout</button>
+      <button class="preset-btn" data-preset="GreekChurch" onclick="loadPreset('GreekChurch')">Greek Church</button>
+      <button class="preset-btn" data-preset="allClear" onclick="loadPreset('allClear')">All Clear</button>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL: Telemetry -->
+  <div class="panel-right" id="rightPanel">
+    <div class="state-overlay" id="stateOverlay">
+      <div class="state-icon">🎳</div>
+      <div class="state-title">SET YOUR SPARE</div>
+      <div class="state-sub">Click pins on the left to toggle them down</div>
+    </div>
+
+    <button class="reset-btn" id="resetBtn" onclick="resetAll()">↺ RESET</button>
+
+    <div class="telemetry-grid">
+      <!-- Key Pin Display -->
+      <div class="keypin-display">
+        <div class="keypin-label">Key Pin</div>
+        <div class="keypin-value" id="keypinValue">— <span>select pins</span></div>
+      </div>
+
+      <!-- Scenario -->
+      <div class="scenario-display">
+        <div class="scenario-label">Standing Pins</div>
+        <div class="standing-pins" id="standingPins"></div>
+        <div class="scenario-name" id="scenarioName"></div>
+      </div>
+
+      <!-- Three massive data points -->
+      <div class="data-points">
+        <div class="data-point">
+          <div class="data-point-label">Stand On Board</div>
+          <div class="data-point-value highlight" id="dpBoard">—</div>
+          <div class="data-point-sub" id="dpBoardSub">from strike position</div>
+        </div>
+        <div class="data-point">
+          <div class="data-point-label">Aim At Arrow</div>
+          <div class="data-point-value" id="dpArrow">—</div>
+          <div class="data-point-sub" id="dpArrowSub">lane targeting</div>
+        </div>
+        <div class="data-point">
+          <div class="data-point-label">Ball Trajectory Angle</div>
+          <div class="data-point-value" id="dpAngle">—</div>
+          <div class="data-point-sub" id="dpAngleSub">cross-lane angle</div>
+        </div>
+      </div>
+
+      <!-- Adjustment Reference Table -->
+      <div class="adj-table-section">
+        <div class="adj-table-header">3:6:9 Adjustment Reference</div>
+        <table class="adj-table" id="adjTable">
+          <thead>
+            <tr>
+              <th>Pin</th>
+              <th>Boards</th>
+              <th>Direction</th>
+              <th>Arrow</th>
+            </tr>
+          </thead>
+          <tbody id="adjTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM BAR: Oil Slider -->
+  <div class="panel-bottom">
+    <div class="oil-section left-oil">
+      <span class="oil-label">Lane Oil Depletion</span>
+      <div class="oil-endpoints">
+        <span class="oil-endpoint">Dry</span>
+        <div class="slider-track">
+          <input type="range" id="oilSlider" min="0" max="100" value="50" oninput="updateOil(this.value)">
+        </div>
+        <span class="oil-endpoint">Heavy</span>
+      </div>
+    </div>
+    <div class="oil-section" style="justify-content:flex-start;padding-left:0;">
+      <div class="oil-indicator" id="oilIndicator">MEDIUM</div>
+      <span class="oil-endpoint" id="oilOffset" style="margin-left:8px;color:var(--ink-faint);">Offset: 0 boards</span>
+    </div>
+  </div>
+</div>
+
+<!-- Tooltip -->
+<div class="pin-tooltip" id="pinTooltip"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════
+
+const state = {
+  pins: {
+    1: 'standing', 2: 'standing', 3: 'standing',
+    4: 'standing', 5: 'standing', 6: 'standing',
+    7: 'standing', 8: 'standing', 9: 'standing', 10: 'standing'
+  },
+  hand: 'right',     // 'right' or 'left'
+  oilValue: 50,       // 0=dry, 50=medium, 100=heavy
+  keyPin: null,
+};
+
+// ══════════════════════════════════════════════════════════════
+// UNDO / REDO SYSTEM
+// ══════════════════════════════════════════════════════════════
+const history = {
+  undoStack: [],
+  redoStack: [],
+  maxHistory: 50,
+};
+
+function pushHistory() {
+  history.undoStack.push(JSON.parse(JSON.stringify(state.pins)));
+  if (history.undoStack.length > history.maxHistory) history.undoStack.shift();
+  history.redoStack = [];
+  updateUndoRedoButtons();
+}
+
+function undo() {
+  if (history.undoStack.length === 0) return;
+  history.redoStack.push(JSON.parse(JSON.stringify(state.pins)));
+  state.pins = history.undoStack.pop();
+  updateUI();
+  updateUndoRedoButtons();
+  saveState();
+}
+
+function redo() {
+  if (history.redoStack.length === 0) return;
+  history.undoStack.push(JSON.parse(JSON.stringify(state.pins)));
+  state.pins = history.redoStack.pop();
+  updateUI();
+  updateUndoRedoButtons();
+  saveState();
+}
+
+function updateUndoRedoButtons() {
+  const undoBtn = document.getElementById('undoBtn');
+  const redoBtn = document.getElementById('redoBtn');
+  if (undoBtn) undoBtn.disabled = history.undoStack.length === 0;
+  if (redoBtn) redoBtn.disabled = history.redoStack.length === 0;
+}
+
+// ══════════════════════════════════════════════════════════════
+// PERSISTENCE (localStorage)
+// ══════════════════════════════════════════════════════════════
+const STORAGE_KEY = 'bowling-spare-matrix-v1';
+let saveTimer = null;
+
+function saveState() {
+  try {
+    const data = {
+      pins: state.pins,
+      hand: state.hand,
+      oilValue: state.oilValue,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    // Flash save indicator
+    const indicator = document.getElementById('saveIndicator');
+    if (indicator) {
+      indicator.classList.add('visible');
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => indicator.classList.remove('visible'), 1200);
+    }
+  } catch (e) { /* ignore */ }
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (data.pins) {
+      for (let k of Object.keys(data.pins)) {
+        state.pins[parseInt(k)] = data.pins[k];
+      }
+    }
+    if (data.hand) state.hand = data.hand;
+    if (data.oilValue !== undefined) state.oilValue = data.oilValue;
+    return true;
+  } catch (e) { return false; }
+}
+
+// ══════════════════════════════════════════════════════════════
+// PRESET SCENARIOS
+// ══════════════════════════════════════════════════════════════
+const PRESETS = {
+  fullDeck: { 1:'standing',2:'standing',3:'standing',4:'standing',5:'standing',6:'standing',7:'standing',8:'standing',9:'standing',10:'standing' },
+  allClear: { 1:'down',2:'down',3:'down',4:'down',5:'down',6:'down',7:'down',8:'down',9:'down',10:'down' },
+  single10: { 1:'down',2:'down',3:'down',4:'down',5:'down',6:'down',7:'down',8:'down',9:'down',10:'standing' },
+  single7:  { 1:'down',2:'down',3:'down',4:'down',5:'down',6:'down',7:'standing',8:'down',9:'down',10:'down' },
+  split710: { 1:'down',2:'down',3:'down',4:'down',5:'down',6:'down',7:'standing',8:'down',9:'down',10:'standing' },
+  babySplit:{ 1:'down',2:'down',3:'down',4:'standing',5:'down',6:'down',7:'down',8:'down',9:'standing',10:'down' },
+  bigFour:  { 1:'down',2:'down',3:'down',4:'standing',5:'down',6:'standing',7:'standing',8:'down',9:'down',10:'standing' },
+  washout:  { 1:'standing',2:'standing',3:'standing',4:'standing',5:'down',6:'standing',7:'down',8:'down',9:'down',10:'standing' },
+  GreekChurch:{ 1:'standing',2:'standing',3:'standing',4:'standing',5:'down',6:'standing',7:'down',8:'down',9:'down',10:'standing' },
+};
+
+function loadPreset(name) {
+  const preset = PRESETS[name];
+  if (!preset) return;
+  pushHistory();
+  for (let k of Object.keys(preset)) {
+    state.pins[parseInt(k)] = preset[k];
+  }
+  updateUI();
+  saveState();
+  highlightPreset(name);
+}
+
+function highlightPreset(name) {
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    const btnPreset = btn.getAttribute('data-preset');
+    btn.classList.toggle('active', btnPreset === name);
+  });
+}
+
+// Pin layout: row by row, left to right
+const PIN_ROWS = [
+  [1],
+  [2, 3],
+  [4, 5, 6],
+  [7, 8, 9, 10]
+];
+
+// Pin board positions (approximate, center = 0, each board ~1 inch)
+// Negative = left, Positive = right
+const PIN_BOARDS = {
+  1: 0, 2: -3, 3: 3,
+  4: -6, 5: 0, 6: 6,
+  7: -9, 8: -3, 9: 3, 10: 9
+};
+
+// Pin row order (closest to farthest from bowler)
+const PIN_ROW_ORDER = [1, 2, 3, 4]; // row indices
+const PIN_DISTANCE = { 1: 1, 2: 2, 3: 2, 4: 3, 5: 3, 6: 3, 7: 4, 8: 4, 9: 4, 10: 4 };
+
+// ══════════════════════════════════════════════════════════════
+// 3:6:9 ADJUSTMENT ENGINE
+// ══════════════════════════════════════════════════════════════
+
+// For right-handed bowler: ball enters from right, hooks left
+// To hit left-side pins: move RIGHT (open angle)
+// To hit right-side pins: move LEFT (open angle)
+const ADJUSTMENTS_RIGHT = {
+  // pin: { boards, direction }
+  1:  { boards: 0,  dir: 'center', arrow: 3 },
+  2:  { boards: 3,  dir: 'right',  arrow: 2 },
+  3:  { boards: 3,  dir: 'left',   arrow: 4 },
+  4:  { boards: 6,  dir: 'right',  arrow: 1 },
+  5:  { boards: 0,  dir: 'center', arrow: 3 },
+  6:  { boards: 6,  dir: 'left',   arrow: 5 },
+  7:  { boards: 9,  dir: 'right',  arrow: 1 },
+  8:  { boards: 9,  dir: 'right',  arrow: 2 },
+  9:  { boards: 9,  dir: 'left',   arrow: 5 },
+  10: { boards: 9,  dir: 'left',   arrow: 5 }
+};
+
+// Left-handed: mirror
+const ADJUSTMENTS_LEFT = {
+  1:  { boards: 0,  dir: 'center', arrow: 3 },
+  2:  { boards: 3,  dir: 'left',   arrow: 4 },
+  3:  { boards: 3,  dir: 'right',  arrow: 2 },
+  4:  { boards: 6,  dir: 'left',   arrow: 5 },
+  5:  { boards: 0,  dir: 'center', arrow: 3 },
+  6:  { boards: 6,  dir: 'right',  arrow: 1 },
+  7:  { boards: 9,  dir: 'left',   arrow: 5 },
+  8:  { boards: 9,  dir: 'left',   arrow: 4 },
+  9:  { boards: 9,  dir: 'right',  arrow: 2 },
+  10: { boards: 9,  dir: 'right',  arrow: 1 }
+};
+
+// Strike position (standard)
+const STRIKE_BOARD = 17; // board 17 is common strike position
+
+// Arrow positions (board numbers)
+const ARROW_BOARDS = { 1: 5, 2: 10, 3: 15, 4: 20, 5: 25 };
+const ARROW_NAMES = { 1: '1st', 2: '2nd', 3: '3rd', 4: '4th', 5: '5th' };
+
+// ══════════════════════════════════════════════════════════════
+// OIL PATTERN COMPENSATION
+// ══════════════════════════════════════════════════════════════
+
+function getOilOffset() {
+  // Oil value 0=dry, 50=medium, 100=heavy
+  // Dry: ball hooks MORE → need to stand further out (add boards away from center)
+  // Heavy: ball hooks LESS → stand closer to center
+  const normalized = (state.oilValue - 50) / 50; // -1 to +1
+  // Dry (-1): +2 boards offset (stand further)
+  // Heavy (+1): -2 boards offset (stand closer)
+  return Math.round(-normalized * 2.5 * 10) / 10;
+}
+
+function getOilLabel() {
+  if (state.oilValue < 25) return 'DRY';
+  if (state.oilValue < 40) return 'LIGHT';
+  if (state.oilValue < 60) return 'MEDIUM';
+  if (state.oilValue < 80) return 'HEAVY';
+  return 'WET';
+}
+
+// ══════════════════════════════════════════════════════════════
+// KEY PIN IDENTIFICATION
+// ══════════════════════════════════════════════════════════════
+
+function findKeyPin() {
+  // Key pin = closest standing pin to the bowler
+  let closest = null;
+  let minDist = Infinity;
+
+  for (let pin = 1; pin <= 10; pin++) {
+    if (state.pins[pin] === 'standing') {
+      const dist = PIN_DISTANCE[pin];
+      if (dist < minDist) {
+        minDist = dist;
+        closest = pin;
+      }
+    }
+  }
+  return closest;
+}
+
+// ══════════════════════════════════════════════════════════════
+// SCENARIO NAMING
+// ══════════════════════════════════════════════════════════════
+
+function getScenarioName(standingPins) {
+  const n = standingPins.length;
+  if (n === 0) return 'All Clear — No Spare Needed';
+  if (n === 10) return 'Full Deck — No Spare Attempted';
+  if (n === 1) {
+    const pin = standingPins[0];
+    const names = {
+      1: 'Head Pin Single', 2: '2-Pin Single', 3: '3-Pin Single',
+      4: '4-Pin Single', 5: '5-Pin Single', 6: '6-Pin Single',
+      7: '7-Pin (Left Corner)', 8: '8-Pin Single', 9: '9-Pin Single',
+      10: '10-Pin (Right Corner)'
+    };
+    return names[pin] || 'Single Pin';
+  }
+
+  // Check for splits
+  const leftPins = standingPins.filter(p => PIN_BOARDS[p] < 0);
+  const rightPins = standingPins.filter(p => PIN_BOARDS[p] > 0);
+  const centerPins = standingPins.filter(p => PIN_BOARDS[p] === 0);
+
+  // 7-10 split
+  if (standingPins.includes(7) && standingPins.includes(10) && n === 2) return '7-10 Split (Bedford)';
+  // 4-6 split
+  if (standingPins.includes(4) && standingPins.includes(6) && n === 2) return '4-6 Split';
+  // Big Four
+  if (standingPins.includes(4) && standingPins.includes(6) && standingPins.includes(7) && standingPins.includes(10)) return 'Big Four (4-6-7-10)';
+
+  if (leftPins.length > 0 && rightPins.length > 0) {
+    return `Split — ${n} Pins Remaining`;
+  }
+  if (leftPins.length > 0) return `${n}-Count (Left Side)`;
+  if (rightPins.length > 0) return `${n}-Count (Right Side)`;
+  return `${n}-Count Remaining`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════════════════
+
+function buildPinDeck() {
+  const container = document.getElementById('pinContainer');
+  container.innerHTML = '';
+
+  PIN_ROWS.forEach((row, rowIdx) => {
+    const rowEl = document.createElement('div');
+    rowEl.className = 'pin-row';
+    rowEl.setAttribute('data-row', rowIdx);
+
+    row.forEach(pinNum => {
+      const pin = document.createElement('div');
+      pin.className = `pin ${state.pins[pinNum]}`;
+      pin.setAttribute('data-pin', pinNum);
+      pin.id = `pin-${pinNum}`;
+      pin.onclick = () => togglePin(pinNum);
+
+      const body = document.createElement('div');
+      body.className = 'pin-body';
+
+      const stripe = document.createElement('div');
+      stripe.className = 'pin-stripe';
+      body.appendChild(stripe);
+
+      const belly = document.createElement('div');
+      belly.className = 'pin-belly';
+      body.appendChild(belly);
+
+      const base = document.createElement('div');
+      base.className = 'pin-base';
+      body.appendChild(base);
+
+      pin.appendChild(body);
+
+      rowEl.appendChild(pin);
+    });
+
+    container.appendChild(rowEl);
+  });
+}
+
+function buildBoardNumbers() {
+  const container = document.getElementById('boardNums');
+  container.innerHTML = '';
+  for (let b = 5; b <= 35; b += 5) {
+    const el = document.createElement('div');
+    el.className = 'board-num';
+    el.textContent = b;
+    container.appendChild(el);
+  }
+}
+
+function buildAdjTable() {
+  const tbody = document.getElementById('adjTableBody');
+  const adjTable = state.hand === 'right' ? ADJUSTMENTS_RIGHT : ADJUSTMENTS_LEFT;
+  tbody.innerHTML = '';
+
+  for (let pin = 1; pin <= 10; pin++) {
+    const adj = adjTable[pin];
+    const tr = document.createElement('tr');
+    tr.id = `adj-row-${pin}`;
+
+    const pinTd = document.createElement('td');
+    pinTd.className = 'pin-col';
+    pinTd.textContent = pin;
+
+    const boardsTd = document.createElement('td');
+    boardsTd.textContent = adj.boards === 0 ? '0' : `${adj.boards} boards`;
+
+    const dirTd = document.createElement('td');
+    dirTd.textContent = adj.dir.charAt(0).toUpperCase() + adj.dir.slice(1);
+
+    const arrowTd = document.createElement('td');
+    arrowTd.textContent = adj.arrow ? `${ARROW_NAMES[adj.arrow]} arrow` : '—';
+
+    tr.appendChild(pinTd);
+    tr.appendChild(boardsTd);
+    tr.appendChild(dirTd);
+    tr.appendChild(arrowTd);
+    tbody.appendChild(tr);
+  }
+}
+
+function updateUI() {
+  const standingPins = Object.keys(state.pins)
+    .filter(p => state.pins[p] === 'standing')
+    .map(Number)
+    .sort((a, b) => a - b);
+
+  const allDown = standingPins.length === 0;
+  const noneDown = standingPins.length === 10;
+  const showOverlay = allDown || noneDown;
+
+  // State overlay
+  const overlay = document.getElementById('stateOverlay');
+  if (showOverlay) {
+    overlay.classList.add('visible');
+    if (allDown) {
+      overlay.querySelector('.state-icon').textContent = '✓';
+      overlay.querySelector('.state-title').textContent = 'ALL CLEAR';
+      overlay.querySelector('.state-sub').textContent = 'No spare conversion needed';
+    } else {
+      overlay.querySelector('.state-icon').textContent = '🎳';
+      overlay.querySelector('.state-title').textContent = 'SET YOUR SPARE';
+      overlay.querySelector('.state-sub').textContent = 'Click pins on the left to toggle them down';
+    }
+  } else {
+    overlay.classList.remove('visible');
+  }
+
+  // Update pin visual states
+  for (let pin = 1; pin <= 10; pin++) {
+    const el = document.getElementById(`pin-${pin}`);
+    if (el) {
+      el.className = `pin ${state.pins[pin]}`;
+    }
+  }
+
+  // Find key pin
+  state.keyPin = findKeyPin();
+
+  // Update key pin highlight
+  document.querySelectorAll('.pin').forEach(p => p.classList.remove('key-pin'));
+  if (state.keyPin) {
+    const keyEl = document.getElementById(`pin-${state.keyPin}`);
+    if (keyEl) keyEl.classList.add('key-pin');
+  }
+
+  // Highlight active row in adjustment table
+  document.querySelectorAll('.adj-table tbody tr').forEach(r => r.classList.remove('active'));
+  if (state.keyPin) {
+    const adjRow = document.getElementById(`adj-row-${state.keyPin}`);
+    if (adjRow) adjRow.classList.add('active');
+  }
+
+  // Key pin display
+  const kpVal = document.getElementById('keypinValue');
+  if (state.keyPin) {
+    kpVal.innerHTML = `Pin ${state.keyPin} <span>key pin</span>`;
+  } else {
+    kpVal.innerHTML = '— <span>select pins</span>';
+  }
+
+  // Standing pins chips
+  const spContainer = document.getElementById('standingPins');
+  spContainer.innerHTML = '';
+  if (!showOverlay) {
+    standingPins.forEach(p => {
+      const chip = document.createElement('span');
+      chip.className = 'standing-chip' + (p === state.keyPin ? ' key' : '');
+      chip.textContent = p;
+      spContainer.appendChild(chip);
+    });
+  }
+
+  // Scenario name
+  document.getElementById('scenarioName').textContent =
+    showOverlay ? '' : getScenarioName(standingPins);
+
+  // Calculate adjustments
+  if (state.keyPin && !showOverlay) {
+    const adjTable = state.hand === 'right' ? ADJUSTMENTS_RIGHT : ADJUSTMENTS_LEFT;
+    const adj = adjTable[state.keyPin];
+    const oilOffset = getOilOffset();
+
+    // Stand board calculation
+    let standBoard;
+    if (adj.dir === 'center') {
+      standBoard = STRIKE_BOARD;
+    } else if (adj.dir === 'right') {
+      standBoard = STRIKE_BOARD + adj.boards;
+    } else {
+      standBoard = STRIKE_BOARD - adj.boards;
+    }
+
+    // Apply oil offset (always shifts away from center for dry, toward for heavy)
+    if (adj.dir === 'right') {
+      standBoard += oilOffset;
+    } else if (adj.dir === 'left') {
+      standBoard -= oilOffset;
+    } else {
+      standBoard += oilOffset; // center: default shift right for dry
+    }
+
+    standBoard = Math.max(1, Math.min(39, Math.round(standBoard * 10) / 10));
+
+    // Arrow
+    const arrowBoard = adj.arrow ? ARROW_BOARDS[adj.arrow] : 15;
+
+    // Ball trajectory angle
+    // Angle from standing position through arrow to pin
+    const pinBoard = PIN_BOARDS[state.keyPin];
+    const laneLength = 60; // feet
+    const arrowDist = 15; // feet to arrows
+    const totalDist = laneLength;
+    const boardWidth = 1.05; // inches per board
+    const lateralOffset = (pinBoard - standBoard) * boardWidth;
+    const angleRad = Math.atan2(lateralOffset, totalDist * 12); // inches
+    const angleDeg = Math.round(angleRad * (180 / Math.PI) * 100) / 100;
+
+    // Update data points
+    document.getElementById('dpBoard').textContent = standBoard.toFixed(1);
+    document.getElementById('dpBoardSub').textContent =
+      `${adj.dir === 'center' ? 'center' : adj.boards + ' boards ' + adj.dir}${oilOffset !== 0 ? ' · oil ±' + Math.abs(oilOffset).toFixed(1) : ''}`;
+
+    document.getElementById('dpArrow').innerHTML =
+      `${ARROW_NAMES[adj.arrow] || '3rd'} <span class="unit">arrow (${arrowBoard})</span>`;
+    document.getElementById('dpArrowSub').textContent =
+      `targeting board ${arrowBoard}`;
+
+    document.getElementById('dpAngle').innerHTML =
+      `${Math.abs(angleDeg).toFixed(1)}° <span class="unit">°</span>`;
+    document.getElementById('dpAngleSub').textContent =
+      `${angleDeg > 0 ? 'left-to-right' : angleDeg < 0 ? 'right-to-left' : 'straight'} cross-lane trajectory`;
+  } else {
+    document.getElementById('dpBoard').textContent = '—';
+    document.getElementById('dpBoardSub').textContent = 'from strike position';
+    document.getElementById('dpArrow').textContent = '—';
+    document.getElementById('dpArrowSub').textContent = 'lane targeting';
+    document.getElementById('dpAngle').textContent = '—';
+    document.getElementById('dpAngleSub').textContent = 'cross-lane angle';
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// INTERACTIONS
+// ══════════════════════════════════════════════════════════════
+
+function togglePin(pinNum) {
+  const el = document.getElementById(`pin-${pinNum}`);
+  const wasStanding = state.pins[pinNum] === 'standing';
+
+  pushHistory();
+  state.pins[pinNum] = wasStanding ? 'down' : 'standing';
+
+  // Animation class
+  if (el) {
+    el.classList.remove('animating-down', 'animating-up');
+    void el.offsetWidth; // reflow
+    el.classList.add(wasStanding ? 'animating-down' : 'animating-up');
+  }
+
+  updateUI();
+  saveState();
+}
+
+function setHand(hand) {
+  state.hand = hand;
+  document.getElementById('btnRight').classList.toggle('active', hand === 'right');
+  document.getElementById('btnLeft').classList.toggle('active', hand === 'left');
+  buildAdjTable();
+  updateUI();
+  saveState();
+}
+
+function updateOil(value) {
+  state.oilValue = parseInt(value);
+  document.getElementById('oilIndicator').textContent = getOilLabel();
+  const offset = getOilOffset();
+  document.getElementById('oilOffset').textContent =
+    `Offset: ${offset > 0 ? '+' : ''}${offset.toFixed(1)} boards`;
+  updateUI();
+  saveState();
+}
+
+function resetAll() {
+  pushHistory();
+  for (let pin = 1; pin <= 10; pin++) {
+    state.pins[pin] = 'standing';
+  }
+  updateUI();
+  saveState();
+}
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+
+// Load saved state if available
+const loaded = loadState();
+if (loaded) {
+  document.getElementById('btnRight').classList.toggle('active', state.hand === 'right');
+  document.getElementById('btnLeft').classList.toggle('active', state.hand === 'left');
+  document.getElementById('oilSlider').value = state.oilValue;
+  document.getElementById('oilIndicator').textContent = getOilLabel();
+  const offset = getOilOffset();
+  document.getElementById('oilOffset').textContent =
+    'Offset: ' + (offset > 0 ? '+' : '') + offset.toFixed(1) + ' boards';
+}
+
+buildPinDeck();
+buildBoardNumbers();
+buildAdjTable();
+updateUI();
+updateUndoRedoButtons();
+</script>
+</body>
+</html>
