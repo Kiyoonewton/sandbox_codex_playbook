@@ -91,6 +91,29 @@ test('[F2P] clearing every pin removes the previous board, arrow, and angle advi
   await expect(page.locator('#dpAngle')).toHaveText('—');
 });
 
+test('[F2P] the active spare plan keeps its targets and adjustment reference readable together', async ({ page }) => {
+  await boot(page);
+  await usePreset(page, 'split710');
+  await expect(page.locator('.shot-plan')).toBeVisible();
+  await expect(page.locator('#dpBoard')).toHaveText('26.0');
+  await expect(page.locator('#dpArrow')).toContainText('1st');
+  await expect(page.locator('#dpAngle')).not.toHaveText('—');
+
+  const tableFitsBesidePlan = await page.locator('#adj-row-10').evaluate(row => {
+    const panel = document.getElementById('rightPanel').getBoundingClientRect();
+    const rowBox = row.getBoundingClientRect();
+    return rowBox.top >= panel.top && rowBox.bottom <= panel.bottom;
+  });
+  expect(tableFitsBesidePlan).toBe(true);
+});
+
+test('[F2P] the matching adjustment row is visually separated from reference rows', async ({ page }) => {
+  await boot(page);
+  await usePreset(page, 'single7');
+  const colors = await page.locator('#adj-row-7 td').evaluateAll(cells => cells.map(cell => getComputedStyle(cell).backgroundColor));
+  expect(colors.some(color => color !== 'rgba(0, 0, 0, 0)' && color !== 'transparent')).toBe(true);
+});
+
 test('[F2P] applying a preset keeps the selected hand and oil condition', async ({ page }) => {
   await boot(page); await setHeavyLeft(page); await usePreset(page, 'split710');
   await expect(page.locator('#btnLeft')).toHaveClass(/active/);
