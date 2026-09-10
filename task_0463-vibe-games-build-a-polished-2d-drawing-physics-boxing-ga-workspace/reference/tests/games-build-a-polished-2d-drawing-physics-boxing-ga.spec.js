@@ -23,28 +23,62 @@ test('[P2P] no layout overflow (UI fits the viewport)', async ({ page }) => {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(2);
 });
-test('[F2P] After clearing levels and moving on, the trophy \'Best\' readout on screen shows a smaller number than the level you are', async ({ page }) => {
+test('[P2P] Play reveals usable Retry and Pause controls', async ({ page }) => {
+  await boot(page);
+  await page.getByRole('button', { name: /play/i }).click();
+  const controls = page.locator('#hudButtons');
+  await expect(controls).toBeVisible();
+  await expect(controls.getByRole('button', { name: /retry/i })).toBeVisible();
+  await expect(controls.getByRole('button', { name: /pause/i })).toBeVisible();
+});
+test('[F2P] a clean round records the current best level', async ({ page }) => {
   await boot(page);
   const v = await page.evaluate(async () => { localStorage.removeItem('dpMax'); GameState.maxLvl = 1; GameState.start(); const n = 1 + (crypto.getRandomValues(new Uint32Array(1))[0] % 5); const hit = () => { const ex = GameState.redB.x * innerWidth, ey = GameState.redB.y * innerHeight; GameState.smoothPath = [{x: ex - 80, y: ey}, {x: ex, y: ey}]; GameState.punchDone(); }; for (let i = 0; i < n; i++) { hit(); GameState.next(); } return GameState.lvl === 1 + n && GameState.maxLvl === GameState.lvl && +(localStorage.getItem('dpMax') || '1') === GameState.lvl; });
   expect(v).toEqual(true);
 });
-test('[F2P] After being sent back to the start and landing a clean punch, pressing continue drops you into a far later level instead', async ({ page }) => {
+test('[F2P] continuing after a start-over advances exactly one level', async ({ page }) => {
   await boot(page);
   const v = await page.evaluate(async () => { localStorage.removeItem('dpMax'); GameState.maxLvl = 1; GameState.start(); const k = 2 + (crypto.getRandomValues(new Uint32Array(1))[0] % 4); const hit = () => { const ex = GameState.redB.x * innerWidth, ey = GameState.redB.y * innerHeight; GameState.smoothPath = [{x: ex - 80, y: ey}, {x: ex, y: ey}]; GameState.punchDone(); }; for (let i = 0; i < k; i++) { hit(); GameState.next(); } const reached = GameState.lvl; GameState.goToLevel1(); const atOne = GameState.lvl === 1; hit(); GameState.next(); return atOne && reached === 1 + k && GameState.lvl === 2; });
   expect(v).toEqual(true);
 });
-test('[F2P] Once you have been sent back to the start, hitting retry throws you into a completely different, much harder level inste', async ({ page }) => {
+test('[F2P] Retry reloads the active level after a start-over', async ({ page }) => {
   await boot(page);
   const v = await page.evaluate(async () => { localStorage.removeItem('dpMax'); GameState.maxLvl = 1; GameState.start(); const k = 2 + (crypto.getRandomValues(new Uint32Array(1))[0] % 4); const hit = () => { const ex = GameState.redB.x * innerWidth, ey = GameState.redB.y * innerHeight; GameState.smoothPath = [{x: ex - 80, y: ey}, {x: ex, y: ey}]; GameState.punchDone(); }; for (let i = 0; i < k; i++) { hit(); GameState.next(); } GameState.goToLevel1(); GameState.retry(); const a = GameState.lvl; GameState.retry(); return a === 1 && GameState.lvl === 1; });
   expect(v).toEqual(true);
 });
-test('[F2P] As soon as play begins, the retry/pause controls sit past the right edge of the window and are cut off, so they cannot b', async ({ page }) => {
+test('[F2P] Retry and Pause remain fully inside the game window', async ({ page }) => {
   await boot(page);
   const v = await page.evaluate(async () => { localStorage.removeItem('dpMax'); GameState.maxLvl = 1; GameState.start(); const hb = document.getElementById('hudButtons').getBoundingClientRect(); return hb.width > 0 && hb.right <= innerWidth + 1 && hb.left >= -1 && hb.top >= -1 && hb.bottom <= innerHeight + 1; });
   expect(v).toEqual(true);
 });
-test('[F2P] After a start-over, the celebration banner announces a level number that is nothing like the one you just played.', async ({ page }) => {
+test('[F2P] the clear banner names the level that was just completed', async ({ page }) => {
   await boot(page);
   const v = await page.evaluate(async () => { localStorage.removeItem('dpMax'); GameState.maxLvl = 1; GameState.start(); const k = 2 + (crypto.getRandomValues(new Uint32Array(1))[0] % 4); const hit = () => { const ex = GameState.redB.x * innerWidth, ey = GameState.redB.y * innerHeight; GameState.smoothPath = [{x: ex - 80, y: ey}, {x: ex, y: ey}]; GameState.punchDone(); }; for (let i = 0; i < k; i++) { hit(); GameState.next(); } GameState.goToLevel1(); hit(); await new Promise(r => setTimeout(r, 1000)); return document.getElementById('lcText').textContent === 'LEVEL ' + GameState.lvl + ' CLEAR!'; });
+  expect(v).toEqual(true);
+});
+test('[F2P] replaying an earlier level does not lower Best progress', async ({ page }) => {
+  await boot(page);
+  const v = await page.evaluate(() => {
+    localStorage.removeItem('dpMax');
+    GameState.maxLvl = 1;
+    GameState.start();
+    const clearRound = () => {
+      const x = GameState.redB.x * innerWidth;
+      const y = GameState.redB.y * innerHeight;
+      GameState.smoothPath = [{ x: x - 80, y }, { x, y }];
+      GameState.punchDone();
+    };
+    clearRound();
+    GameState.next();
+    clearRound();
+    GameState.next();
+    const bestBeforeRestart = GameState.maxLvl;
+    GameState.goToLevel1();
+    clearRound();
+    return bestBeforeRestart === 3
+      && GameState.lvl === 1
+      && GameState.maxLvl === 3
+      && +(localStorage.getItem('dpMax') || '0') === 3;
+  });
   expect(v).toEqual(true);
 });
