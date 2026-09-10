@@ -30,6 +30,7 @@ const GameState = {
     this.isDrawing = false;
     Particles.clear();
     this.state = ST.DRAW;
+    window.RouteFeedback?.reset();
   },
 
   hideOvs() {
@@ -42,6 +43,7 @@ const GameState = {
     this.lvl = +(localStorage.getItem('dpMax') || '1');
     document.getElementById('titleScreen').classList.add('hidden');
     document.getElementById('hudButtons').classList.remove('hidden');
+    window.RouteFeedback?.show();
     this.loadLevel(this.lvl);
   },
 
@@ -49,6 +51,7 @@ const GameState = {
     Audio.init();
     this.hideOvs();
     document.getElementById('hudButtons').classList.remove('hidden');
+    window.RouteFeedback?.show();
     this.loadLevel(this.lvl);
   },
 
@@ -56,6 +59,7 @@ const GameState = {
     Audio.init();
     this.hideOvs();
     document.getElementById('hudButtons').classList.remove('hidden');
+    window.RouteFeedback?.show();
     this.lvl = 1;
     this.loadLevel(1);
   },
@@ -63,6 +67,7 @@ const GameState = {
   next() {
     Audio.init();
     this.hideOvs();
+    window.RouteFeedback?.show();
     this.lvl++;
     if (this.lvl > this.maxLvl) {
       this.maxLvl = this.lvl;
@@ -74,6 +79,7 @@ const GameState = {
   home() {
     this.hideOvs();
     document.getElementById('hudButtons').classList.add('hidden');
+    window.RouteFeedback?.hide();
     document.getElementById('titleScreen').classList.remove('hidden');
     this.state = ST.TITLE;
     this.planks = [];
