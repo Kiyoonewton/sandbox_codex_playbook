@@ -1451,6 +1451,13 @@ function loadPreset(name) {
   const preset = PRESETS[name];
   if (!preset) return;
   pushHistory();
+  // A preset currently replaces the entire lane setup instead of just its pin deck.
+  state.hand = 'right';
+  state.oilValue = 50;
+  document.getElementById('btnRight').classList.add('active');
+  document.getElementById('btnLeft').classList.remove('active');
+  document.getElementById('oilSlider').value = state.oilValue;
+  document.getElementById('oilIndicator').textContent = getOilLabel();
   for (let k of Object.keys(preset)) {
     state.pins[parseInt(k)] = preset[k];
   }

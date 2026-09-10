@@ -1320,7 +1320,7 @@ input[type="range"]::-moz-range-thumb {
       <div class="oil-endpoints">
         <span class="oil-endpoint">Dry</span>
         <div class="slider-track">
-          <input type="range" id="oilSlider" min="0" max="100" value="50" oninput="updateOil(this.value)">
+          <input type="range" id="oilSlider" min="0" max="100" value="50" oninput="previewOil(this.value)" onchange="commitOil(this.value)">
         </div>
         <span class="oil-endpoint">Heavy</span>
       </div>
@@ -1360,8 +1360,30 @@ const history = {
   maxHistory: 50,
 };
 
-function pushHistory() {
-  history.undoStack.push(JSON.parse(JSON.stringify(state.pins)));
+function clonePins(pins) {
+  return JSON.parse(JSON.stringify(pins));
+}
+
+function snapshotSetup() {
+  return {
+    pins: clonePins(state.pins),
+    hand: state.hand,
+    oilValue: state.oilValue,
+  };
+}
+
+function sameSetup(a, b) {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+function applySetup(snapshot) {
+  state.pins = clonePins(snapshot.pins);
+  state.hand = snapshot.hand;
+  state.oilValue = snapshot.oilValue;
+}
+
+function pushHistory(snapshot = snapshotSetup()) {
+  history.undoStack.push(snapshot);
   if (history.undoStack.length > history.maxHistory) history.undoStack.shift();
   history.redoStack = [];
   updateUndoRedoButtons();
@@ -1369,18 +1391,18 @@ function pushHistory() {
 
 function undo() {
   if (history.undoStack.length === 0) return;
-  history.redoStack.push(JSON.parse(JSON.stringify(state.pins)));
-  state.pins = history.undoStack.pop();
-  updateUI();
+  history.redoStack.push(snapshotSetup());
+  applySetup(history.undoStack.pop());
+  renderSetup();
   updateUndoRedoButtons();
   saveState();
 }
 
 function redo() {
   if (history.redoStack.length === 0) return;
-  history.undoStack.push(JSON.parse(JSON.stringify(state.pins)));
-  state.pins = history.redoStack.pop();
-  updateUI();
+  history.undoStack.push(snapshotSetup());
+  applySetup(history.redoStack.pop());
+  renderSetup();
   updateUndoRedoButtons();
   saveState();
 }
@@ -1401,9 +1423,12 @@ let saveTimer = null;
 function saveState() {
   try {
     const data = {
-      pins: state.pins,
-      hand: state.hand,
-      oilValue: state.oilValue,
+      version: 2,
+      setup: snapshotSetup(),
+      history: {
+        undoStack: history.undoStack,
+        redoStack: history.redoStack,
+      },
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     // Flash save indicator
@@ -1416,18 +1441,35 @@ function saveState() {
   } catch (e) { /* ignore */ }
 }
 
+function validSetup(candidate) {
+  if (!candidate || typeof candidate !== 'object' || !candidate.pins) return null;
+  const pins = {};
+  for (let pin = 1; pin <= 10; pin++) {
+    const status = candidate.pins[pin];
+    if (status !== 'standing' && status !== 'down') return null;
+    pins[pin] = status;
+  }
+  if (candidate.hand !== 'right' && candidate.hand !== 'left') return null;
+  const oilValue = Number(candidate.oilValue);
+  if (!Number.isFinite(oilValue) || oilValue < 0 || oilValue > 100) return null;
+  return { pins, hand: candidate.hand, oilValue };
+}
+
+function readHistory(items) {
+  if (!Array.isArray(items)) return [];
+  return items.map(validSetup).filter(Boolean).slice(-history.maxHistory);
+}
+
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return false;
     const data = JSON.parse(raw);
-    if (data.pins) {
-      for (let k of Object.keys(data.pins)) {
-        state.pins[parseInt(k)] = data.pins[k];
-      }
-    }
-    if (data.hand) state.hand = data.hand;
-    if (data.oilValue !== undefined) state.oilValue = data.oilValue;
+    const setup = validSetup(data.setup || data);
+    if (!setup) return false;
+    applySetup(setup);
+    history.undoStack = readHistory(data.history?.undoStack);
+    history.redoStack = readHistory(data.history?.redoStack);
     return true;
   } catch (e) { return false; }
 }
@@ -1444,7 +1486,7 @@ const PRESETS = {
   babySplit:{ 1:'down',2:'down',3:'down',4:'standing',5:'down',6:'down',7:'down',8:'down',9:'standing',10:'down' },
   bigFour:  { 1:'down',2:'down',3:'down',4:'standing',5:'down',6:'standing',7:'standing',8:'down',9:'down',10:'standing' },
   washout:  { 1:'standing',2:'standing',3:'standing',4:'standing',5:'down',6:'standing',7:'down',8:'down',9:'down',10:'standing' },
-  GreekChurch:{ 1:'down',2:'down',3:'down',4:'standing',5:'down',6:'standing',7:'standing',8:'down',9:'standing',10:'standing' },
+  GreekChurch:{ 1:'standing',2:'standing',3:'standing',4:'standing',5:'down',6:'standing',7:'down',8:'down',9:'down',10:'standing' },
 };
 
 function loadPreset(name) {
@@ -1823,7 +1865,7 @@ function updateUI() {
       `targeting board ${arrowBoard}`;
 
     document.getElementById('dpAngle').innerHTML =
-      `${Math.abs(angleDeg).toFixed(1)}°`;
+      `${Math.abs(angleDeg).toFixed(1)}° <span class="unit">°</span>`;
     document.getElementById('dpAngleSub').textContent =
       `${angleDeg > 0 ? 'left-to-right' : angleDeg < 0 ? 'right-to-left' : 'straight'} cross-lane trajectory`;
   } else {
@@ -1859,26 +1901,64 @@ function togglePin(pinNum) {
 }
 
 function setHand(hand) {
+  if (state.hand === hand) return;
+  pushHistory();
   state.hand = hand;
-  document.getElementById('btnRight').classList.toggle('active', hand === 'right');
-  document.getElementById('btnLeft').classList.toggle('active', hand === 'left');
-  buildAdjTable();
-  updateUI();
+  renderSetup();
   saveState();
 }
 
-function updateOil(value) {
-  state.oilValue = parseInt(value);
+function updateOilReadout() {
+  document.getElementById('oilSlider').value = state.oilValue;
   document.getElementById('oilIndicator').textContent = getOilLabel();
   const offset = getOilOffset();
   document.getElementById('oilOffset').textContent =
     `Offset: ${offset > 0 ? '+' : ''}${offset.toFixed(1)} boards`;
+}
+
+function previewOil(value) {
+  state.oilValue = parseInt(value);
+  updateUI();
+}
+
+function commitOil(value) {
+  const slider = document.getElementById('oilSlider');
+  const previous = Number(slider.dataset.committedValue ?? state.oilValue);
+  state.oilValue = parseInt(value);
+  if (previous === state.oilValue) return;
+  const before = snapshotSetup();
+  before.oilValue = previous;
+  pushHistory(before);
+  slider.dataset.committedValue = String(state.oilValue);
+  updateOilReadout();
   updateUI();
   saveState();
 }
 
 function resetAll() {
+  const defaults = {
+    pins: Object.fromEntries(Array.from({ length: 10 }, (_, index) => [index + 1, 'standing'])),
+    hand: 'right',
+    oilValue: 50,
+  };
+  if (sameSetup(snapshotSetup(), defaults)) return;
   pushHistory();
+  applySetup(defaults);
+  renderSetup();
+  saveState();
+}
+
+function renderSetup() {
+  document.getElementById('btnRight').classList.toggle('active', state.hand === 'right');
+  document.getElementById('btnLeft').classList.toggle('active', state.hand === 'left');
+  updateOilReadout();
+  document.getElementById('oilSlider').dataset.committedValue = String(state.oilValue);
+  buildAdjTable();
+  updateUI();
+}
+
+/* Legacy version kept the pin loop below; setup rendering now owns reset. */
+function resetPinsOnlyLegacy() {
   for (let pin = 1; pin <= 10; pin++) {
     state.pins[pin] = 'standing';
   }
@@ -1892,20 +1972,10 @@ function resetAll() {
 
 // Load saved state if available
 const loaded = loadState();
-if (loaded) {
-  document.getElementById('btnRight').classList.toggle('active', state.hand === 'right');
-  document.getElementById('btnLeft').classList.toggle('active', state.hand === 'left');
-  document.getElementById('oilSlider').value = state.oilValue;
-  document.getElementById('oilIndicator').textContent = getOilLabel();
-  const offset = getOilOffset();
-  document.getElementById('oilOffset').textContent =
-    'Offset: ' + (offset > 0 ? '+' : '') + offset.toFixed(1) + ' boards';
-}
 
 buildPinDeck();
 buildBoardNumbers();
-buildAdjTable();
-updateUI();
+renderSetup();
 updateUndoRedoButtons();
 </script>
 </body>
