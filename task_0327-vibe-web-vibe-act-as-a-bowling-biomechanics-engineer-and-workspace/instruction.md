@@ -17,3 +17,11 @@ The broken app currently looks like this:
 The expected app should look like this:
 
 <img src="/app/problem_assets/target.png" alt="expected app" width="900" />
+
+The split recommendation is also wrong in the current app:
+
+<img src="/app/problem_assets/broken-keypin.png" alt="broken 7-10 split recommendation" width="900" />
+
+The expected split recommendation should select the correct key pin and matching target:
+
+<img src="/app/problem_assets/target-keypin.png" alt="correct 7-10 split recommendation" width="900" />
