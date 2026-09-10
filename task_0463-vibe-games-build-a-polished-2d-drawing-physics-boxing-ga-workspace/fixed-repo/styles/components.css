@@ -1,0 +1,41 @@
+/* ============================================
+   DOODLE PUNCH — Component Styles
+   Overlays, buttons, HUD
+   ============================================ */
+.ov{position:fixed;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;transition:opacity .3s ease}
+.ov.hidden{opacity:0;pointer-events:none}
+#titleScreen{background:var(--paper);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:28px 28px}
+#pauseOverlay{background:rgba(255,254,245,.92);backdrop-filter:blur(4px)}
+#failOverlay{background:rgba(255,254,245,.9)}
+#levelCompleteOverlay{background:rgba(255,254,245,.88)}
+#victoryOverlay{background:rgba(255,254,245,.95)}
+.title-main{font-family:'Permanent Marker',cursive;font-size:clamp(48px,10vw,96px);color:var(--blue);text-shadow:3px 3px 0 var(--red),-1px -1px 0 var(--ink);letter-spacing:2px;transform:rotate(-2deg);margin-bottom:8px}
+.title-sub{font-family:'Caveat',cursive;font-size:clamp(16px,3vw,24px);color:var(--gray);margin-bottom:32px;max-width:500px;text-align:center;line-height:1.4}
+.title-instruction{font-family:'Patrick Hand',cursive;font-size:clamp(14px,2.5vw,20px);color:var(--ink);background:var(--yellow);padding:12px 24px;border-radius:12px;max-width:520px;text-align:center;line-height:1.5;margin-bottom:40px;border:2px solid var(--ink);transform:rotate(1deg);box-shadow:3px 3px 0 var(--gray)}
+.gbtn{font-family:'Permanent Marker',cursive;border:3px solid var(--ink);border-radius:12px;cursor:pointer;transition:all .12s ease;box-shadow:4px 4px 0 var(--ink);position:relative;outline:none;-webkit-tap-highlight-color:transparent}
+.gbtn:hover{transform:translateY(-2px);box-shadow:6px 6px 0 var(--ink)}
+.gbtn:active{transform:translateY(2px);box-shadow:1px 1px 0 var(--ink)}
+.btn-play{font-size:clamp(20px,4vw,32px);padding:14px 48px;background:var(--blue);color:#fff;transform:rotate(-1deg)}
+.btn-play:hover{transform:rotate(0deg) translateY(-2px)}
+.btn-secondary{font-size:clamp(16px,3vw,24px);padding:10px 32px;background:var(--paper);color:var(--ink)}
+.btn-restart{font-size:clamp(14px,2.5vw,20px);padding:8px 24px;background:var(--red);color:#fff}
+.btn-row{display:flex;gap:16px;margin-top:24px;flex-wrap:wrap;justify-content:center}
+.level-complete-text{font-family:'Permanent Marker',cursive;font-size:clamp(40px,8vw,72px);color:var(--green);text-shadow:2px 2px 0 var(--ink);animation:punchIn .5s ease-out}
+.victory-text{font-family:'Permanent Marker',cursive;font-size:clamp(36px,7vw,64px);color:var(--yellow);text-shadow:3px 3px 0 var(--red),-1px -1px 0 var(--ink);animation:punchIn .6s ease-out;margin-bottom:16px}
+.fail-text{font-family:'Permanent Marker',cursive;font-size:clamp(32px,6vw,56px);text-shadow:2px 2px 0 var(--ink);animation:punchIn .4s ease-out;margin-bottom:16px}
+@keyframes punchIn{0%{transform:scale(3) rotate(-10deg);opacity:0}60%{transform:scale(.9) rotate(2deg)}100%{transform:scale(1) rotate(-2deg);opacity:1}}
+#hudButtons{position:fixed;top:12px;right:12px;display:flex;gap:8px;z-index:50}
+#hudButtons.hidden{display:none}
+.route-check{position:fixed;left:50%;bottom:18px;z-index:50;display:flex;align-items:center;gap:9px;transform:translateX(-50%) rotate(-1deg);padding:8px 14px;border:2px solid var(--ink);border-radius:10px;background:var(--paper);box-shadow:3px 3px 0 var(--ink);font-family:'Patrick Hand',cursive;color:var(--ink)}
+.route-check.hidden{display:none}
+.route-kicker{font-size:13px;letter-spacing:1px;color:var(--gray)}
+.route-check strong{font-family:'Permanent Marker',cursive;font-size:18px;letter-spacing:.5px}
+.route-check[data-state="clear"]{background:#e3f7d8;border-color:var(--green)}
+.route-check[data-state="clear"] strong{color:var(--green)}
+.route-check[data-state="blocked"]{background:#ffe3dc;border-color:var(--red)}
+.route-check[data-state="blocked"] strong{color:var(--red)}
+.route-check[data-state="drawing"]{background:#dfeaff;border-color:var(--blue)}
+.route-check[data-state="drawing"] strong{color:var(--blue)}
+.hud-btn{font-family:'Patrick Hand',cursive;font-size:18px;padding:6px 14px;border:2px solid var(--ink);border-radius:8px;cursor:pointer;background:var(--paper);color:var(--ink);box-shadow:2px 2px 0 var(--ink);transition:all .1s;-webkit-tap-highlight-color:transparent}
+.hud-btn:hover{transform:translateY(-1px);box-shadow:3px 3px 0 var(--ink)}
+.hud-btn:active{transform:translateY(1px);box-shadow:0 0 0 var(--ink)}
