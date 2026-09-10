@@ -1,12 +1,12 @@
-# My saved bowling setup changes when I come back to it
+# The spare advice no longer follows the lane setup
 
-I set up a spare attempt by choosing the standing pins, my bowling hand, and an oil condition. Those settings should describe one lane setup. Instead, selecting a pin preset can silently change my hand and oil condition, even though I only asked it to change the pin deck. At the Heavy end of the oil slider, the indicator also gives a different condition from the label on the control.
+I use the pin deck, handedness control, and oil slider to work out a spare attempt. The recommendation panel needs to react to the setup I can see on screen, but several parts are telling different stories.
 
-Undo and Redo are not dependable once I leave the page. After I refresh, the buttons no longer represent the setup changes I just made. Reset only brings back the pins, so it does not truly return the whole setup to its default state; Undo after reset should restore the complete earlier setup.
+After changing a pin configuration by hand, an old preset can still look selected. For a split with two equally close pins, the highlighted key pin should be the lower numbered pin. Switching bowling hands should also update the matching direction in the adjustment table rather than leaving the old side displayed.
 
-Please keep a lane setup coherent. Presets should only change pins, a setup change should be undoable and redoable after refresh, and a new saved setup should replace an abandoned redo path. Reset should include pins, handedness, and oil condition. Invalid saved setup data must be ignored instead of leaving the controls in an impossible state.
+Oil changes should move the suggested standing board predictably and return it to its original value when the slider comes back to Medium. On a 7-pin spare for a right-handed bowler, Medium should start at board 26.0, Dry should move it to 28.5, and Heavy should move it to 23.5. The Heavy endpoint must visibly read **HEAVY**. When every pin is cleared, the old board, arrow, and angle must disappear instead of remaining as stale advice.
 
-The display should stay clear while doing this: a fully Heavy oil setting should read **HEAVY**, and the existing layout and interaction flow should remain intact.
+Keep the existing workspace and controls, but make the live recommendation consistent with the current pins, hand, and oil condition.
 
 The broken app currently looks like this:
 
