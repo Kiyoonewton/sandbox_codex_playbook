@@ -1,19 +1,15 @@
-# Level progress and the on-screen controls are broken
+# The route checker gives me bad advice
 
-## What you see
+I use the route card at the bottom of the game to decide whether a punch path is safe. It is not trustworthy. A line can pass straight through an earlier crate, end in open space, and still be labelled **Clear route**. Releasing that supposedly safe line then makes the game reject the punch.
 
-Playing DOODLE PUNCH, the trophy "Best" readout on screen doesn't keep up with how far I've actually got — it shows a lower level than the badge I'm currently playing, and that stale figure is the one the game seems to remember for next time. Things get really confusing after the game sends me back to the start: landing a clean punch and pressing continue dumps me into some far-off level rather than the one after the one I just cleared, and hitting retry throws me into a completely different, much harder level instead of reloading the level I'm on. The celebration banner joins in too, congratulating me on a level number that bears no relation to the one I just finished.
+The card also reacts too late. While I am still drawing, I need it to warn me as soon as the route becomes blocked. If a route is blocked, releasing it should leave me in drawing mode so I can correct it, rather than starting a failed punch. After I retry or move into the next round, the card must return to **Draw a route** instead of carrying the previous route's warning forward.
 
-On top of that, the moment play begins the retry and pause controls in the top corner are pushed off past the edge of the window and clipped, so I can't see them properly or reliably tap them.
+Keep the sketchy boxing game and drawing controls, but make the route card a clear, reliable part of planning a punch. It must remain readable inside the game window and use distinct states for drawing, clear, and blocked routes.
 
-## What correct looks like
+The broken game currently looks like this:
 
-The trophy readout should track the level I've actually reached and agree with the badge on screen, and that's what should be remembered between sessions. Continuing after a clean punch should always move me one level forward, retry should simply replay the level I'm on, and the celebration message should name the level I really just cleared. The retry and pause controls should sit neatly inside the corner of the window, fully visible and easy to tap.
+<img src="/app/problem_assets/broken.png" alt="a route marked clear despite crossing a crate" width="900" />
 
-The broken app currently looks like this:
+The corrected game should look like this:
 
-<img src="/app/problem_assets/broken.png" alt="current (broken) app" width="900" />
-
-The expected app should look like this:
-
-<img src="/app/problem_assets/target.png" alt="expected app" width="900" />
+<img src="/app/problem_assets/target.png" alt="a blocked route reported before release" width="900" />
