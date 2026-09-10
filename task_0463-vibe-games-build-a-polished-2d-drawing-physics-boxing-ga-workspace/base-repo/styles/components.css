@@ -26,6 +26,16 @@
 @keyframes punchIn{0%{transform:scale(3) rotate(-10deg);opacity:0}60%{transform:scale(.9) rotate(2deg)}100%{transform:scale(1) rotate(-2deg);opacity:1}}
 #hudButtons{position:fixed;top:12px;right:12px;display:flex;gap:8px;z-index:50}
 #hudButtons.hidden{display:none}
+.route-check{position:fixed;left:50%;bottom:18px;z-index:50;display:flex;align-items:center;gap:9px;transform:translateX(-50%) rotate(-1deg);padding:8px 14px;border:2px solid var(--ink);border-radius:10px;background:var(--paper);box-shadow:3px 3px 0 var(--ink);font-family:'Patrick Hand',cursive;color:var(--ink)}
+.route-check.hidden{display:none}
+.route-kicker{font-size:13px;letter-spacing:1px;color:var(--gray)}
+.route-check strong{font-family:'Permanent Marker',cursive;font-size:18px;letter-spacing:.5px}
+.route-check[data-state="clear"]{background:#e3f7d8;border-color:var(--green)}
+.route-check[data-state="clear"] strong{color:var(--green)}
+.route-check[data-state="blocked"]{background:#ffe3dc;border-color:var(--red)}
+.route-check[data-state="blocked"] strong{color:var(--red)}
+.route-check[data-state="drawing"]{background:#dfeaff;border-color:var(--blue)}
+.route-check[data-state="drawing"] strong{color:var(--blue)}
 .hud-btn{font-family:'Patrick Hand',cursive;font-size:18px;padding:6px 14px;border:2px solid var(--ink);border-radius:8px;cursor:pointer;background:var(--paper);color:var(--ink);box-shadow:2px 2px 0 var(--ink);transition:all .1s;-webkit-tap-highlight-color:transparent}
 .hud-btn:hover{transform:translateY(-1px);box-shadow:3px 3px 0 var(--ink)}
 .hud-btn:active{transform:translateY(1px);box-shadow:0 0 0 var(--ink)}
