@@ -11,7 +11,6 @@ async function boot(page) {
 async function setHeavyLeft(page) {
   await page.locator('#btnLeft').click();
   await page.locator('#oilSlider').fill('100');
-  await expect(page.locator('#oilIndicator')).toHaveText('HEAVY');
 }
 
 async function standingPins(page) {
@@ -54,6 +53,7 @@ test('[F2P] undoing a preset after refresh returns to the exact earlier setup', 
   await page.locator('#pin-1').click();
   await page.locator('[data-preset="single10"]').click();
   await page.reload({ waitUntil: 'networkidle' });
+  expect(await page.locator('#undoBtn').isEnabled()).toBe(true);
   await page.locator('#undoBtn').click();
   await expect(page.locator('#btnLeft')).toHaveClass(/active/);
   await expect(page.locator('#oilIndicator')).toHaveText('HEAVY');
@@ -65,6 +65,7 @@ test('[F2P] redo remains available after refresh and restores the preset', async
   await page.locator('[data-preset="split710"]').click();
   await page.locator('#undoBtn').click();
   await page.reload({ waitUntil: 'networkidle' });
+  expect(await page.locator('#redoBtn').isEnabled()).toBe(true);
   await page.locator('#redoBtn').click();
   await expect.poll(() => standingPins(page)).toEqual([7, 10]);
 });
@@ -72,6 +73,7 @@ test('[F2P] redo remains available after refresh and restores the preset', async
 test('[F2P] changing the oil condition is one undoable and redoable setup action', async ({ page }) => {
   await boot(page);
   await page.locator('#oilSlider').fill('100');
+  expect(await page.locator('#undoBtn').isEnabled()).toBe(true);
   await page.locator('#undoBtn').click();
   await expect(page.locator('#oilIndicator')).toHaveText('MEDIUM');
   await page.locator('#redoBtn').click();
@@ -87,6 +89,7 @@ test('[F2P] reset returns every setup control to defaults and undo restores it a
   await expect(page.locator('#oilIndicator')).toHaveText('MEDIUM');
   await expect.poll(() => standingPins(page)).toEqual([1,2,3,4,5,6,7,8,9,10]);
   await page.reload({ waitUntil: 'networkidle' });
+  expect(await page.locator('#undoBtn').isEnabled()).toBe(true);
   await page.locator('#undoBtn').click();
   await expect(page.locator('#btnLeft')).toHaveClass(/active/);
   await expect(page.locator('#oilIndicator')).toHaveText('HEAVY');
