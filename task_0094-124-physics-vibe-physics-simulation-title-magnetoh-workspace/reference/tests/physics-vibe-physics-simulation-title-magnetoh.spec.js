@@ -161,3 +161,57 @@ test("[F2P] The q=1/2/3 markers are drawn as thick full shells wrapped over the 
 
   expect(ok).toBe(true);
 });
+
+test('[F2P] the nested flux surfaces are not evenly spaced from the magnetic axis outward', async ({ page }) => {
+  await boot(page);
+  await waitReady(page);
+  const radii = await page.evaluate(() => window.__debugSurfaceRadii);
+  const unique = new Set(radii.map(r => r.toFixed(3)));
+  expect(radii.length).toBe(8);
+  expect(unique.size).toBe(8);
+});
+
+test('[F2P] the q=1/2/3 marker readouts disagree with the plasma parameters that produced them', async ({ page }) => {
+  await boot(page);
+  await waitReady(page);
+  await page.locator('.preset-btn[data-preset="iter"]').click();
+  await page.waitForTimeout(400);
+  const q2 = await readNum(page, '#d-q2');
+  const q3 = await readNum(page, '#d-q3');
+  // iter preset: q0=1.0, qedge=3.5 -> exact q=2 surface at r/a ~ 0.632,
+  // exact q=3 surface at r/a ~ 0.894 (solving q0 + (qedge-q0)*(r/a)^2 = q_target).
+  expect(Math.abs(q2 - 0.632)).toBeLessThan(0.01);
+  expect(Math.abs(q3 - 0.894)).toBeLessThan(0.01);
+});
+
+test('[F2P] the RENDER / TRIANGLES readout does not shrink for the small inner flux surfaces', async ({ page }) => {
+  await boot(page);
+  await waitReady(page);
+  // No field lines, isolates the flux-surface + scene-baseline cost.
+  await page.evaluate(() => {
+    const el = document.getElementById('sl-lines');
+    el.value = '0';
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await page.waitForTimeout(300);
+  const tris = await readNum(page, '#d-triangles');
+  // Uniform 48-segment tori on all 8 surfaces cost far more than a
+  // properly scaled level-of-detail scheme.
+  expect(tris).toBeLessThan(150000);
+});
+
+test('[F2P] the RENDER / TRIANGLES readout stays flat as the toroidal circuit count increases', async ({ page }) => {
+  await boot(page);
+  await waitReady(page);
+  const trisLow = await readNum(page, '#d-triangles');
+  await page.evaluate(() => {
+    const el = document.getElementById('sl-circuits');
+    el.value = '6';
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await page.waitForTimeout(500);
+  const trisHigh = await readNum(page, '#d-triangles');
+  // A field line drawn with more helical turns needs more geometry to stay
+  // smooth; the triangle count should grow noticeably, not stay flat.
+  expect(trisHigh).toBeGreaterThan(trisLow * 1.2);
+});

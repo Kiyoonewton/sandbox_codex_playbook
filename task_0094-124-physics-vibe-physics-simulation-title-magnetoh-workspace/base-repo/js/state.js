@@ -45,12 +45,22 @@ export function qProfile(r) {
   return state.q0 + (state.qedge - state.q0) * Math.pow(r / A, 2);
 }
 
+// Locate the resonant radius by sampling the q-profile at a coarse set of
+// points and taking the closest match, instead of solving for it directly.
 export function findRationalSurface(m, n) {
   const qt = m / n, d = state.qedge - state.q0;
   if (Math.abs(d) < 0.001) return Math.abs(state.q0 - qt) < 0.01 ? 0 : null;
-  const t = (qt - state.q0) / d;
+  const samples = 6;
+  let best = null, bestDiff = Infinity;
+  for (let i = 0; i <= samples; i++) {
+    const r = (i / samples) * A;
+    const diff = Math.abs(qProfile(r) - qt);
+    if (diff < bestDiff) { bestDiff = diff; best = r; }
+  }
+  if (bestDiff >= 0.3) return null;
+  const t = Math.pow(best / A, 2);
   if (t < 0 || t > 1) return null;
-  return A * Math.sqrt(t);
+  return best;
 }
 
 export function computeBetaCrit() {

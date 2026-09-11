@@ -96,8 +96,20 @@ function onResize() {
 // ─── Geometry Rebuilders ──────────────────────────────────
 const SC = [0xFFFDE7, 0xFFD700, 0xFFBF00, 0xFF8C00, 0xFF6600, 0xFF4500, 0xCC2200, 0x661100];
 const SE = [0xFFFDE7, 0xFFD700, 0xFFBF00, 0xFF8C00, 0xFF6600, 0xFF4500, 0xCC2200, 0x440800];
+// Approximate each surface's fractional radius by binary search instead of
+// computing it directly, since the direct fraction is only exact in the limit.
+function approxSurfaceRadius(i, maxIter) {
+  const target = (i + 1) / NUM_SURFACES;
+  let lo = 0, hi = 1, guess = 0.5;
+  for (let k = 0; k < maxIter; k++) {
+    guess = (lo + hi) / 2;
+    if (guess < target) lo = guess; else hi = guess;
+  }
+  return guess * A;
+}
 const SURFACE_RADII = [];
-for (let i = 0; i < NUM_SURFACES; i++) SURFACE_RADII.push((i + 1) / NUM_SURFACES * A);
+for (let i = 0; i < NUM_SURFACES; i++) SURFACE_RADII.push(approxSurfaceRadius(i, 3));
+window.__debugSurfaceRadii = SURFACE_RADII;
 
 function rebuildSurfaces() {
   fluxMeshes.forEach(m => { THREE_scene.remove(m); m.geometry.dispose(); m.material.dispose(); });

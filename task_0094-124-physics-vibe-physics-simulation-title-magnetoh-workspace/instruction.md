@@ -1,12 +1,10 @@
-# The 3D view feels bogged down
+# The plasma torus doesn't look right, and the readouts don't add up
 
-## What you see
+I turned off the field lines and rational surface markers to look at the plasma torus on its own, and it's clearly wrong. Instead of eight distinct rings nested inside each other, I can only make out about four — several of them are sitting right on top of each other instead of being evenly spaced from the center out to the edge.
 
-When I open the app, the rational surface markers show up as thick, heavy shells that wrap right over the flux surfaces, so everything looks cluttered and I can't really tell the shapes apart. Over in the RENDER panel on the right, the TRIANGLES readout is way higher than I'd expect for such a simple scene.
+The q=1/2/3 surface readouts in the right panel don't line up with the plasma settings either. With the default ITER preset, the numbers shown for where those surfaces actually sit are consistently off from what the on-axis and edge q values should produce.
 
-## What correct looks like
-
-I'd expect those markers to be light, simple rings sitting alongside the surfaces so I can still see what's underneath. And the TRIANGLES number in the RENDER panel should be a lot smaller, matching how little is actually being drawn.
+The TRIANGLES count in the RENDER panel is also way higher than it needs to be for how little detail the small inner rings actually need, and it doesn't grow properly when I turn up the toroidal circuits slider — the line detail should get noticeably heavier as I add more turns, but the count barely moves.
 
 The broken app currently looks like this:
 

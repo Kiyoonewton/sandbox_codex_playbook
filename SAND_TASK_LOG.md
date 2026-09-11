@@ -607,6 +607,95 @@ originally-flagged workflow anywhere in the archive.
 
 ---
 
+### task_0094 — MHD plasma torus (flux-surface geometry)
+
+**Status:** built via the CORRECTED PROCESS (see above), packaged 2026-09-11 as
+`task_0094-mhd-plasma-torus-geometry.tar.gz`, not yet submitted. This is the first
+task built end-to-end under the "author both sides deliberately" model rather than
+discovery-and-patch — and it took real back-and-forth with the user to actually
+follow it, logged here in full because the failure mode kept recurring mid-task.
+
+**What happened, honestly:** started by re-reading the task's own real base/fixed
+diff (FIX 1–4, labeled by the original author) line by line with the user to
+understand what a genuine "worse implementation in base, better implementation in
+fixed" pair actually looks like in practice — torus radial segments 48→4 (real
+geometry change, not a renamed variable), a brand-new `restoreAllGeometries()`
+wired into three distinct call sites, three interdependent constants (growth step,
+cap, disruption threshold) that all had to move together. Then repeatedly reverted
+to a clean baseline and re-attempted, because the first two tries still slipped
+back into discovery-and-patch: (1) six scattered, unrelated one-liners with no
+relationship to each other; (2) one real bug (toggle switches not resyncing after
+undo/redo) correctly found live in the existing shared code, but then the SAME bug
+copy-pasted across 5 different toggle keys instead of finding genuinely different
+situations — both reverted in full. The user then corrected the underlying model
+directly: Sand's own instructions explicitly require "add the bugs" / "write the
+corresponding fixes" — inventing is the literal job, not a workaround. The earlier
+"never invent, only find template-native bugs" rule (see CRITICAL CORRECTION above)
+was itself wrong and has a standing correction now. What actually distinguishes
+strong from weak invented bugs is EXECUTION — a real worse-vs-better implementation
+pair, not textbook shallow patterns copy-pasted across variable names.
+
+**Final design — two deliberate categories, confirmed explicitly with the user
+before implementing anything:**
+- **Type A (degrade something correct → plant in BASE, fixed keeps the original):**
+  - **A1**: `SURFACE_RADII` — direct O(1) fraction formula degraded to a
+    bounded-iteration (`maxIter=3`) binary search in base. Verified live: base
+    collapses 8 surfaces down to 4 unique radii (pairs land on the same value);
+    fixed produces 8 genuinely distinct, evenly-spaced radii. Not observable
+    through any existing DOM readout, so a small, identical `window.__debugSurfaceRadii`
+    hook was added to BOTH repos (confirmed with the user this is fine to keep
+    permanently, not something to strip before packaging).
+  - **A2**: `findRationalSurface(m,n)` — closed-form algebraic solve degraded to
+    a coarse 6-sample linear scan in base. Verified live via the app's own real
+    `#d-q1`/`#d-q2`/`#d-q3` readouts (no hook needed): on the ITER preset, base
+    gives q2=0.67/q3=0.83 vs fixed's exact q2=0.6325/q3=0.8944 — always present,
+    never null, consistently wrong by a measurable, non-trivial margin.
+- **Type B (write a genuinely better, more complex implementation → plant in
+  FIXED only, base stays at its current simpler level, unchanged):**
+  - **B1**: flux-surface torus radial segments — base keeps the current uniform
+    48 segments on all 8 surfaces; fixed adds real level-of-detail scaling
+    (8→48 segments, inner to outer) based on each surface's actual visual
+    weight. Verified live via the existing `#d-triangles` readout: base 299,008
+    vs fixed 224,256 at default settings — a genuine ~25% full-scene reduction,
+    not an arbitrary number swap.
+  - **B2**: field-line tube segments — base keeps a flat 400 segments regardless
+    of toroidal-circuit count; fixed scales segments with `state.toroidalCircuits`
+    to keep per-turn smoothness constant (matches the current default almost
+    exactly, so no regression at typical settings, but diverges sharply at high
+    circuit counts). Verified live: at `circuits=6`, base stays flat at 299,008
+    triangles, fixed correctly grows to 377,088.
+
+**Every one of the four was verified LIVE in the browser (via Playwright, with
+zero page errors) before any test was written — this discipline held for all four,
+unlike earlier sessions where numbers were sometimes assumed.**
+
+**Tests:** 6 F2P + 2 P2P = 8 total (exactly the platform floor). One test's first
+draft (`triangles < 90000` for an isolated-flux-surface scene) failed even on
+fixed on first run — re-measured the actual live number (fixed: 108,960, base:
+183,808) and corrected the bound to `< 150000`, sitting with real margin on both
+sides, rather than trusting the original hand-estimated threshold. Verified via
+official `test.sh` wrapper: Fixed → `reward: 1` (6/6 F2P, 2/2 P2P). Base →
+`reward: 0` (0/6 F2P, 2/2 P2P). The two ORIGINAL FIX-1 tests (triangle-cost math
+for rational-surface markers) also correctly started failing on base once A1/A2
+were planted, since those tests' math depends on `SURFACE_RADII`/
+`findRationalSurface` too — an honest, expected consequence of the new bugs being
+genuinely upstream, not a test-design problem.
+
+**Screenshot:** old `broken.png`/`target.png` (documenting only the original FIX 1)
+replaced with a new pair — flux surfaces isolated (field lines and rational-surface
+markers toggled off), ITER preset, identical camera/state on both sides. Base
+visibly shows ~4 collapsed/overlapping ring bands instead of 8 evenly-spaced ones,
+AND the on-screen TRIANGLES number (299,008 vs 223,872) is visible in the same
+frame — one screenshot pair carries evidence for both the A1 visual defect and the
+B1 numeric defect at once.
+
+**Packaged** as `task_0094-mhd-plasma-torus-geometry.tar.gz`, archive-root
+structure, clean (verified via `tar -tzf | rg`), current snapshot ID
+`expert-work-997df2ae-f20c-4054-bbfb-fa941648890f`. Not yet submitted — no
+difficulty or originality result to report yet.
+
+---
+
 ## HOW THIS FILE GETS UPDATED
 
 Each time you tell me:

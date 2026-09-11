@@ -98,12 +98,20 @@ const SC = [0xFFFDE7, 0xFFD700, 0xFFBF00, 0xFF8C00, 0xFF6600, 0xFF4500, 0xCC2200
 const SE = [0xFFFDE7, 0xFFD700, 0xFFBF00, 0xFF8C00, 0xFF6600, 0xFF4500, 0xCC2200, 0x440800];
 const SURFACE_RADII = [];
 for (let i = 0; i < NUM_SURFACES; i++) SURFACE_RADII.push((i + 1) / NUM_SURFACES * A);
+window.__debugSurfaceRadii = SURFACE_RADII;
+
+// Radial segment count for a flux-surface torus, scaled by how visually
+// significant the surface is: the small inner surfaces need far fewer
+// segments to look smooth than the large outer ones.
+function surfaceRadialSegments(i) {
+  return Math.round(8 + (48 - 8) * (i / (NUM_SURFACES - 1)));
+}
 
 function rebuildSurfaces() {
   fluxMeshes.forEach(m => { THREE_scene.remove(m); m.geometry.dispose(); m.material.dispose(); });
   fluxMeshes = []; fluxOriginals = [];
   for (let i = 0; i < NUM_SURFACES; i++) {
-    const geo = new THREE.TorusGeometry(R0, SURFACE_RADII[i], 48, 128);
+    const geo = new THREE.TorusGeometry(R0, SURFACE_RADII[i], surfaceRadialSegments(i), 128);
     const mat = new THREE.MeshStandardMaterial({
       color: SC[i], emissive: SE[i], emissiveIntensity: 0.3 - i * 0.03,
       transparent: true, opacity: 0.15 - i * 0.012, side: THREE.DoubleSide, depthWrite: false,
@@ -130,7 +138,11 @@ function rebuildFieldLines() {
     for (let j = 0; j < lps; j++) {
       const pts = flPoints(rf, qv, state.toroidalCircuits, (j / lps) * 2 * Math.PI);
       const crv = new THREE.CatmullRomCurve3(pts, false, 'catmullrom', 0);
-      const geo = new THREE.TubeGeometry(crv, 400, 0.015, 6, false);
+      // Keep tube smoothness per helical turn constant instead of a flat
+      // segment count, so lines with more toroidal circuits don't get
+      // visibly coarser per turn.
+      const tubeSegments = Math.round(133 * state.toroidalCircuits);
+      const geo = new THREE.TubeGeometry(crv, tubeSegments, 0.015, 6, false);
       const mat = new THREE.MeshStandardMaterial({ color: 0xFFFFFF, emissive: 0xFFCC88, emissiveIntensity: 0.5, transparent: true, opacity: 0.7, depthWrite: false });
       const mesh = new THREE.Mesh(geo, mat);
       mesh.visible = state.showFieldLines;
